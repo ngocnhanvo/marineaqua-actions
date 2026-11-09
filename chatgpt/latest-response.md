@@ -25,3 +25,9 @@ Cấu hình đích: WC_URL_CLIENT=https://marine-aqua.io.vn, WC_URL=https://admi
 Chế độ code: auto-build
 Cổng ghi source: bypass
 Trạng thái: PARTIAL — chưa hoàn tất
+
+## Tiếp tục ngày 2026-11-09
+
+Đã sửa `.github/workflows/marineaqua-import-template.yml` ở commit `96cef74f6610454d028b40e1930b9e73392ab9ea`: import có thể chạy lại khi source đã nhập dở, và chỉ push tới nhánh staging `main` thay vì đẩy ngay sang `master`. Đã đọc lại file để xác minh. Không deploy production.
+
+Chưa xác minh import thành công; blocker đã được ghi nhận ở workflow run `42612706895` là thiếu secret `SOURCE_REPO_PAT`. Cần kiểm tra secret/quyền hiện tại và kết quả run mới, sau đó so sánh source, kiểm tra build/test trước khi xét đưa code hoàn chỉnh lên master.
