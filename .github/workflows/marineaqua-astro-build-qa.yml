@@ -27,7 +27,7 @@ jobs:
           ref: master
           token: ${{ secrets.SOURCE_REPO_PAT }}
           persist-credentials: false
-      # Validate latest Astro source and CMS data after source type corrections.
+      # Revalidate build with restored React route modules and WordPress types.
       - name: Verify source identity
         shell: bash
         run: |
