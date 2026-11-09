@@ -1,0 +1,40 @@
+name: Marine Aqua original website visual reference
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-reference-capture.yml'
+permissions:
+  contents: read
+concurrency:
+  group: marine-aqua-original-reference
+  cancel-in-progress: false
+jobs:
+  capture:
+    name: Capture original Marine Aqua desktop and mobile
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Playwright driver only
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Capture external public reference, read-only
+        run: node scripts/marineaqua-reference-capture.mjs
+      - name: Save screenshot and layout evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marine-aqua-original-reference
+          path: reference-evidence/
+          retention-days: 21
+          if-no-files-found: error
