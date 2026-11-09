@@ -27,7 +27,7 @@ jobs:
           ref: master
           token: ${{ secrets.SOURCE_REPO_PAT }}
           persist-credentials: false
-      # Validate current Marine Aqua ocean UI source without production deployment.
+      # Verify approved design on Astro master without deploying to hosting.
       - name: Verify source identity
         shell: bash
         run: |
