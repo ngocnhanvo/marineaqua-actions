@@ -96,5 +96,35 @@ jobs:
           except Exception as exc:
               print('MARINEAQUA_HTTP_MARKER error_class=' + type(exc).__name__)
           PY
+          python3 - <<'PY'
+          import hashlib, hmac, json, os, time
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError, URLError
+          body = json.dumps({'action':'check', 'host':'marine-aqua.io.vn',
+            'target':'/domains/marine-aqua.io.vn/public_html/', 'allow_override':False},
+            sort_keys=True, separators=(',', ':')).encode('utf-8')
+          now = str(int(time.time()))
+          token = os.environ.get('SOURCE_REPO_PAT', '')
+          if len(token) < 20:
+              raise SystemExit('MARINEAQUA_SIGNED_CHECK token_unavailable')
+          signature = hmac.new(token.encode(), now.encode()+b'\n'+body, hashlib.sha256).hexdigest()
+          req = Request('https://admin.marine-aqua.io.vn/marineaqua-unzip.php',
+            data=body, method='POST', headers={
+              'Content-Type':'application/json',
+              'X-Esc-Deploy-Timestamp':now,
+              'X-Esc-Deploy-Signature':signature})
+          try:
+              with urlopen(req, timeout=20) as response:
+                  data = json.loads(response.read(4096))
+                  approved = (response.status==200 and data.get('ok') is True
+                      and data.get('protocol')==2 and data.get('host')=='marine-aqua.io.vn'
+                      and data.get('target')=='/domains/marine-aqua.io.vn/public_html/')
+                  print('MARINEAQUA_SIGNED_CHECK http_status=' + str(response.status)
+                        + ' approved=' + str(approved))
+          except HTTPError as error:
+              print('MARINEAQUA_SIGNED_CHECK http_status=' + str(error.code) + ' approved=False')
+          except (URLError, ValueError, TimeoutError) as error:
+              print('MARINEAQUA_SIGNED_CHECK error_class=' + type(error).__name__)
+          PY
           python3 scripts/marineaqua-remote-unzip.py verify
           echo 'MARINEAQUA_BUILD_CONFIG signed_preflight=PASS mode=READ_ONLY'
