@@ -42,6 +42,38 @@ jobs:
           set -euo pipefail
           python3 -m py_compile scripts/marineaqua-php-ftps-audit.py
           python3 scripts/marineaqua-php-ftps-audit.py
+      - name: Read WordPress published frontend domain via public REST (READ ONLY)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from urllib.error import HTTPError, URLError
+          from urllib.request import Request, urlopen
+          from urllib.parse import urlsplit
+          url = 'https://admin.marine-aqua.io.vn/wp-json/wp/v2/thong-tin-chung?per_page=1&status=publish'
+          try:
+              with urlopen(Request(url, headers={'Accept':'application/json'}), timeout=20) as response:
+                  raw = response.read(100001)
+                  data = json.loads(raw)
+                  if not isinstance(data, list) or len(data) != 1:
+                      print('MARINEAQUA_CMS_DOMAIN result=NO_PUBLISHED_RECORD')
+                  else:
+                      item = data[0]
+                      acf = item.get('acf') if isinstance(item.get('acf'), dict) else {}
+                      meta = item.get('meta') if isinstance(item.get('meta'), dict) else {}
+                      domain = str(acf.get('domain') or meta.get('domain') or '').strip()
+                      parsed = urlsplit(domain if '://' in domain else 'https://' + domain)
+                      host = (parsed.hostname or '').lower()
+                      if host and len(host) <= 150 and all(ch.isalnum() or ch in '.-' for ch in host):
+                          print('MARINEAQUA_CMS_DOMAIN published_host=' + host + ' expected_match=' + str(host == 'marine-aqua.io.vn'))
+                      else:
+                          print('MARINEAQUA_CMS_DOMAIN result=DOMAIN_FIELD_UNAVAILABLE')
+          except HTTPError as error:
+              print('MARINEAQUA_CMS_DOMAIN http_status=' + str(error.code))
+          except (URLError, ValueError, TimeoutError) as error:
+              print('MARINEAQUA_CMS_DOMAIN error_class=' + type(error).__name__)
+          PY
       - name: Validate build origins and signed unzip preflight (READ ONLY)
         shell: bash
         env:
