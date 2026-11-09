@@ -50,5 +50,6 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Run Astro unit tests
         run: pnpm run test:run
+      # Validate current source after targeted TypeScript fixes.
       - name: Run Astro code checks
         run: pnpm run check
