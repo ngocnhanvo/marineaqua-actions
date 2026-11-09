@@ -50,6 +50,6 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Run Astro unit tests
         run: pnpm run test:run
-      # Verify updated marine visual tokens and presentation-only regression tests.
+      # Validate approved Marine Aqua design integration with local Quicksand, CMS-only menu and prices.
       - name: Run Astro code checks
         run: pnpm run check
