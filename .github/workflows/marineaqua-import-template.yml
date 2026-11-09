@@ -55,7 +55,7 @@ jobs:
           else
             test -d target/.git
           fi
-          rsync -a --exclude='/.git/' --exclude='/.env' --exclude='/.env.*' --exclude='*.sql' --exclude='*.sql.gz' --exclude='*.dump' --exclude='/wp-content/uploads/' --exclude='/wp-content/cache/' --exclude='/wp-content/upgrade/' --exclude='/wp-content/backups/' --exclude='/wp-content/ai1wm-backups/' --exclude='*.log' source/ target/
+          rsync -a --exclude='/.git/' --exclude='/.github/workflows/' --exclude='/.env' --exclude='/.env.*' --exclude='wp-config.php' --exclude='wp-config-*.php' --exclude='*.pem' --exclude='*.key' --exclude='*.p12' --exclude='*.sql' --exclude='*.sql.gz' --exclude='*.dump' --exclude='/wp-content/uploads/' --exclude='/wp-content/cache/' --exclude='/wp-content/upgrade/' --exclude='/wp-content/backups/' --exclude='/wp-content/ai1wm-backups/' --exclude='*.log' source/ target/
           python3 - <<'PY'
           import os,pathlib,json
           root=pathlib.Path('target')
@@ -94,6 +94,8 @@ jobs:
           (root/'README.md').write_text('# Marine Aqua — '+('Astro frontend' if part=='astro' else 'WordPress PHP backend')+'\n\nFrontend: https://marine-aqua.io.vn\nWordPress: https://admin.marine-aqua.io.vn\nProduction source branch: master\nEngineering rules: ngocnhanvo/knowledge main\n\nThis repository inherits its template code, not tenant data or secrets. Configure project-owned ENV_FILE / wp-config.php securely before deployment. PHP WordPress Build Website must target ngocnhanvo/marineaqua-actions. Source import alone never deploys production.\n')
           (root/'AGENTS.md').write_text('# Marine Aqua project instructions\n\nProject: marine-aqua.vn\nRepos: ngocnhanvo/marineaqua-astro, ngocnhanvo/marineaqua-php, ngocnhanvo/marineaqua-actions\nProduction code branch: master\nFollow ngocnhanvo/knowledge main. Never mix template tenant data, credentials, or deployment endpoints.\n')
           PY
+          test ! -e target/wp-config.php
+          test ! -e target/.env
           if [[ "$PART" == php ]]; then
             test -f target/wp-settings.php
             test ! -e target/esc-tool/template.sql.gz
