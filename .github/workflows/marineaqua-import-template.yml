@@ -51,9 +51,9 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$PART" == astro ]]; then
-            test ! -f target/package.json
+            test -d target/.git
           else
-            test ! -f target/wp-settings.php
+            test -d target/.git
           fi
           rsync -a --exclude='/.git/' --exclude='/.env' --exclude='/.env.*' --exclude='*.sql' --exclude='*.sql.gz' --exclude='*.dump' --exclude='/wp-content/uploads/' --exclude='/wp-content/cache/' --exclude='/wp-content/upgrade/' --exclude='/wp-content/backups/' --exclude='/wp-content/ai1wm-backups/' --exclude='*.log' source/ target/
           python3 - <<'PY'
@@ -102,7 +102,7 @@ jobs:
           else
             test -f target/package.json
           fi
-      - name: Commit to main and master with no force
+      - name: Commit imported source to staging main only
         working-directory: target
         run: |
           set -euo pipefail
@@ -111,4 +111,4 @@ jobs:
           git add -A
           if git diff --cached --quiet; then echo 'No changes'; exit 0; fi
           git commit -m "Import personalized Marine Aqua source"
-          git push origin HEAD:refs/heads/main HEAD:refs/heads/master
+          git push origin HEAD:refs/heads/main
