@@ -1,0 +1,114 @@
+name: Import Marine Aqua template source
+on:
+  push:
+    paths:
+      - .github/workflows/marineaqua-import-template.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: marine-aqua-template-import
+  cancel-in-progress: false
+jobs:
+  import:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - part: astro
+            source: template-astro
+            target: marineaqua-astro
+          - part: php
+            source: template-php
+            target: marineaqua-php
+    steps:
+      - name: Require scoped GitHub token
+        env:
+          SOURCE_REPO_PAT: ${{ secrets.SOURCE_REPO_PAT }}
+        run: test -n "$SOURCE_REPO_PAT" || { echo "::error::Missing SOURCE_REPO_PAT"; exit 1; }
+      - name: Read approved template master
+        uses: actions/checkout@v4
+        with:
+          repository: ngocnhanvo/${{ matrix.source }}
+          ref: master
+          token: ${{ secrets.SOURCE_REPO_PAT }}
+          persist-credentials: false
+          path: source
+      - name: Read target main
+        uses: actions/checkout@v4
+        with:
+          repository: ngocnhanvo/${{ matrix.target }}
+          ref: main
+          token: ${{ secrets.SOURCE_REPO_PAT }}
+          path: target
+      - name: Copy code, remove instance data, personalize source
+        shell: bash
+        env:
+          PART: ${{ matrix.part }}
+        run: |
+          set -euo pipefail
+          if [[ "$PART" == astro ]]; then
+            test ! -f target/package.json
+          else
+            test ! -f target/wp-settings.php
+          fi
+          rsync -a --exclude='/.git/' --exclude='/.env' --exclude='/.env.*' --exclude='*.sql' --exclude='*.sql.gz' --exclude='*.dump' --exclude='/wp-content/uploads/' --exclude='/wp-content/cache/' --exclude='/wp-content/upgrade/' --exclude='/wp-content/backups/' --exclude='/wp-content/ai1wm-backups/' --exclude='*.log' source/ target/
+          python3 - <<'PY'
+          import os,pathlib,json
+          root=pathlib.Path('target')
+          part=os.environ['PART']
+          mapping={
+            'ngocnhanvo/template-astro':'ngocnhanvo/marineaqua-astro',
+            'ngocnhanvo/template-php':'ngocnhanvo/marineaqua-php',
+            'ngocnhanvo/template-actions':'ngocnhanvo/marineaqua-actions',
+            'template-astro':'marineaqua-astro',
+            'template-php':'marineaqua-php',
+            'template-actions':'marineaqua-actions',
+            'template-unzip-v2.ready':'marineaqua-unzip-v2.ready',
+            'template-unzip.php':'marineaqua-unzip.php',
+            'template-image-delta.php':'marineaqua-image-delta.php',
+            'TEMPLATE_':'MARINEAQUA_'}
+          allowed={'.md','.txt','.json','.yml','.yaml','.mjs','.cjs','.js','.ts','.tsx','.astro','.php','.py','.sh','.xml','.html'}
+          for p in root.rglob('*'):
+            if not p.is_file() or p.suffix.lower() not in allowed:continue
+            rel=p.relative_to(root).as_posix()
+            if part=='php' and not (rel.startswith(('docs/','tests/','esc-tool/','wp-content/mu-plugins/','wp-content/plugins/esc-','wp-content/themes/')) or rel in ('README.md','template-unzip.php','template-image-delta.php')):continue
+            try:old=p.read_text(encoding='utf8')
+            except (UnicodeError,OSError):continue
+            new=old
+            for a,b in mapping.items():new=new.replace(a,b)
+            if new!=old:p.write_text(new,encoding='utf8')
+          for old,new in [('template-unzip.php','marineaqua-unzip.php'),('template-unzip-v2.ready','marineaqua-unzip-v2.ready'),('template-image-delta.php','marineaqua-image-delta.php')]:
+            p=root/old
+            if p.exists():p.rename(root/new)
+          if (root/'tests').exists():
+            for p in (root/'tests').glob('template-*'):p.rename(p.with_name(p.name.replace('template-','marineaqua-',1)))
+          if part=='astro':
+            p=root/'package.json'
+            d=json.loads(p.read_text());d['name']='marineaqua-astro';p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+            p=root/'.template-config.json'
+            if p.exists():p.write_text('{"slug":"marine-aqua"}\n')
+          (root/'README.md').write_text('# Marine Aqua — '+('Astro frontend' if part=='astro' else 'WordPress PHP backend')+'\n\nFrontend: https://marine-aqua.io.vn\nWordPress: https://admin.marine-aqua.io.vn\nProduction source branch: master\nEngineering rules: ngocnhanvo/knowledge main\n\nThis repository inherits its template code, not tenant data or secrets. Configure project-owned ENV_FILE / wp-config.php securely before deployment. PHP WordPress Build Website must target ngocnhanvo/marineaqua-actions. Source import alone never deploys production.\n')
+          (root/'AGENTS.md').write_text('# Marine Aqua project instructions\n\nProject: marine-aqua.vn\nRepos: ngocnhanvo/marineaqua-astro, ngocnhanvo/marineaqua-php, ngocnhanvo/marineaqua-actions\nProduction code branch: master\nFollow ngocnhanvo/knowledge main. Never mix template tenant data, credentials, or deployment endpoints.\n')
+          PY
+          if [[ "$PART" == php ]]; then
+            test -f target/wp-settings.php
+            test ! -e target/esc-tool/template.sql.gz
+            test ! -e target/esc-tool/template02.sql.gz
+            php -l target/marineaqua-unzip.php
+          else
+            test -f target/package.json
+          fi
+      - name: Commit to main and master with no force
+        working-directory: target
+        run: |
+          set -euo pipefail
+          git config user.name 'marine-aqua-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then echo 'No changes'; exit 0; fi
+          git commit -m "Import personalized Marine Aqua source"
+          git push origin HEAD:refs/heads/main HEAD:refs/heads/master
