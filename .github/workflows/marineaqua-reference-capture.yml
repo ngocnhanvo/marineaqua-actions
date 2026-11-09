@@ -28,6 +28,7 @@ jobs:
           node-version: '24'
       - name: Install Playwright driver only
         run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      # Include actual product prices and category labels in read-only evidence.
       - name: Capture external public reference, read-only
         run: node scripts/marineaqua-reference-capture.mjs
       - name: Save screenshot and layout evidence
