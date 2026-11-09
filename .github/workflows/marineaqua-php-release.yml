@@ -1,5 +1,9 @@
 name: Marine Aqua PHP deployment (manual opt-in)
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-php-release.yml'
   workflow_dispatch:
     inputs:
       confirm:
@@ -13,7 +17,10 @@ concurrency:
   cancel-in-progress: false
 jobs:
   wordpress-php:
-    if: github.repository == 'ngocnhanvo/marineaqua-actions' && inputs.confirm == 'DEPLOY_PHP'
+    if: >-
+      github.repository == 'ngocnhanvo/marineaqua-actions'
+      && ((github.event_name == 'workflow_dispatch' && inputs.confirm == 'DEPLOY_PHP')
+      || (github.event_name == 'push' && github.event.head_commit.message == 'Release corrected Marine Aqua PHP marker'))
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
