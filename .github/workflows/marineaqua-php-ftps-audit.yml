@@ -75,5 +75,26 @@ jobs:
           PY
           export ASTRO_FTP_TARGET=/domains/marine-aqua.io.vn/public_html/
           python3 -m py_compile scripts/marineaqua-remote-unzip.py
+          python3 - <<'PY'
+          import os
+          import urllib.error
+          import urllib.request
+          from urllib.parse import urlsplit
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  return None
+          opener = urllib.request.build_opener(NoRedirect)
+          url = 'https://admin.marine-aqua.io.vn/marineaqua-unzip-v2.ready'
+          expected = b'MARINEAQUA_ASTRO_UNZIP_PROTOCOL=2'
+          try:
+              with opener.open(urllib.request.Request(url, method='GET'), timeout=15) as response:
+                  body = response.read(2048)
+                  print('MARINEAQUA_HTTP_MARKER status=' + str(response.status)
+                        + ' bytes=' + str(len(body)) + ' marker_match=' + str(body.strip()==expected))
+          except urllib.error.HTTPError as exc:
+              print('MARINEAQUA_HTTP_MARKER status=' + str(exc.code) + ' marker_match=False')
+          except Exception as exc:
+              print('MARINEAQUA_HTTP_MARKER error_class=' + type(exc).__name__)
+          PY
           python3 scripts/marineaqua-remote-unzip.py verify
           echo 'MARINEAQUA_BUILD_CONFIG signed_preflight=PASS mode=READ_ONLY'
