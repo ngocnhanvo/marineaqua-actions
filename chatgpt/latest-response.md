@@ -2,8 +2,8 @@
 
 Project: marine-aqua.vn
 Actions: ngocnhanvo/marineaqua-actions (main)
-Astro: ngocnhanvo/marineaqua-astro (staging main, production source master)
-PHP: ngocnhanvo/marineaqua-php (staging main, production source master)
+Astro: ngocnhanvo/marineaqua-astro (source master)
+PHP: ngocnhanvo/marineaqua-php (source master)
 
 ## Verified repository state
 
@@ -16,12 +16,20 @@ PHP: ngocnhanvo/marineaqua-php (staging main, production source master)
 - Import workflow commit `1b47a56f53918d72f912058ddfdba303ce1f8e00` added exclusions for source workflows and common sensitive configuration/key files and checks for wp-config.php and .env.
 - No production deploy or full build/test/visual QA has been verified.
 
+## Branch correction (owner instruction, 2026-11-09)
+
+- Owner explicitly requires Astro and PHP source branches to be `master`. Previous use of `main` for staging was incorrect.
+- Verified master fast-forward without force: `marineaqua-astro/master` -> `3744f81567bb0a1835320844a763acae09314870` (6 commits ahead of old master); `marineaqua-php/master` -> `1c506a62e62f3e23413aba55df5ad8644e2aff09` (3 commits ahead of old master).
+- Confirmed `package.json` on Astro master and `wp-settings.php` on PHP master.
+- Import workflow commit `2d954da77bbc7da607ab3eefdc0770d87eac2f0b`: read/write app `master`, manual dispatch only; Actions repository itself remains `main`.
+- Old notes below about source absent on master are superseded by this correction. No production build/deploy was run. Full QA still pending.
+
 ## Next steps
 
 1. Inspect latest import workflow run and log for `1b47a56`, confirm both matrix jobs and token permissions; do not mistake a source commit for end-to-end QA.
 2. Compare source completeness against template branches, run Astro dependency/build/typecheck/tests and PHP syntax/integration/deploy-contract tests in isolated CI with sanitized environment.
 3. Review all copied identifiers, endpoints, content, assets, secrets, CI workflows, WordPress configuration, and template-specific branding; remediate with project-specific values.
-4. When verified, promote validated source from staging main to the designated master branches through a non-force process, then follow only existing production workflows with environment and rollout safeguards.
+4. Source is already on master after the owner's correction. Do not re-promote or reset refs; validate code and use existing production workflow only when environment and QA are ready.
 5. Keep this checkpoint current with commit/run IDs and actual test evidence.
 
 Chế độ code: auto-build
