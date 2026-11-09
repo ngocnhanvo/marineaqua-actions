@@ -27,7 +27,7 @@ jobs:
           ref: master
           token: ${{ secrets.SOURCE_REPO_PAT }}
           persist-credentials: false
-      # Revalidate Astro master after Contact_00 parser correction.
+      # Revalidate Astro master after missing translation import correction.
       - name: Verify source identity
         shell: bash
         run: |
