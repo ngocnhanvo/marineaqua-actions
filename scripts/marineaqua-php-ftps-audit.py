@@ -205,7 +205,7 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except (ftplib.all_errors, RuntimeError, OSError, ValueError, subprocess.TimeoutExpired) as exc:
+    except (*ftplib.all_errors, RuntimeError, OSError, ValueError, subprocess.TimeoutExpired) as exc:
         # Do not print exception message: some FTP servers echo credential-bearing URLs.
         print("MARINEAQUA_FTPS_AUDIT FAILED error_class=" + type(exc).__name__)
         raise SystemExit(1)
