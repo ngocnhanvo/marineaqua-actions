@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/marineaqua-php-ftps-audit.yml'
+      - 'scripts/marineaqua-php-ftps-audit.py'
 permissions:
   contents: read
 concurrency:
