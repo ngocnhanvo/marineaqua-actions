@@ -122,7 +122,19 @@ jobs:
                   print('MARINEAQUA_SIGNED_CHECK http_status=' + str(response.status)
                         + ' approved=' + str(approved))
           except HTTPError as error:
-              print('MARINEAQUA_SIGNED_CHECK http_status=' + str(error.code) + ' approved=False')
+              raw = error.read(1000)
+              try:
+                  reason = json.loads(raw).get('error', '')
+              except (ValueError, AttributeError):
+                  reason = ''
+              whitelist = {
+                  'GitHub repository routing is not configured': 'REPO_ROUTING_MISSING',
+                  'Invalid signed request': 'AUTH_SIGNATURE_REJECTED',
+                  'Template frontend destination lock failed': 'FRONTEND_DOMAIN_MISMATCH',
+                  'Deploy authentication not configured': 'DEPLOY_KEY_MISSING',
+              }
+              print('MARINEAQUA_SIGNED_CHECK http_status=' + str(error.code)
+                    + ' reason=' + whitelist.get(reason, 'OTHER') + ' approved=False')
           except (URLError, ValueError, TimeoutError) as error:
               print('MARINEAQUA_SIGNED_CHECK error_class=' + type(error).__name__)
           PY
