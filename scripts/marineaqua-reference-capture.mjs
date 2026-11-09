@@ -66,12 +66,25 @@ async function auditPage(label, width, height, mobile) {
       const imageAssets = [...document.querySelectorAll("header img, main img, .site-branding img, .custom-logo")]
         .filter((el) => el.currentSrc || el.src).slice(0, 70)
         .map((el) => ({ alt: el.alt || "", url: el.currentSrc || el.src, ...bounds(el) }));
+      const productSections = [...document.querySelectorAll(".cat-products")]
+        .map((section) => {
+          const title = asText(section.querySelector("h2, h3, .cat-title")).slice(0, 100);
+          const products = [...section.querySelectorAll(".product")].slice(0, 10).map((p) => ({
+            title: asText(p.querySelector(".woocommerce-loop-product__title, h3, h2")).slice(0, 180),
+            price: asText(p.querySelector(".price")).slice(0, 80),
+            image: p.querySelector("img")?.currentSrc || p.querySelector("img")?.src || "",
+            url: p.querySelector("a")?.href || "",
+          }));
+          return { title, products };
+        });
+      const categories = [...document.querySelectorAll(".widget_product_categories a")].slice(0, 55).map((a) =>
+        ({ label: asText(a).slice(0, 70), href: a.href }));
       const colorSamples = [...document.querySelectorAll("header, nav, h1, h2, a, button, .site-header")]
         .slice(0, 32).map((el) => ({ tag: el.tagName.toLowerCase(), text: asText(el).slice(0, 45),
           color: getComputedStyle(el).color, bg: getComputedStyle(el).backgroundColor }));
       return {
         title: document.title, documentHeight: document.documentElement.scrollHeight,
-        heading, logos, sections, imageAssets, colorSamples,
+        heading, logos, sections, imageAssets, colorSamples, productSections, categories,
         firstBodyText: asText(document.body).slice(0, 1600),
       };
     });
@@ -93,6 +106,7 @@ async function auditPage(label, width, height, mobile) {
       sections: audit.sections.length, logos: audit.logos.slice(0, 3),
       firstHeadings: audit.heading.slice(0, 20).map((h) => h.text),
       screenshot: target,
+      categoryCount: audit.categories.length, productSectionCount: audit.productSections.length, products: audit.productSections.slice(0, 2),
     }));
     if (responseStatus !== 200) process.exitCode = 1;
   } finally {
