@@ -1,0 +1,65 @@
+name: Marine Aqua Astro build validation (NO DEPLOY)
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-astro-build-qa.yml'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-astro-build-validation
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ENV_FILE: ${{ secrets.ENV_FILE }}
+    steps:
+      - name: Verify environment is configured
+        run: |
+          test -n "$ENV_FILE" || { echo "::error::Missing ENV_FILE"; exit 1; }
+      - name: Checkout production Astro master only
+        uses: actions/checkout@v4
+        with:
+          repository: ngocnhanvo/marineaqua-astro
+          ref: master
+          token: ${{ secrets.SOURCE_REPO_PAT }}
+          persist-credentials: false
+      - name: Verify source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git symbolic-ref --short HEAD)" = master
+          echo "Astro QA build source: $(git rev-parse HEAD) (master)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+          run_install: false
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install exact dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Build from real WordPress data without deploying
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$ENV_FILE" > .env
+          chmod 600 .env
+          pnpm run build-git
+          test -s dist/client/index.html
+          test -s dist/server/entry.mjs
+          node --check dist/server/entry.mjs
+          test -s dist/client/sitemap.xml
+          test -s dist/client/robots.txt
+          test -s dist/client/llms.txt
+          echo 'ASTRO_PRODUCTION_EQUIVALENT_BUILD=PASS (NO FTP, NO DEPLOY)' >> "$GITHUB_STEP_SUMMARY"
+      - name: Erase ephemeral environment file
+        if: always()
+        shell: bash
+        run: rm -f .env
