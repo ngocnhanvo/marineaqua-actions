@@ -1,3 +1,29 @@
+# Marine Aqua — Wide Modern Preview v2 (2026-11-09)
+
+## Pending user approval
+The user supplied screenshots showing a full-width product website compared to the old Marine Aqua preview. They requested nearly full-width desktop layout, modern blue visual treatment, real Quicksand font, decorative ocean waves and livelier category icons. This is preview only. Do NOT deploy or implement into production until preview approval.
+
+## Completed in this turn
+- Self-contained interactive preview: /mnt/data/MarineAqua-Preview-Wide-Modern.html
+- Desktop first-fold: /mnt/data/MarineAqua-Preview-Wide-Top.png (1917×1092)
+- Desktop full-page: /mnt/data/MarineAqua-Preview-Wide-Full.png
+- Mobile: /mnt/data/MarineAqua-Preview-Mobile-Top.png and /mnt/data/MarineAqua-Preview-Mobile-Full.png
+- Tablet: /mnt/data/MarineAqua-Preview-Tablet-Top.png
+- Comparison: /mnt/data/MarineAqua-Before-After-Wide.png
+- Review ZIP: /mnt/data/MarineAqua-Modern-Wide-Review.zip
+- Editable local source: /mnt/data/marine_aqua_design/preview/modern-wide.css and /mnt/data/marine_aqua_design/rework_preview.py
+
+The 1917px viewport shows 1773px of content (72px each side), versus old 1220px max. At 1440px the content is 1328px (56px margins). Dominant ocean blue, water/ripple motifs and hover-animated SVG category icons, airy cards and larger red product prices. Exact whale/FISHLOVERSHOP original logo is preserved. Data from real marine-aqua.vn browser capture: 5 product brand sections in source order, 20 genuine products and image assets, 12 category slider links. No About section. Product links open actual source website, contact form preview does not send data.
+
+Font: CSS declares Quicksand first, following the existing Astro Tailwind heading/paragraph font mapping, and imports Google Fonts when online. The offline Chromium rendered screenshots use rounded local fallback because the browser cannot fetch Google Fonts, so do not claim screenshots demonstrate exact Quicksand glyphs.
+
+QA: Chromium viewports 1917,1440,768,390 show zero horizontal overflow, all 23 embedded original images loaded, category slider arrows advance scroll 2→869px, five brand sections, prices red rgb(217,31,59), no page JS errors. Tablet uses stacked hero / two-product columns. No production source/CMS/FTP modifications; Astro master safe restore commit 83ed8e27b9d13d53382768e7c4576183be2443ad remains.
+
+## Next action
+Wait for user feedback / visual approval. When approved, implement in Astro master using existing Quicksand font assets, retain ESC Table/WordPress data and section order, test with CI/Playwright then separately authorize production deployment. Overall PARTIAL.
+
+---
+
 # Marine Aqua — visual design review checkpoint (2026-11-09)
 
 ## User directive / approval gate
