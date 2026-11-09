@@ -42,3 +42,37 @@ jobs:
           set -euo pipefail
           python3 -m py_compile scripts/marineaqua-php-ftps-audit.py
           python3 scripts/marineaqua-php-ftps-audit.py
+      - name: Validate build origins and signed unzip preflight (READ ONLY)
+        shell: bash
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          SOURCE_REPO_PAT: ${{ secrets.SOURCE_REPO_PAT }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          from urllib.parse import urlsplit
+          values = {}
+          for line in os.environ['ENV_FILE'].splitlines():
+              line = line.strip()
+              if line.startswith('export '):
+                  line = line[7:].strip()
+              for key in ('WC_URL', 'WC_URL_CLIENT'):
+                  if line.startswith(key + '='):
+                      if key in values:
+                          raise SystemExit('Duplicate build origin: ' + key)
+                      values[key] = line.split('=', 1)[1].strip().strip("\"'")
+          required = {'WC_URL': 'admin.marine-aqua.io.vn', 'WC_URL_CLIENT': 'marine-aqua.io.vn'}
+          for key, expected in required.items():
+              parsed = urlsplit(values.get(key, ''))
+              if (parsed.scheme != 'https' or parsed.hostname != expected
+                      or parsed.username or parsed.password or parsed.port not in (None, 443)
+                      or parsed.path not in ('', '/') or parsed.query or parsed.fragment):
+                  raise SystemExit('Marine Aqua origin mismatch in ' + key)
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as out:
+              out.write('ASTRO_FTP_TARGET=/domains/marine-aqua.io.vn/public_html/\n')
+          print('MARINEAQUA_BUILD_CONFIG origins=PASS expected_project=PASS')
+          PY
+          python3 -m py_compile scripts/marineaqua-remote-unzip.py
+          python3 scripts/marineaqua-remote-unzip.py verify
+          echo 'MARINEAQUA_BUILD_CONFIG signed_preflight=PASS mode=READ_ONLY'
