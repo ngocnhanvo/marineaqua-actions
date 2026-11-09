@@ -73,6 +73,7 @@ jobs:
               out.write('ASTRO_FTP_TARGET=/domains/marine-aqua.io.vn/public_html/\n')
           print('MARINEAQUA_BUILD_CONFIG origins=PASS expected_project=PASS')
           PY
+          export ASTRO_FTP_TARGET=/domains/marine-aqua.io.vn/public_html/
           python3 -m py_compile scripts/marineaqua-remote-unzip.py
           python3 scripts/marineaqua-remote-unzip.py verify
           echo 'MARINEAQUA_BUILD_CONFIG signed_preflight=PASS mode=READ_ONLY'
