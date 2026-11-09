@@ -1,0 +1,105 @@
+import { chromium } from "playwright";
+import fs from "node:fs/promises";
+import path from "node:path";
+
+const origin = "https://marine-aqua.vn/";
+const output = path.resolve("reference-evidence");
+await fs.mkdir(output, { recursive: true });
+
+async function auditPage(label, width, height, mobile) {
+  const browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
+  const context = await browser.newContext({
+    viewport: { width, height },
+    deviceScaleFactor: 1,
+    isMobile: mobile,
+    hasTouch: mobile,
+    locale: "vi-VN",
+    reducedMotion: "reduce",
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(String(error.message).slice(0, 160)));
+  let responseStatus = null;
+  try {
+    const response = await page.goto(origin, { waitUntil: "domcontentloaded", timeout: 60000 });
+    responseStatus = response?.status() ?? null;
+    await page.waitForTimeout(4500);
+    const finalUrl = new URL(page.url());
+    if (!["marine-aqua.vn", "www.marine-aqua.vn"].includes(finalUrl.hostname)) {
+      throw new Error("Unexpected website origin after redirect");
+    }
+    await page.evaluate(async () => {
+      if ("fonts" in document) {
+        await Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 4000))]);
+      }
+    });
+    const fullHeight = await page.evaluate(() => Math.min(document.documentElement.scrollHeight, 25000));
+    for (let y = 0; y < fullHeight; y += Math.max(550, height - 120)) {
+      await page.evaluate((scrollY) => window.scrollTo(0, scrollY), y);
+      await page.waitForTimeout(190);
+    }
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(900);
+
+    const audit = await page.evaluate(() => {
+      const asText = (node) => String(node?.textContent || "").replace(/\s+/g, " ").trim();
+      const bounds = (el) => {
+        const r = el.getBoundingClientRect();
+        return { x: Math.round(r.left + scrollX), y: Math.round(r.top + scrollY),
+                 width: Math.round(r.width), height: Math.round(r.height) };
+      };
+      const heading = [...document.querySelectorAll("h1, h2, h3, h4")]
+        .slice(0, 100).map((el) => ({ tag: el.tagName.toLowerCase(), text: asText(el).slice(0, 110), ...bounds(el) }));
+      const logos = [...document.querySelectorAll("header img, .site-logo img, .custom-logo, img[alt*='Marine'], img[alt*='logo']")]
+        .slice(0, 30).map((el) => ({ alt: el.alt || "", src: el.currentSrc || el.src || "",
+          className: typeof el.className === "string" ? el.className.slice(0, 80) : "", ...bounds(el) }));
+      const sections = [...document.querySelectorAll("main > *, main section, .elementor-section, .wp-block-group, .woocommerce, .home-product-catalog")]
+        .filter((el) => {
+          const r = el.getBoundingClientRect();
+          return r.width > 100 && r.height > 65;
+        }).slice(0, 90).map((el) => ({
+          tag: el.tagName.toLowerCase(),
+          id: (el.id || "").slice(0, 90),
+          className: typeof el.className === "string" ? el.className.slice(0, 140) : "",
+          text: asText(el).slice(0, 100), ...bounds(el),
+        }));
+      const imageAssets = [...document.querySelectorAll("header img, main img, .site-branding img, .custom-logo")]
+        .filter((el) => el.currentSrc || el.src).slice(0, 70)
+        .map((el) => ({ alt: el.alt || "", url: el.currentSrc || el.src, ...bounds(el) }));
+      const colorSamples = [...document.querySelectorAll("header, nav, h1, h2, a, button, .site-header")]
+        .slice(0, 32).map((el) => ({ tag: el.tagName.toLowerCase(), text: asText(el).slice(0, 45),
+          color: getComputedStyle(el).color, bg: getComputedStyle(el).backgroundColor }));
+      return {
+        title: document.title, documentHeight: document.documentElement.scrollHeight,
+        heading, logos, sections, imageAssets, colorSamples,
+        firstBodyText: asText(document.body).slice(0, 1600),
+      };
+    });
+    const target = path.join(output, label + ".jpg");
+    await page.screenshot({ path: target, type: "jpeg", quality: 78, fullPage: true, animations: "disabled", timeout: 60000 });
+    if (label === "desktop") {
+      const logo = page.locator("header .custom-logo, header img[alt*='Marine'], header .site-logo img, header .custom-logo-link img").first();
+      if (await logo.count() && await logo.isVisible()) {
+        await logo.screenshot({ path: path.join(output, "original-logo.png"), timeout: 20000 });
+      }
+      const vp = await page.screenshot({ type: "jpeg", quality: 86, animations: "disabled" });
+      await fs.writeFile(path.join(output, "desktop-first-fold.jpg"), vp);
+    }
+    const report = { label, url: page.url(), viewport: { width, height }, status: responseStatus, pageErrors: errors, ...audit };
+    await fs.writeFile(path.join(output, label + ".json"), JSON.stringify(report, null, 2));
+    console.log("REFERENCE_CAPTURE_PASS", JSON.stringify({
+      label, status: responseStatus, viewport: width + "x" + height,
+      pageHeight: audit.documentHeight, headings: audit.heading.length,
+      sections: audit.sections.length, logos: audit.logos.slice(0, 3),
+      firstHeadings: audit.heading.slice(0, 20).map((h) => h.text),
+      screenshot: target,
+    }));
+    if (responseStatus !== 200) process.exitCode = 1;
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+}
+
+await auditPage("desktop", 1440, 900, false);
+await auditPage("mobile", 390, 844, true);
