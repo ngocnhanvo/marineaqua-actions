@@ -27,7 +27,7 @@ jobs:
           ref: master
           token: ${{ secrets.SOURCE_REPO_PAT }}
           persist-credentials: false
-      # Revalidate build with restored React route modules and WordPress types.
+      # Validate current Marine Aqua ocean UI source without production deployment.
       - name: Verify source identity
         shell: bash
         run: |
