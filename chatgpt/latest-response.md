@@ -1,36 +1,29 @@
-# Marine Aqua migration checkpoint — 2026-11-09
+# Marine Aqua — checkpoint 2026-11-09 (Asia/Ho_Chi_Minh)
 
 Project: marine-aqua.vn
-Actions: ngocnhanvo/marineaqua-actions (main)
-Astro: ngocnhanvo/marineaqua-astro (source master)
-PHP: ngocnhanvo/marineaqua-php (source master)
+Source branches: ngocnhanvo/marineaqua-astro/master and ngocnhanvo/marineaqua-php/master
+Automation branch: ngocnhanvo/marineaqua-actions/main
+Reference rules: ngocnhanvo/knowledge/main
+Frontend: https://marine-aqua.io.vn
+WordPress: https://admin.marine-aqua.io.vn
 
-## Verified repository state
+## Verified work and evidence
 
-- Astro staging main includes imported source commit `3744f81567bb0a1835320844a763acae09314870`, including package.json and application files.
-- PHP staging main includes imported source commit `1c506a62e62f3e23413aba55df5ad8644e2aff09`, including wp-settings.php and WordPress files.
-- Both application master branches remain bootstrap/incomplete: package.json not present on Astro master; wp-settings.php not present on PHP master. Do NOT build/deploy those branches.
-- The previous workflow failure run 42612706895 was due to missing SOURCE_REPO_PAT at that time. The subsequent staging commits show source was imported later; do not assume current secret state or workflow QA status without checking live Actions.
-- Verified checks on staging: target PHP wp-config.php absent, .env absent, Astro .env absent. Limited file-presence checks are not a full credential scan.
-- Import workflow commit `96cef74f6610454d028b40e1930b9e73392ab9ea` removed the partial-import gate and changed push target to staging main only.
-- Import workflow commit `1b47a56f53918d72f912058ddfdba303ce1f8e00` added exclusions for source workflows and common sensitive configuration/key files and checks for wp-config.php and .env.
-- No production deploy or full build/test/visual QA has been verified.
+- Template source import COMPLETE at workflow run [42621792802](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42621792802), attempt 1, both Astro and PHP import jobs SUCCESS. An earlier run [42619991615](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42619991615) also succeeded. The original run [42612706895](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42612706895) failed before SOURCE_REPO_PAT became usable; that blocker is resolved for imports.
+- Owner explicitly requires app source on master, NOT main. Fast-forward previously moved Astro master to `3744f81567bb0a1835320844a763acae09314870` and PHP master to `1c506a62e62f3e23413aba55df5ad8644e2aff09` without force; Astro package.json and PHP wp-settings.php were verified on master. GitHub Actions repo legitimately uses main.
+- Import workflow updated at `2d954da77bbc7da607ab3eefdc0770d87eac2f0b`: manual dispatch, app checkout/push only master. It excludes common secrets and source workflows. Import alone does not deploy production.
+- Read-only Visual Builder Chromium test [42612394689](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42612394689), attempt 2, SUCCESS (rerun after secret access was available).
+- Offline deploy transport CI [42612457263](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42612457263), attempt 2, failed on ZIP -> PHP contract with reused marker count 0,0 instead of 2,3. Root cause: PHP read `template-image-delta.json`/`template-static-delta.json` while Python packaging emitted `marineaqua-image-delta.json`/`marineaqua-static-delta.json`.
+- Fixed marker mismatch on PHP master in three commits: `a1d9a5d440ec89a0fac7cf9c80388ba24d7ffbe8`, `467f6ba4dc58c27637c915cf98a66ed0fa379db6`, `bb274f1ee9d7e6237b5f0e60311764713b58d739` (latest source PHP). Offline CI [42612457263](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42612457263), attempt 3, SUCCESS after fix: PHP syntax, PHP image/static contracts and Python ZIP reconstruction suite.
+- The Actions README was updated to remove the obsolete secret blocker in commit `4c50a5b40372141cf754fc8f5ba39e76ba2d7644`.
+- NO production build, FTP deployment, database migration, live WordPress write, or production release was initiated by this continuation.
 
-## Branch correction (owner instruction, 2026-11-09)
+## Outstanding; do not mark the overall migration DONE
 
-- Owner explicitly requires Astro and PHP source branches to be `master`. Previous use of `main` for staging was incorrect.
-- Verified master fast-forward without force: `marineaqua-astro/master` -> `3744f81567bb0a1835320844a763acae09314870` (6 commits ahead of old master); `marineaqua-php/master` -> `1c506a62e62f3e23413aba55df5ad8644e2aff09` (3 commits ahead of old master).
-- Confirmed `package.json` on Astro master and `wp-settings.php` on PHP master.
-- Import workflow commit `2d954da77bbc7da607ab3eefdc0770d87eac2f0b`: read/write app `master`, manual dispatch only; Actions repository itself remains `main`.
-- Old notes below about source absent on master are superseded by this correction. No production build/deploy was run. Full QA still pending.
-
-## Next steps
-
-1. Inspect latest import workflow run and log for `1b47a56`, confirm both matrix jobs and token permissions; do not mistake a source commit for end-to-end QA.
-2. Compare source completeness against template branches, run Astro dependency/build/typecheck/tests and PHP syntax/integration/deploy-contract tests in isolated CI with sanitized environment.
-3. Review all copied identifiers, endpoints, content, assets, secrets, CI workflows, WordPress configuration, and template-specific branding; remediate with project-specific values.
-4. Source is already on master after the owner's correction. Do not re-promote or reset refs; validate code and use existing production workflow only when environment and QA are ready.
-5. Keep this checkpoint current with commit/run IDs and actual test evidence.
+1. Run Astro dependency install, static/check/unit test and production-equivalent build **without deploying**, with genuine project-specific secure environment. No Astro build PASS / DEPLOY_READY / QA_PASS yet.
+2. Perform comprehensive source parity (template and target) and scan for tenant-specific content, URLs, secrets, PHP configuration, third-party IDs and assets. Previous limited presence checks are not a full security/parity audit.
+3. Confirm active WordPress instance identity, proper ENV_FILE values, FTP destination, CMS data/Menu/SEO and business content before a production rollout. Do not import template database, credentials, or customer content.
+4. When deployment is justified, use only existing `marineaqua-production-deploy.yml` production path, observe exact run/attempt, rollback readiness and real frontend/browser QA. Source commit alone is not deployment.
 
 Chế độ code: auto-build
 Cổng ghi source: bypass
