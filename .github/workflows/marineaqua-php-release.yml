@@ -1,9 +1,5 @@
 name: Marine Aqua PHP deployment (manual opt-in)
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/marineaqua-php-release.yml'
   workflow_dispatch:
     inputs:
       confirm:
@@ -17,10 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   wordpress-php:
-    if: >-
-      github.repository == 'ngocnhanvo/marineaqua-actions'
-      && ((github.event_name == 'workflow_dispatch' && inputs.confirm == 'DEPLOY_PHP')
-      || (github.event_name == 'push' && github.event.head_commit.message == 'Release corrected Marine Aqua PHP marker'))
+    if: github.repository == 'ngocnhanvo/marineaqua-actions' && inputs.confirm == 'DEPLOY_PHP'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -36,12 +29,6 @@ jobs:
           token: ${{ secrets.SOURCE_REPO_PAT }}
           path: source-php
           persist-credentials: false
-      - name: Pin one-time PHP marker correction to audited source
-        if: github.event_name == 'push'
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git -C source-php rev-parse HEAD)" = '54574851f0eaea9e40341b36c5a7215573bc436e'
       - name: PHP syntax and project identity
         shell: bash
         run: |
