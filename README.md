@@ -7,7 +7,7 @@ Frontend: https://marine-aqua.io.vn (`WC_URL_CLIENT`).
 Backend: https://admin.marine-aqua.io.vn (`WC_URL`).
 Use project-specific secure `ENV_FILE` with these origins; do not commit credentials.
 
-**Import checkpoint (2026-11-09):** Workflow `marineaqua-import-template.yml` attempted the private template migration but both jobs failed because this repo lacks the `SOURCE_REPO_PAT` secret. Do not deploy the partial Astro/PHP source trees. Add the token via repository Actions secrets with access to the exact source and target repos; rerun import and verify CI before production use.
+**Import checkpoint (2026-11-09):** Template import succeeded for both Astro and PHP in runs [42619991615](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42619991615) and [42621792802](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42621792802). The owner-required application source branch is `master`: Astro `3744f81567bb0a1835320844a763acae09314870`, PHP `1c506a62e62f3e23413aba55df5ad8644e2aff09` (fast-forward verified). The template import workflow now uses manual dispatch and writes to application `master` only. Successful source import does **not** imply test/build/deployment success; run offline contracts and validate Marine Aqua-specific configuration before production deployment.
 
 ## Source of truth and branches
 
