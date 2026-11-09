@@ -1,8 +1,5 @@
 name: Import Marine Aqua template source
 on:
-  push:
-    paths:
-      - .github/workflows/marineaqua-import-template.yml
   workflow_dispatch:
 permissions:
   contents: read
@@ -37,11 +34,11 @@ jobs:
           token: ${{ secrets.SOURCE_REPO_PAT }}
           persist-credentials: false
           path: source
-      - name: Read target main
+      - name: Read target master
         uses: actions/checkout@v4
         with:
           repository: ngocnhanvo/${{ matrix.target }}
-          ref: main
+          ref: master
           token: ${{ secrets.SOURCE_REPO_PAT }}
           path: target
       - name: Copy code, remove instance data, personalize source
@@ -104,7 +101,7 @@ jobs:
           else
             test -f target/package.json
           fi
-      - name: Commit imported source to staging main only
+      - name: Commit imported source to master
         working-directory: target
         run: |
           set -euo pipefail
@@ -113,4 +110,4 @@ jobs:
           git add -A
           if git diff --cached --quiet; then echo 'No changes'; exit 0; fi
           git commit -m "Import personalized Marine Aqua source"
-          git push origin HEAD:refs/heads/main
+          git push origin HEAD:refs/heads/master
