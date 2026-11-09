@@ -36,6 +36,12 @@ jobs:
           token: ${{ secrets.SOURCE_REPO_PAT }}
           path: source-php
           persist-credentials: false
+      - name: Pin one-time PHP marker correction to audited source
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C source-php rev-parse HEAD)" = '54574851f0eaea9e40341b36c5a7215573bc436e'
       - name: PHP syntax and project identity
         shell: bash
         run: |
