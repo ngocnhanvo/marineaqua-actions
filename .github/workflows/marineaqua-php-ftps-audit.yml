@@ -1,0 +1,43 @@
+name: Marine Aqua PHP FTPS read-only audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-php-ftps-audit.yml'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-php-ftps-audit
+  cancel-in-progress: false
+
+jobs:
+  compare-remote-php:
+    name: Compare approved PHP files against WordPress FTPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout Marine Aqua Actions audit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout Marine Aqua PHP master (read-only)
+        uses: actions/checkout@v4
+        with:
+          repository: ngocnhanvo/marineaqua-php
+          ref: master
+          token: ${{ secrets.SOURCE_REPO_PAT }}
+          path: source-php
+          persist-credentials: false
+      - name: Audit source at WordPress FTPS (NO WRITES)
+        shell: bash
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/marineaqua-php-ftps-audit.py
+          python3 scripts/marineaqua-php-ftps-audit.py
