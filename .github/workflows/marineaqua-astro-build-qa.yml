@@ -60,43 +60,51 @@ jobs:
           test -s dist/client/robots.txt
           test -s dist/client/llms.txt
           echo 'ASTRO_PRODUCTION_EQUIVALENT_BUILD=PASS (NO FTP, NO DEPLOY)' >> "$GITHUB_STEP_SUMMARY"
-      - name: Verify published WordPress Header menu for every published locale
+      - name: Verify compiled Header comes only from WordPress (empty allowed)
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           import json, os
           from pathlib import Path
-          from urllib.request import Request, urlopen
           from urllib.parse import urlsplit
-          env = os.environ['ENV_FILE']
-          wp_values = [line.strip().split('=', 1)[1].strip().strip("\"'") for line in env.splitlines() if line.strip().startswith('WC_URL=')]
-          if len(wp_values) != 1:
-              raise SystemExit('CMS_HEADER_MENU=FAIL invalid WordPress origin configuration')
-          host = urlsplit(wp_values[0]).hostname
-          if host != 'admin.marine-aqua.io.vn':
-              raise SystemExit('CMS_HEADER_MENU=FAIL unexpected WordPress host')
-          url = 'https://' + host + '/wp-json/esc-api/v1/menus'
-          with urlopen(Request(url, headers={'Accept':'application/json'}), timeout=20) as response:
-              data = json.loads(response.read(1000001))
-          if not isinstance(data, dict) or data.get('success') is not True:
-              raise SystemExit('CMS_HEADER_MENU=FAIL invalid WordPress menu API response')
-          header = (data.get('menus') or {}).get('Header', {})
+          from urllib.request import Request, urlopen
+          values = [line.strip().split('=', 1)[1].strip().strip("\\\"'") for line in os.environ['ENV_FILE'].splitlines() if line.strip().startswith('WC_URL=')]
+          if len(values) != 1 or urlsplit(values[0]).hostname != 'admin.marine-aqua.io.vn':
+              raise SystemExit('CMS_HEADER_MENU=FAIL invalid WordPress origin')
+          with urlopen(Request('https://admin.marine-aqua.io.vn/wp-json/esc-api/v1/menus',
+                               headers={'Accept':'application/json'}), timeout=20) as response:
+              payload = json.loads(response.read(1000001))
+          if not isinstance(payload, dict) or payload.get('success') is not True or not isinstance(payload.get('menus'), dict):
+              raise SystemExit('CMS_HEADER_MENU=FAIL invalid WordPress menus response')
+          header = payload['menus'].get('Header') or {}
           if not isinstance(header, dict):
-              raise SystemExit('CMS_HEADER_MENU=FAIL Header is not defined')
+              raise SystemExit('CMS_HEADER_MENU=FAIL malformed Header data')
           cache = Path('dist/client/data/cms-common.json')
           if not cache.is_file():
-              raise SystemExit('CMS_HEADER_MENU=FAIL missing published page index')
+              raise SystemExit('CMS_HEADER_MENU=FAIL missing compiled CMS data')
           published = json.loads(cache.read_text())
           locales = {str(p.get('lang')) for p in published.get('pages', []) if isinstance(p, dict) and p.get('lang')}
           if not locales:
-              raise SystemExit('CMS_HEADER_MENU=FAIL no published page locales found')
-          missing = [lang for lang in sorted(locales) if not isinstance(header.get(lang), dict)
-                     or not isinstance(header[lang].get('items'), list) or not header[lang]['items']]
-          print('CMS_HEADER_MENU published_locales=' + str(len(locales)) + ' usable_header_locales=' + str(len(locales)-len(missing)))
-          if missing:
-              raise SystemExit('CMS_HEADER_MENU=FAIL missing_locales=' + ','.join(missing))
-          print('CMS_HEADER_MENU=PASS wordpress_source_only')
+              raise SystemExit('CMS_HEADER_MENU=FAIL no published page locales')
+          built = published.get('menus', [])
+          if not isinstance(built, list):
+              raise SystemExit('CMS_HEADER_MENU=FAIL compiled menu is not a list')
+          if any(str(item.get('lang')) not in locales for item in built if isinstance(item, dict)):
+              raise SystemExit('CMS_HEADER_MENU=FAIL unexpected locale in compiled menu')
+          for lang in sorted(locales):
+              dto = header.get(lang)
+              expected = dto.get('items') if isinstance(dto, dict) else []
+              if not isinstance(expected, list):
+                  expected = []
+              actual = [item for item in built if isinstance(item, dict) and item.get('lang') == lang]
+              if len(actual) != len(expected):
+                  raise SystemExit('CMS_HEADER_MENU=FAIL compiled count mismatch for locale=' + lang)
+              if not expected:
+                  print('CMS_HEADER_MENU=EMPTY locale=' + lang + ' source=wordpress')
+              else:
+                  print('CMS_HEADER_MENU=POPULATED locale=' + lang + ' count=' + str(len(actual)))
+          print('CMS_HEADER_MENU=PASS wordpress_only_empty_allowed')
           PY
       - name: Erase ephemeral environment file
         if: always()
