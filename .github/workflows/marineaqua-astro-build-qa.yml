@@ -27,7 +27,7 @@ jobs:
           ref: master
           token: ${{ secrets.SOURCE_REPO_PAT }}
           persist-credentials: false
-      # Revalidate after excluding Vitest files from Astro route compilation.
+      # Validate latest Astro source and CMS data after source type corrections.
       - name: Verify source identity
         shell: bash
         run: |
