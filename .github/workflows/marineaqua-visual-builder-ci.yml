@@ -1,0 +1,60 @@
+name: Marine Aqua Visual Builder contracts (NO BUILD OR DEPLOY)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-visual-builder-ci.yml'
+      - 'scripts/marineaqua-visual-builder-browser.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - name: Checkout approved browser contract
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout Marine Aqua Astro source (no build)
+        uses: actions/checkout@v4
+        with:
+          repository: ngocnhanvo/marineaqua-astro
+          ref: master
+          token: ${{ secrets.SOURCE_REPO_PAT }}
+          path: source-astro
+          persist-credentials: false
+      - name: Checkout Marine Aqua PHP source (no deployment)
+        uses: actions/checkout@v4
+        with:
+          repository: ngocnhanvo/marineaqua-php
+          ref: master
+          token: ${{ secrets.SOURCE_REPO_PAT }}
+          path: source-php
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Restore small npm driver cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: marineaqua-vb-playwright-1.64.0-ts-5.8.3-${{ runner.os }}
+      - name: Install matching driver (Chromium preinstalled)
+        run: npm install --prefix .qa --no-save --no-package-lock --ignore-scripts --no-audit --no-fund --prefer-offline playwright@1.64.0 typescript@5.8.3
+      - name: Exercise actual preview guards in Chromium
+        run: node scripts/marineaqua-visual-builder-browser.mjs
+        env:
+          ASTRO_SOURCE: source-astro
+          PHP_SOURCE: source-php
+      - name: Upload synthetic preview evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marineaqua-visual-builder-preview-contract
+          path: artifacts/visual-builder
+          if-no-files-found: ignore

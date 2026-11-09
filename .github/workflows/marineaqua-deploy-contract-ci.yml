@@ -1,0 +1,51 @@
+name: Marine Aqua deploy transport contracts (NO BUILD OR FTP)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-production-deploy.yml'
+      - '.github/workflows/marineaqua-php-release.yml'
+      - '.github/workflows/marineaqua-deploy-contract-ci.yml'
+      - 'scripts/marineaqua-*-delta-package.py'
+      - 'scripts/marineaqua-remote-unzip.py'
+      - 'scripts/marineaqua-resumable-ftp.sh'
+      - 'scripts/marineaqua-php-live-release.py'
+      - 'tests/marineaqua-*.test.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout Marine Aqua PHP contract source (no deployment)
+        uses: actions/checkout@v4
+        with:
+          repository: ngocnhanvo/marineaqua-php
+          ref: master
+          token: ${{ secrets.SOURCE_REPO_PAT }}
+          path: source-php
+          persist-credentials: false
+      - name: PHP syntax and signed staging reconstruction contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l source-php/marineaqua-unzip.php
+          php -l source-php/marineaqua-image-delta.php
+          php source-php/tests/marineaqua-image-delta.php
+          php source-php/tests/marineaqua-static-delta.php
+      - name: Python packaging, compatibility and ZIP roundtrip contracts
+        shell: bash
+        env:
+          MARINEAQUA_PHP_SOURCE: source-php
+        run: |
+          set -euo pipefail
+          command -v php
+          bash -n scripts/marineaqua-resumable-ftp.sh
+          for test in tests/marineaqua-*.test.py; do
+            python3 "$test" -v
+          done
