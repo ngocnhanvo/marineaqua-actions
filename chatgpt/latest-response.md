@@ -1,33 +1,29 @@
-# Phản hồi ChatGPT mới nhất
+# Marine Aqua migration checkpoint — 2026-11-09
 
-- Ngày: 2026-11-09 (Asia/Ho_Chi_Minh)
-- Project: marine-aqua.vn
-- Repository: ngocnhanvo/marineaqua-actions
-- Branch: main
-- Trạng thái: PARTIAL — chuyển repo template chưa hoàn tất
+Project: marine-aqua.vn
+Actions: ngocnhanvo/marineaqua-actions (main)
+Astro: ngocnhanvo/marineaqua-astro (staging main, production source master)
+PHP: ngocnhanvo/marineaqua-php (staging main, production source master)
 
-## Nội dung phản hồi
+## Verified repository state
 
-Đã xác định đúng 3 repo nguồn: ngocnhanvo/template-astro (master), ngocnhanvo/template-php (master), ngocnhanvo/template-actions (main).
+- Astro staging main includes imported source commit `3744f81567bb0a1835320844a763acae09314870`, including package.json and application files.
+- PHP staging main includes imported source commit `1c506a62e62f3e23413aba55df5ad8644e2aff09`, including wp-settings.php and WordPress files.
+- Both application master branches remain bootstrap/incomplete: package.json not present on Astro master; wp-settings.php not present on PHP master. Do NOT build/deploy those branches.
+- The previous workflow failure run 42612706895 was due to missing SOURCE_REPO_PAT at that time. The subsequent staging commits show source was imported later; do not assume current secret state or workflow QA status without checking live Actions.
+- Verified checks on staging: target PHP wp-config.php absent, .env absent, Astro .env absent. Limited file-presence checks are not a full credential scan.
+- Import workflow commit `96cef74f6610454d028b40e1930b9e73392ab9ea` removed the partial-import gate and changed push target to staging main only.
+- Import workflow commit `1b47a56f53918d72f912058ddfdba303ce1f8e00` added exclusions for source workflows and common sensitive configuration/key files and checks for wp-config.php and .env.
+- No production deploy or full build/test/visual QA has been verified.
 
-Đã ghi các workflow, scripts và tests của template-actions sang marineaqua-actions, đổi tên tiền tố, tên repo và cấu hình dự án. Repository marineaqua-actions hiện có 21 file.
+## Next steps
 
-Đã bắt đầu chuyển source Astro qua GitHub connector và cá nhân hóa README, AGENTS.md, package metadata: marineaqua-astro hiện có 50 file trên nhánh main.
-
-Đã chuyển README và một số helper PHP/WordPress vào marineaqua-php: 9 file trên main. Không copy SQL dumps, secrets hoặc dữ liệu riêng của instance template.
-
-Đã tạo branch master cho hai repo code; chưa đưa source chưa đầy đủ lên master hoặc deploy production.
-
-Workflow import: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42612706895 — FAILURE do thiếu secret SOURCE_REPO_PAT trong marineaqua-actions. Cần cấu hình secret có quyền đọc template-astro/template-php và ghi repo Marine Aqua rồi chạy lại workflow, kiểm tra build/test và xác minh nội dung trước production.
-
-Cấu hình đích: WC_URL_CLIENT=https://marine-aqua.io.vn, WC_URL=https://admin.marine-aqua.io.vn. Không commit các giá trị secret vào source.
+1. Inspect latest import workflow run and log for `1b47a56`, confirm both matrix jobs and token permissions; do not mistake a source commit for end-to-end QA.
+2. Compare source completeness against template branches, run Astro dependency/build/typecheck/tests and PHP syntax/integration/deploy-contract tests in isolated CI with sanitized environment.
+3. Review all copied identifiers, endpoints, content, assets, secrets, CI workflows, WordPress configuration, and template-specific branding; remediate with project-specific values.
+4. When verified, promote validated source from staging main to the designated master branches through a non-force process, then follow only existing production workflows with environment and rollout safeguards.
+5. Keep this checkpoint current with commit/run IDs and actual test evidence.
 
 Chế độ code: auto-build
 Cổng ghi source: bypass
 Trạng thái: PARTIAL — chưa hoàn tất
-
-## Tiếp tục ngày 2026-11-09
-
-Đã sửa `.github/workflows/marineaqua-import-template.yml` ở commit `96cef74f6610454d028b40e1930b9e73392ab9ea`: import có thể chạy lại khi source đã nhập dở, và chỉ push tới nhánh staging `main` thay vì đẩy ngay sang `master`. Đã đọc lại file để xác minh. Không deploy production.
-
-Chưa xác minh import thành công; blocker đã được ghi nhận ở workflow run `42612706895` là thiếu secret `SOURCE_REPO_PAT`. Cần kiểm tra secret/quyền hiện tại và kết quả run mới, sau đó so sánh source, kiểm tra build/test trước khi xét đưa code hoàn chỉnh lên master.
