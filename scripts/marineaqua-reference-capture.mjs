@@ -98,6 +98,44 @@ async function auditPage(label, width, height, mobile) {
       const vp = await page.screenshot({ type: "jpeg", quality: 86, animations: "disabled" });
       await fs.writeFile(path.join(output, "desktop-first-fold.jpg"), vp);
     }
+    if (label === "desktop") {
+      const originalAssets = path.join(output, "source-assets");
+      await fs.mkdir(originalAssets, { recursive: true });
+      const originUrl = new URL(origin);
+      const logoUrl = audit.logos.find((item) => item.src && item.src.includes("logo-trans.png"))?.src;
+      const heroUrl = audit.imageAssets.find((item) => item.url.includes("/banner"))?.url;
+      const candidates = [
+        logoUrl && { name: "original-logo.png", url: logoUrl },
+        heroUrl && { name: "original-banner.jpg", url: heroUrl },
+        ...audit.productSections.flatMap((section, i) =>
+          section.products.map((product, k) =>
+            ({ name: "product-" + i + "-" + k + "." + (new URL(product.image).pathname.split(".").at(-1) || "jpg").toLowerCase(),
+               url: product.image }))
+        ),
+      ].filter(Boolean);
+      let copied = 0;
+      for (const candidate of candidates) {
+        const url = new URL(candidate.url);
+        if (url.protocol !== "https:" || url.hostname !== originUrl.hostname || !url.pathname.startsWith("/wp-content/uploads/")) {
+          console.log("REFERENCE_ASSET_SKIPPED", candidate.name, "origin_not_allowed");
+          continue;
+        }
+        try {
+          const response = await context.request.get(candidate.url, { timeout: 25000, maxRedirects: 2 });
+          const contentType = String(response.headers()["content-type"] || "");
+          const bytes = await response.body();
+          if (!response.ok() || !contentType.startsWith("image/") || bytes.length > 4_000_000) {
+            console.log("REFERENCE_ASSET_SKIPPED", candidate.name, "invalid_image_response");
+            continue;
+          }
+          await fs.writeFile(path.join(originalAssets, candidate.name), bytes);
+          copied++;
+        } catch (error) {
+          console.log("REFERENCE_ASSET_SKIPPED", candidate.name, "fetch_failed");
+        }
+      }
+      console.log("REFERENCE_ORIGINAL_ASSETS_CAPTURED", copied, "of", candidates.length);
+    }
     const report = { label, url: page.url(), viewport: { width, height }, status: responseStatus, pageErrors: errors, ...audit };
     await fs.writeFile(path.join(output, label + ".json"), JSON.stringify(report, null, 2));
     console.log("REFERENCE_CAPTURE_PASS", JSON.stringify({
