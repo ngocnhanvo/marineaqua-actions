@@ -1,0 +1,54 @@
+name: Marine Aqua Astro source checks (NO DEPLOY)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-astro-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-astro-source-checks
+  cancel-in-progress: false
+jobs:
+  astro-checks:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Verify source access token is configured
+        env:
+          SOURCE_REPO_PAT: ${{ secrets.SOURCE_REPO_PAT }}
+        run: test -n "$SOURCE_REPO_PAT" || { echo "::error::Missing SOURCE_REPO_PAT"; exit 1; }
+      - name: Checkout Astro source from owner-required master branch
+        uses: actions/checkout@v4
+        with:
+          repository: ngocnhanvo/marineaqua-astro
+          ref: master
+          token: ${{ secrets.SOURCE_REPO_PAT }}
+          persist-credentials: false
+      - name: Record and verify source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git symbolic-ref --short HEAD)" = master
+          test -f package.json
+          test -f pnpm-lock.yaml
+          echo "MARINEAQUA_ASTRO_TEST_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "Astro source: $(git rev-parse HEAD) (master)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+          run_install: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install exact locked dependencies (no production build)
+        run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Run Astro code checks
+        run: pnpm run check
+      - name: Run Astro unit tests
+        run: pnpm run test:run
