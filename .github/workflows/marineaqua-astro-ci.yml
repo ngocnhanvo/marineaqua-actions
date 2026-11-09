@@ -50,6 +50,6 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
       - name: Run Astro unit tests
         run: pnpm run test:run
-      # Recheck Astro master after WordPress-only Header menu changes.
+      # Verify updated marine visual tokens and presentation-only regression tests.
       - name: Run Astro code checks
         run: pnpm run check
