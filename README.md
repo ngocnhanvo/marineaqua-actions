@@ -2,17 +2,23 @@
 
 Repository: `ngocnhanvo/marineaqua-actions` (branch `main`).
 
+Project: **Marine Aqua** (`marine-aqua.vn`).
+Frontend: https://marine-aqua.io.vn (`WC_URL_CLIENT`).
+Backend: https://admin.marine-aqua.io.vn (`WC_URL`).
+Use project-specific secure `ENV_FILE` with these origins; do not commit credentials.
+
+**Import checkpoint (2026-11-09):** Workflow `marineaqua-import-template.yml` attempted the private template migration but both jobs failed because this repo lacks the `SOURCE_REPO_PAT` secret. Do not deploy the partial Astro/PHP source trees. Add the token via repository Actions secrets with access to the exact source and target repos; rerun import and verify CI before production use.
+
 ## Source of truth and branches
 
-- Astro development/testing: `ngocnhanvo/marineaqua-astro` → `github`.
-- Astro production source: `ngocnhanvo/marineaqua-astro` → `master`.
+- Astro source branch: `ngocnhanvo/marineaqua-astro` → `master` (production source; no implicit build).
 - WordPress/PHP: `ngocnhanvo/marineaqua-php` → `master`.
 - Shared Chromium testing: `ngocnhanvo/knowledge-actions` (reusable workflow, no copying tests).
 - See `ngocnhanvo/knowledge` → `main` for the shared engineering rules.
 
 ## Build Website
 
-Only the WordPress admin **Build Website** control dispatches `wp_trigger_build` to
+The existing production workflow accepts the WordPress **Build Website** dispatch (`wp_trigger_build`); equivalent direct triggers are permitted in `auto-build` under the Knowledge policy. The production workflow is
 `.github/workflows/marineaqua-production-deploy.yml`. The workflow checks out Astro
 `master`, validates `WC_URL` and `WC_URL_CLIENT` from `ENV_FILE`, builds the
 production source, packages the public Astro assets, and activates the archive
@@ -65,7 +71,5 @@ Expected repo secrets for supported operations: `ENV_FILE`, `SOURCE_REPO_PAT`,
 WordPress admin credentials used only by browser tests. Configure these for
 each cloned project; do not reuse a previous customer's endpoints or data.
 
-In code mode **normal**, source changes and source-only tests are allowed.
-Do not dispatch the production build or upload WordPress files over FTP without
-explicit approval. Never assume a sanitized source tree implies a sanitized
+Production build/deploy is a separate operation from source import. In project mode `auto-build`, use the existing production pipeline and verify BUILD_SUCCESS, DEPLOY_READY and QA_PASS before declaring a release. Never assume a sanitized source tree implies a sanitized
 live WordPress database.
