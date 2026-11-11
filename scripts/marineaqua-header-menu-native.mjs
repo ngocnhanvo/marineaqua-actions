@@ -47,36 +47,65 @@ try {
     if (!page.url().includes("/wp-admin/nav-menus.php")) throw Error("Cannot access native Menu Manager");
     evidence.attempted = true;
 
-    // The expected initial state is an empty native WP menu registry. Never replace or delete an existing menu.
-    const existing = await page.locator("#select-menu-to-edit option").count();
+    // Guard against changes by another admin. The project currently owns only this empty menu.
     const selected = Number(await page.locator("#nav-menu-meta-object-id").inputValue());
-    if (existing || selected) {
-      throw Error("Menu registry changed; refusing potentially destructive bootstrap");
+    const menuName = String(await page.locator("#menu-name").inputValue() || "");
+    const existingItems = await page.locator("#menu-to-edit > li").count();
+    if (existingItems !== 0) throw Error("Existing menu contains items; refusing replace");
+    if (selected > 0 && menuName !== "Marine Aqua Header VI") {
+      throw Error("Selected native menu has a different identity; refusing CMS write");
     }
-    await page.locator("#menu-name").fill("Marine Aqua Header VI");
+    if (!selected) {
+      await page.locator("#menu-name").fill("Marine Aqua Header VI");
+      await page.locator("#esc-menu-code").fill("Header");
+      await page.locator("#esc-menu-lang").selectOption(locale);
+      await page.locator("#esc-menu-type").selectOption("dropdown");
+      evidence.stage = "create_native_menu";
+      await page.locator("#save_menu_footer").click();
+      await page.waitForURL(/nav-menus\\.php.*menu=\\d+/, { timeout: 45000 });
+      evidence.createdMenu = true;
+      console.log("HEADER_MENU_CREATED=PASS");
+    }
+    if (await page.locator("#menu-to-edit > li").count() !== 0) throw Error("Menu changed before metadata update");
+    // WP only persists the custom code/language metadata on a native save of an existing menu.
+    evidence.stage = "persist_header_identity";
     await page.locator("#esc-menu-code").fill("Header");
     await page.locator("#esc-menu-lang").selectOption(locale);
     await page.locator("#esc-menu-type").selectOption("dropdown");
-    evidence.stage = "create_native_menu";
-    await page.locator("#save_menu_footer").click();
-    await page.waitForURL(/nav-menus\.php.*menu=\d+/, { timeout: 45000 });
-    evidence.createdMenu = true;
-    console.log("HEADER_MENU_CREATED=PASS");
-
-    // Add the already-published WordPress Home Page as a native post_type menu item.
-    const homeChoices = page.locator('input[type="checkbox"][value="' + pageId + '"]');
-    if (await homeChoices.count() === 0) throw Error("Published Home Page not present in native Page selector");
-    await homeChoices.first().check({ force: true });
-    await page.locator("#submit-posttype-page").click();
-    await page.locator("#menu-to-edit > li").first().waitFor({ state: "attached", timeout: 30000 });
-    evidence.stage = "add_published_home";
-    const titleField = page.locator('#menu-to-edit input[id^="edit-menu-item-title-"]').first();
-    if (await titleField.count()) await titleField.fill("Trang chủ");
     await page.locator("#save_menu_footer").click();
     await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(400);
+    const code = await page.locator("#esc-menu-code").inputValue();
+    const lang = await page.locator("#esc-menu-lang").inputValue();
+    if (code !== "Header" || lang !== locale) {
+      throw Error("Header code and language were not persisted in native WordPress");
+    }
+    console.log("HEADER_MENU_IDENTITY=PASS code=Header lang=vi");
+    // Native built-in JSON importer resolves this verified Page ID to a real nav_menu_item.
+    // A replace is permitted only after asserting the selected menu contains zero items.
+    if (await page.locator("#menu-to-edit > li").count() !== 0)
+      throw Error("Menu gained items before import; refusing replace");
+    evidence.stage = "native_preview_home_import";
+    await page.locator("#esc-pse-menu-json-input").fill(JSON.stringify([{
+      key: "home", lang: locale, label: "Trang chủ", pageId, linkMode: "page", children: []
+    }]));
+    await page.locator("#esc-pse-menu-json-preview").click();
+    const resultBox = page.locator("#esc-pse-menu-json-result");
+    await resultBox.waitFor({ state: "visible", timeout: 25000 });
+    const previewText = await resultBox.innerText();
+    if (!previewText.includes("1 items hợp lệ") || !previewText.includes("1 items match được Page")
+        || !previewText.includes("0 items dùng custom URL")
+        || !previewText.includes("0 items không có liên kết")) {
+      throw Error("Native import preview did not verify the published Home Page");
+    }
+    evidence.stage = "commit_native_home_import";
+    page.once("dialog", dialog => dialog.accept());
+    await Promise.all([
+      page.waitForEvent("load", { timeout: 30000 }),
+      page.locator("#esc-pse-menu-json-replace").click(),
+    ]);
     evidence.addedPage = true;
     console.log("HEADER_MENU_HOME_NATIVE_SAVE=PASS");
-
     const after = await publicHeader(context);
     evidence.verified = after.some(isHome);
     evidence.count = after.length;
