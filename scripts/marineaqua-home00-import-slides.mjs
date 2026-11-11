@@ -69,12 +69,13 @@ try {
           if(!res.ok())throw Error("Media upload rejected "+asset.filename+" http="+res.status());
           media=await res.json();
         } else {
-          const fileInput=page.locator('input[type="file"]').first();
+          const pluploadInput=page.locator('input[type="file"][id^="html5_"]').first();
+          const fileInput=await pluploadInput.count() ? pluploadInput : page.locator('#async-upload');
           if(!await fileInput.count())throw Error("No native WordPress media uploader or REST nonce");
           await fileInput.setInputFiles({name:asset.filename,mimeType:"image/jpeg",buffer:asset.bytes});
-          const submit=page.locator('#html-upload, input[name="html-upload"], input[type="submit"][value*="Upload"]').first();
-          if(await submit.count()) await submit.click();
-          for(let attempt=0;attempt<10;attempt++){
+          // Plupload automatically posts upon file selection. Do not click the
+          // classic HTML form submit, which is hidden in the active uploader.
+          for(let attempt=0;attempt<15;attempt++){
             await page.waitForTimeout(1200);
             const list=await api("/wp-json/wp/v2/media?per_page=100&_fields=id,slug,source_url");
             media=list.find(x=>String(x.source_url||"").split("/").pop()===asset.filename);
