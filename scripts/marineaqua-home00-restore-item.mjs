@@ -26,7 +26,7 @@ try {
   const mediaResponse=await context.request.get(WP+"/wp-json/wp/v2/media/"+MEDIA_ID+"?_fields=id,mime_type,source_url,media_details",{timeout:30000});
   if(!mediaResponse.ok())throw Error("Original WordPress media is unavailable");
   const media=await mediaResponse.json();
-  const mediaUrl=new URL(media.source_url || "");
+  const mediaUrl=new URL(media.source_url || "", WP);
   if(media.id!==MEDIA_ID || media.mime_type!=="image/jpeg" ||
      mediaUrl.origin!==WP || !mediaUrl.pathname.startsWith("/wp-content/uploads/") ||
      !/^banner1-1-690x336(-1)?\.jpg$/i.test(mediaUrl.pathname.split("/").pop()))
