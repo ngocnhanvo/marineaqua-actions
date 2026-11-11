@@ -483,6 +483,38 @@ try {
   console.log("MARINEAQUA_HEADER_FLOATING="+(floatPass?"PASS":"FAIL")+" "+JSON.stringify(summary.headerFloating));
   if(!floatPass)process.exitCode=1;
 
+  // Header catalog chevron follows aria-expanded (down closed, up open).
+  summary.catalogChevron = [];
+  for (const width of [1024, 1440]) {
+    const page=await browser.newPage({viewport:{width,height:840},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      const button=page.locator("#header-navrow [data-header-catalog-trigger]:visible");
+      const measure=()=>button.evaluate(el=>({
+        expanded:el.getAttribute("aria-expanded"),
+        transform:getComputedStyle(el.querySelector("svg:last-child")).transform,
+        path:el.querySelector("svg:last-child path")?.getAttribute("d")
+      }));
+      const closed=await measure();
+      await button.click();
+      await page.waitForTimeout(250);
+      const opened=await measure();
+      await button.click();
+      await page.waitForTimeout(250);
+      const closedAgain=await measure();
+      const is180=transform=>transform==="matrix(-1, 0, 0, -1, 0, 0)";
+      const isZero=transform=>transform==="none"||transform==="matrix(1, 0, 0, 1, 0, 0)";
+      const pass=closed.expanded==="false"&&isZero(closed.transform)&&
+        opened.expanded==="true"&&is180(opened.transform)&&
+        closedAgain.expanded==="false"&&isZero(closedAgain.transform);
+      summary.catalogChevron.push({width,pass,closed,opened,closedAgain});
+    } catch(error) {
+      summary.catalogChevron.push({width,pass:false,error:String(error.message||error).slice(0,250)});
+    } finally {await page.close();}
+  }
+  console.log("MARINEAQUA_CATALOG_CHEVRON="+(summary.catalogChevron.every(x=>x.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.catalogChevron));
+  if(!summary.catalogChevron.every(x=>x.pass))process.exitCode=1;
+
   // Category navigation is click-only on ALL pages. Homepage banner stays
   // full-width and must not carry a permanently visible catalog sidebar.
   summary.categorySidebar = [];
