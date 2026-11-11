@@ -113,7 +113,7 @@ try {
       console.log("WORDPRESS_" + label.toUpperCase() + "=UNAVAILABLE reason=" + summary.rest[label].error);
     }
   }
-  await context.dispose();
+  await context.close();
 } finally {
   await browser.close();
 }
