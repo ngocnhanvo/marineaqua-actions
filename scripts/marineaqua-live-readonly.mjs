@@ -231,7 +231,7 @@ try {
 
   // Verify deployed compact menu click hit-testing and visibility above the banner.
   summary.navResponsive = [];
-  for (const width of [390, 768, 900, 1023, 1024, 1190, 1280, 1366, 1439, 1440]) {
+  for (const width of [390, 768, 900, 1023, 1024, 1067, 1190, 1280, 1366, 1439, 1440, 1917]) {
     const page = await browser.newPage({viewport:{width,height:850},deviceScaleFactor:1});
     try {
       await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
@@ -306,7 +306,7 @@ try {
           initial.documentWidth<=width+1
         : initial.navVisible && initial.desktopItemsFit && initial.catalogLabelVisible && initial.desktopItemGapMax<=20 && !initial.compactVisible && initial.documentWidth<=width+1;
       summary.navResponsive.push({width,pass,...initial,menuOpened,mobileRootCount,mobileCatalogCount});
-      if([390,1023,1024,1190,1366,1440].includes(width))
+      if([390,1023,1024,1067,1190,1366,1440,1917].includes(width))
         await page.screenshot({path:dir+"/navigation-"+width+".png",fullPage:false});
     }catch(error){
       summary.navResponsive.push({width,pass:false,error:String(error.message||error).slice(0,250)});
