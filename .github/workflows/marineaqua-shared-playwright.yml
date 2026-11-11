@@ -12,6 +12,7 @@ on:
       - 'scripts/marineaqua-home00-native.mjs'
       - 'scripts/marineaqua-attach-home00.mjs'
       - 'scripts/marineaqua-attach-home-sections.mjs'
+      - 'scripts/marineaqua-home-esc-sources.mjs'
   workflow_dispatch:
     inputs:
       suite:
@@ -318,5 +319,42 @@ jobs:
         with:
           name: marine-aqua-native-home-sections-evidence
           path: home-sections-native-evidence/
+          retention-days: 7
+          if-no-files-found: warn
+
+  native-home-esc-source-settings:
+    name: Set real WordPress ProductCategory and Product ESC Table sources
+    if: >-
+      github.event_name == 'push' && github.event.head_commit.message == 'cms: configure real ESC Table data sources' && github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: marine-aqua-cms-catalog-write
+      cancel-in-progress: false
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Playwright driver only
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Verify authorized native editor script
+        run: node --check scripts/marineaqua-home-esc-sources.mjs
+      - name: Set section data sources in native ESC Table admin and REST verify
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-home-esc-sources.mjs
+      - name: Preserve source configuration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marine-aqua-home-esc-source-settings
+          path: home-esc-api-source-evidence/
           retention-days: 7
           if-no-files-found: warn
