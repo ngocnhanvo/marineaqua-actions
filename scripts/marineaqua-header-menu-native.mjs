@@ -57,7 +57,8 @@ try {
     await page.locator("#esc-menu-code").fill("Header");
     await page.locator("#esc-menu-lang").selectOption(locale);
     await page.locator("#esc-menu-type").selectOption("dropdown");
-    await page.locator("#save_menu_header").click();
+    evidence.stage = "create_native_menu";
+    await page.locator("#save_menu_footer").click();
     await page.waitForURL(/nav-menus\.php.*menu=\d+/, { timeout: 45000 });
     evidence.createdMenu = true;
     console.log("HEADER_MENU_CREATED=PASS");
@@ -68,9 +69,10 @@ try {
     await homeChoices.first().check({ force: true });
     await page.locator("#submit-posttype-page").click();
     await page.locator("#menu-to-edit > li").first().waitFor({ state: "attached", timeout: 30000 });
+    evidence.stage = "add_published_home";
     const titleField = page.locator('#menu-to-edit input[id^="edit-menu-item-title-"]').first();
     if (await titleField.count()) await titleField.fill("Trang chủ");
-    await page.locator("#save_menu_header").click();
+    await page.locator("#save_menu_footer").click();
     await page.waitForLoadState("domcontentloaded");
     evidence.addedPage = true;
     console.log("HEADER_MENU_HOME_NATIVE_SAVE=PASS");
