@@ -311,7 +311,7 @@ console.log("MARINEAQUA_V3_NAV_COLOR=" + (v3Pass ? "PASS" : "FAIL") +
 if (!v3Pass) process.exitCode = 1;
 
 
-// Verify the deployed hero after the final production radius revision.
+// Verify exactly the user-specified August 2026 images after the final production deploy.
 const bannerChecks = [1917,1440,768,390].map(width=>{
   const view=summary.views.find(v=>v.width===width);
   const carousels=(view?.bannerAudit||[]).filter(entry=>entry.tag==="DIV" && entry.visible &&
