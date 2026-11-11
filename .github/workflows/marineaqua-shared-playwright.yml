@@ -12,6 +12,7 @@ on:
       - 'scripts/marineaqua-home00-native.mjs'
       - 'scripts/marineaqua-home00-restore-item.mjs'
       - 'scripts/marineaqua-home00-import-slides.mjs'
+      - 'scripts/marineaqua-home00-correct-user-banners.mjs'
       - 'scripts/marineaqua-attach-home00.mjs'
       - 'scripts/marineaqua-attach-home-sections.mjs'
       - 'scripts/marineaqua-home-esc-sources.mjs'
@@ -531,5 +532,44 @@ jobs:
         with:
           name: marine-aqua-original-banner-import
           path: home00-import-evidence/
+          retention-days: 7
+          if-no-files-found: warn
+
+  correct-user-approved-home00-banners:
+    name: Replace only three legacy Home_00 slides with exact user-approved August banners
+    if: >-
+      github.event_name == 'push'
+      && github.event.head_commit.message == 'cms: replace Home_00 with user approved August banners'
+      && github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: marineaqua-home00-cms-native-write
+      cancel-in-progress: false
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install matching Playwright driver
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Validate guarded banner replacement
+        run: node --check scripts/marineaqua-home00-correct-user-banners.mjs
+      - name: Replace only verified old Home_00 rows and check REST
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-home00-correct-user-banners.mjs
+      - name: Preserve evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marine-aqua-user-approved-august-banners
+          path: home00-correct-banner-evidence/
           retention-days: 7
           if-no-files-found: warn
