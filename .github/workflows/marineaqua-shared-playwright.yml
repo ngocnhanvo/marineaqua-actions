@@ -400,7 +400,7 @@ jobs:
           if-no-files-found: warn
 
 
-  # Rebuild approved V3 Header matched pill geometry and SVG sale bolt from Astro master.
+  # Redeploy final approved Header matching pill radius and spacing from Astro master.
   trigger-production-build-after-header:
     name: Dispatch existing production deploy after verified Header menu
     if: >-
