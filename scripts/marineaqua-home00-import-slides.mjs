@@ -17,7 +17,18 @@ if(!u||!p)throw Error("CMS credentials unavailable");
 const browser=await chromium.launch({headless:true});
 try {
   const context=await browser.newContext({viewport:{width:1440,height:950}});
-  const api=async(path)=>{const r=await context.request.get(WP+path,{timeout:30000});if(!r.ok())throw Error("CMS API "+r.status()+" "+path);return r.json();};
+  const api=async(path)=>{
+    for(let attempt=1;attempt<=3;attempt++){
+      try{
+        const r=await context.request.get(WP+path,{timeout:30000});
+        if(!r.ok())throw Error("CMS API "+r.status()+" "+path);
+        return await r.json();
+      }catch(error){
+        if(attempt===3 || !/ECONNRESET|socket hang up|ETIMEDOUT|ECONNREFUSED/i.test(String(error)))throw error;
+        await new Promise(resolve=>setTimeout(resolve,attempt*1000));
+      }
+    }
+  };
   const read=async()=>{const t=await api("/wp-json/tablepress/v1/table/"+ID);
     if(t.id!==ID||t.title!=="Banner trang chủ"||
        ["title","image","link","mobile"].some((k,i)=>t.fields?.[i]?.key!==k))throw Error("Home_00 identity mismatch");
