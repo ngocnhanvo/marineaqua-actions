@@ -597,6 +597,30 @@ try {
   console.log("MARINEAQUA_MENU_OPENING_MOTION="+(summary.menuOpeningMotion.every(x=>x.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.menuOpeningMotion));
   if(!summary.menuOpeningMotion.every(x=>x.pass))process.exitCode=1;
 
+  // Nested WooCommerce category labels use regular weight; main categories remain bold.
+  summary.categoryChildWeight=[];
+  for (const width of [1024,1440]) {
+    const page=await browser.newPage({viewport:{width,height:800},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      await page.locator("#header-navrow [data-header-catalog-trigger]:visible").first().click();
+      const parent=page.locator("#header-product-catalog-panel .marine-product-sidebar-parent[data-marine-category-trigger]").first();
+      const parentWeight=await parent.evaluate(el=>getComputedStyle(el).fontWeight);
+      await parent.click();
+      const child=page.locator("#header-product-catalog-panel .marine-product-category-flyout:not([hidden]) .marine-product-category-group-title").first();
+      const childWeight=await child.evaluate(el=>getComputedStyle(el).fontWeight);
+      const nested=page.locator("#header-product-catalog-panel .marine-product-category-flyout:not([hidden]) .marine-product-category-links a").first();
+      const nestedWeight=await nested.count()?await nested.evaluate(el=>getComputedStyle(el).fontWeight):"none";
+      const pass=Number(parentWeight)>=600&&Number(childWeight)===400&&(nestedWeight==="none"||Number(nestedWeight)===400);
+      summary.categoryChildWeight.push({width,pass,parentWeight,childWeight,nestedWeight});
+      await page.screenshot({path:dir+"/category-child-weight-"+width+".png",fullPage:false});
+    }catch(error) {
+      summary.categoryChildWeight.push({width,pass:false,error:String(error.message||error).slice(0,250)});
+    }finally {await page.close();}
+  }
+  console.log("MARINEAQUA_CATEGORY_CHILD_WEIGHT="+(summary.categoryChildWeight.every(x=>x.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.categoryChildWeight));
+  if(!summary.categoryChildWeight.every(x=>x.pass))process.exitCode=1;
+
   // Category navigation is click-only on ALL pages. Homepage banner stays
   // full-width and must not carry a permanently visible catalog sidebar.
   summary.categorySidebar = [];
