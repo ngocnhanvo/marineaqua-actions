@@ -365,7 +365,7 @@ try {
         escapeClosed=!(await panel.isVisible()) &&
           await trigger.getAttribute("aria-expanded")==="false";
         await trigger.click();
-        await page.locator("[data-home-slider]:visible").first().click({position:{x:12,y:12}});
+        await page.mouse.click(width-5, Math.min(850, page.viewportSize()?.height-10 || 850));
         outsideClosed=!(await panel.isVisible()) &&
           await trigger.getAttribute("aria-expanded")==="false";
       }
