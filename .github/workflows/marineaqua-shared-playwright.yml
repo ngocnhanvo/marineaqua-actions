@@ -403,10 +403,11 @@ jobs:
 
   # Deploy account/cart Header icons from Astro master; retain WordPress-driven destinations.
   trigger-production-build-after-header:
-    name: Dispatch existing production deploy after verified Header menu
+    name: Dispatch existing production deploy after verified CMS update
     if: >-
       github.event_name == 'push'
-      && github.event.head_commit.message == 'build: deploy approved WordPress Header menu'
+      && (github.event.head_commit.message == 'build: deploy approved WordPress Header menu'
+          || github.event.head_commit.message == 'build: deploy restored Home_00 banner')
       && github.repository == 'ngocnhanvo/marineaqua-actions'
     runs-on: ubuntu-latest
     timeout-minutes: 5
