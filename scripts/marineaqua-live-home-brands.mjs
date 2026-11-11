@@ -11,10 +11,10 @@ try{
    const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:1});
    const errors=[];page.on("pageerror",error=>errors.push(error.message));
    const response=await page.goto(SITE+"/",{waitUntil:"domcontentloaded",timeout:50000});
-   await page.locator('[data-tablepress-preview="home_08"]').waitFor({state:"attached",timeout:35000});
+   await page.locator('section[data-tablepress-preview="home_08"]').waitFor({state:"attached",timeout:35000});
    const audit=[];
    for(const [id,title] of BRANDS){
-     const section=page.locator('[data-tablepress-preview="'+id+'"]');
+     const section=page.locator('section[data-tablepress-preview="'+id+'"]');
      await section.scrollIntoViewIfNeeded();
      await page.waitForTimeout(550);
      const value=await section.evaluate((el)=>{
