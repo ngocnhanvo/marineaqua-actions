@@ -226,6 +226,61 @@ try {
     }
   }
 
+  // Regression: WordPress menu must never be clipped at intermediate laptop widths.
+  summary.navResponsive = [];
+  for (const width of [900, 1024, 1190, 1280, 1366, 1439, 1440]) {
+    const page = await browser.newPage({viewport:{width,height:850},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      await page.waitForTimeout(600);
+      const initial=await page.evaluate(()=>{
+        const nav=document.querySelector("#header-navrow");
+        const compact=document.querySelector("#header-compact-actions");
+        const toggle=document.querySelector("#hamburger-btn");
+        const menu=document.querySelector("#mobile-menu-container");
+        const visible=el=>Boolean(el && getComputedStyle(el).display!=="none" &&
+          el.getBoundingClientRect().width>0 && el.getBoundingClientRect().height>0);
+        return {
+          navVisible:visible(nav),
+          compactVisible:visible(compact),
+          toggleVisible:visible(toggle),
+          menuHidden:menu?.hasAttribute("hidden"),
+          documentWidth:document.documentElement.scrollWidth,
+          viewportWidth:window.innerWidth,
+          desktopItemCount:document.querySelectorAll("#desktop-menu > ul > li").length,
+          mobileItemCount:document.querySelectorAll("#mobile-menu-container [data-menu-item]").length
+        };
+      });
+      let menuOpened=false;
+      let menuText="";
+      if(width<1440 && initial.toggleVisible){
+        await page.locator("#hamburger-btn").click();
+        await page.waitForTimeout(100);
+        const open=await page.evaluate(()=>{
+          const el=document.querySelector("#mobile-menu-container");
+          return Boolean(el && !el.hasAttribute("hidden") &&
+            getComputedStyle(el).display!=="none" && el.getBoundingClientRect().height>0);
+        });
+        menuOpened=open;
+        menuText=(await page.locator("#mobile-menu-container").innerText()).slice(0,500);
+      }
+      const pass=width<1440
+        ? !initial.navVisible && initial.compactVisible && initial.toggleVisible &&
+          menuOpened && menuText.includes("TRANG CHỦ") &&
+          menuText.includes("BÀI VIẾT CHIA SẺ KINH NGHIỆM") &&
+          initial.documentWidth<=width+1
+        : initial.navVisible && !initial.compactVisible && initial.documentWidth<=width+1;
+      summary.navResponsive.push({width,pass,...initial,menuOpened});
+      if([1190,1366,1440].includes(width))
+        await page.screenshot({path:dir+"/navigation-"+width+".png",fullPage:false});
+    }catch(error){
+      summary.navResponsive.push({width,pass:false,error:String(error.message||error).slice(0,250)});
+    }finally{await page.close();}
+  }
+  const navigationPass=summary.navResponsive.every(v=>v.pass);
+  console.log("MARINEAQUA_NAV_RESPONSIVE="+(navigationPass?"PASS":"FAIL")+" "+JSON.stringify(summary.navResponsive));
+  if(!navigationPass)process.exitCode=1;
+
   const context = await browser.newContext();
   for (const [label, path] of [
     ["menus", "/wp-json/esc-api/v1/menus"],
