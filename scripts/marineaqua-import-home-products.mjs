@@ -76,11 +76,46 @@ try{
    }catch(e){if(attempt===3){result.deferred.push({src:src.href,attempts:4,error:String(e).slice(0,160)});return null}}
   }
   const mime=/\.png$/i.test(filename)?"image/png":/\.webp$/i.test(filename)?"image/webp":"image/jpeg";
-  const response=await context.request.post(WP+"/wp-json/wp/v2/media",{
-   headers:{...headers,"Content-Type":mime,"Content-Disposition":'attachment; filename="'+filename+'"'},
-   data:bytes,failOnStatusCode:false,timeout:60000
-  });
-  const uploaded=await decoded(response,"Media upload "+filename);
+  // Native WordPress media uploader is preferred for the original product images.
+  // A REST binary upload can be interrupted by the upstream proxy even when
+  // the request was accepted; always check Media Library before submitting.
+  const readExisting=async()=>{
+    const list=await api("GET","/wp-json/wp/v2/media?search="+encodeURIComponent(filename.replace(/\.[^.]+$/,""))+"&per_page=100&_fields=id,source_url,alt_text");
+    return list.find(m=>decodeURIComponent(String(m.source_url||"").split("/").at(-1))===filename);
+  };
+  let uploaded=await readExisting();
+  if(!uploaded){
+    await page.goto(WP+"/wp-admin/media-new.php",{waitUntil:"domcontentloaded",timeout:45000});
+    await page.waitForFunction(()=>document.querySelector('input[type="file"][id^="html5_"]')||
+      document.querySelector('#file-form input[type="file"]'),null,{timeout:20000});
+    await page.waitForTimeout(900);
+    const html5=page.locator('input[type="file"][id^="html5_"]').first();
+    const hasHTML5=await html5.count()>0;
+    const input=hasHTML5?html5:page.locator("#async-upload");
+    valid(await input.count()>0,"WordPress native media upload input missing");
+    await input.setInputFiles({name:filename,mimeType:mime,buffer:bytes});
+    if(!hasHTML5){
+      await page.evaluate(()=>{
+        const field=document.querySelector("#async-upload");
+        const form=field?.form;
+        if(!form||form.method.toLowerCase()!=="post"||
+           form.enctype!=="multipart/form-data"||
+           !form.action.startsWith(location.origin+"/wp-admin/"))
+          throw Error("Native WordPress classic upload form invalid");
+        const submit=form.querySelector('input[type="submit"],button[type="submit"]');
+        if(!submit)throw Error("Native upload submit missing");
+        form.requestSubmit(submit);
+      });
+      await page.waitForLoadState("domcontentloaded",{timeout:45000}).catch(()=>{});
+    }
+    for(let attempt=0;attempt<18;attempt++){
+      await page.waitForTimeout(1000);
+      uploaded=await readExisting();
+      if(uploaded)break;
+    }
+  }
+  valid(uploaded?.id,"Native media upload did not persist "+filename);
+  console.log("CATALOG_MEDIA_NATIVE_VERIFIED="+filename+" id="+uploaded.id);
   valid(uploaded.id&&new URL(uploaded.source_url).origin===WP,"Media upload invalid");
   valid(decodeURIComponent(new URL(uploaded.source_url).pathname.split("/").at(-1))===filename,"Media filename changed");
   const alt=String(image.alt||name).slice(0,220);
