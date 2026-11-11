@@ -621,6 +621,39 @@ try {
   console.log("MARINEAQUA_CATEGORY_CHILD_WEIGHT="+(summary.categoryChildWeight.every(x=>x.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.categoryChildWeight));
   if(!summary.categoryChildWeight.every(x=>x.pass))process.exitCode=1;
 
+  // Promotion in WordPress desktop nav: no lightning, orange stars and subtle
+  // animation that respects prefers-reduced-motion.
+  summary.saleSparkles=[];
+  for (const width of [1024,1440,1917]) {
+    const page=await browser.newPage({viewport:{width,height:850},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      const result=await page.locator("#desktop-menu [data-marine-sale]").first().evaluate(el=>{
+        const caption=el.querySelector(".marine-sale-caption");
+        const stars=[...el.querySelectorAll(".marine-sale-star")];
+        const style=caption?getComputedStyle(caption):null;
+        return {
+          label:caption?.textContent||"",
+          starCount:stars.length,
+          boltCount:el.querySelectorAll(".marine-sale-bolt").length,
+          starColors:stars.map(star=>getComputedStyle(star).color),
+          animations:stars.map(star=>getComputedStyle(star).animationName),
+          labelColor:style?.color||""
+        };
+      });
+      result.width=width;
+      result.pass=result.label.includes("Khuyến mãi")&&result.starCount===3&&
+        result.boltCount===0&&result.animations.every(x=>x==="marineSaleStarTwinkle")&&
+        result.starColors.every(x=>x==="rgb(255, 173, 57)");
+      summary.saleSparkles.push(result);
+      await page.screenshot({path:dir+"/sale-sparkles-"+width+".png",fullPage:false});
+    }catch(error){
+      summary.saleSparkles.push({width,pass:false,error:String(error.message||error).slice(0,250)});
+    }finally{await page.close();}
+  }
+  console.log("MARINEAQUA_SALE_SPARKLES="+(summary.saleSparkles.every(x=>x.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.saleSparkles));
+  if(!summary.saleSparkles.every(x=>x.pass))process.exitCode=1;
+
   // Category navigation is click-only on ALL pages. Homepage banner stays
   // full-width and must not carry a permanently visible catalog sidebar.
   summary.categorySidebar = [];
