@@ -47,7 +47,7 @@ jobs:
             "Authorization": "Bearer " + process.env.GH_TOKEN,
             "Accept": "application/vnd.github+json"
           };
-          let runId = id && /^\\d+$/.test(id) ? Number(id) : 0;
+          let runId = id && /^\d+$/.test(id) ? Number(id) : 0;
           if (!runId) {
             const response = await fetch(origin + "/actions/runs?per_page=100", {headers});
             if (!response.ok) throw Error("Cannot read migration runs HTTP "+response.status);
@@ -63,7 +63,7 @@ jobs:
           const payload = await artifacts.json();
           if (!payload.artifacts.some(a=>a.name==="marine-aqua-original-product-migration" && !a.expired))
             throw Error("Verified migration artifact missing");
-          process.stdout.write("run_id="+runId+"\\n");
+          process.stdout.write("run_id="+runId+"\n");
           NODE
       - name: Download exactly the verified migration run artifact
         uses: actions/download-artifact@v4
