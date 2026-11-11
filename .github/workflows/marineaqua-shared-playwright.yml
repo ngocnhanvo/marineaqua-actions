@@ -398,3 +398,54 @@ jobs:
           path: header-menu-native-evidence/
           retention-days: 7
           if-no-files-found: warn
+
+
+  trigger-production-build-after-header:
+    name: Dispatch existing production deploy after verified Header menu
+    if: >-
+      github.event_name == 'push'
+      && github.event.head_commit.message == 'build: deploy approved WordPress Header menu'
+      && github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Resolve frontend origin and dispatch existing production workflow
+        shell: bash
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          domain="$(python3 - <<'PY'
+          import os,re
+          from urllib.parse import urlsplit
+          vals={}
+          for line in os.environ.get("ENV_FILE","").splitlines():
+              m=re.match(r'^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$',line)
+              if m: vals[m[1]]=m[2].strip().strip('"\\\'')
+          url=urlsplit(vals.get("WC_URL_CLIENT",""))
+          if url.scheme!="https" or not url.hostname or url.username or url.password or url.port not in (None,443) or url.path not in ("","/") or url.query or url.fragment:
+              raise SystemExit("Invalid WC_URL_CLIENT; no build dispatch")
+          print(url.hostname)
+          PY
+          )"
+          export MARINEAQUA_CLIENT_HOST="$domain"
+          payload="$(python3 - <<'PY'
+          import json,os
+          print(json.dumps({"event_type":"wp_trigger_build","client_payload":{"site_domain":os.environ["MARINEAQUA_CLIENT_HOST"]}}))
+          PY
+          )"
+          http_code="$(curl --silent --show-error --output "$RUNNER_TEMP/marineaqua-dispatch-result" --write-out '%{http_code}' --request POST \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "$payload" \
+            "https://api.github.com/repos/$GH_REPOSITORY/dispatches")"
+          if [[ "$http_code" != 204 ]]; then
+            echo "::error::Production dispatch rejected HTTP $http_code"
+            exit 1
+          fi
+          echo "PRODUCTION_DISPATCH=ACCEPTED event=wp_trigger_build"
