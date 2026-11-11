@@ -155,8 +155,29 @@ try{
  record('IMAGE_PICKER_READBACK',{cellLength:nativeResult.cell.length,helperLength:nativeResult.helper.length,
    cellHasImg:nativeResult.cell.includes('<img'),helperHasImg:nativeResult.helper.includes('<img'),
    selection:nativeResult.selected});
- const value=nativeResult.cell;
- if(!value.includes('<img')||!value.includes('banner1-1-690x336'))throw Error('Image picker did not insert expected img tag');
+ let value=nativeResult.cell;
+ if(!value.includes('<img')){
+   // WordPress Media Editor has selected the attachment but failed to update
+   // TablePress's helper textarea. Retrieve HTML using its native server-side
+   // send-attachment-to-editor API and notify the existing TablePress change
+   // callback; do not craft an <img> string or inject an image URL ourselves.
+   const fallback=await page.evaluate(async (id)=>{
+     const attachment=window.wp.media.attachment(id);
+     if(!attachment)throw Error('Selected native WordPress attachment disappeared');
+     await new Promise((resolve,reject)=>attachment.fetch().done(resolve).fail(reject));
+     const props={align:'none',size:'full',link:'none',alt:'Banner sản phẩm FISHLOVERSHOP'};
+     const html=await new Promise((resolve,reject)=>
+       window.wp.media.editor.send.attachment(props,attachment.toJSON()).done(resolve).fail(reject));
+     const helper=document.querySelector('#textarea-insert-helper');
+     if(!helper||typeof html!=='string'||!html.includes('<img'))throw Error('WordPress native media server returned no image HTML');
+     helper.value=html;
+     window.jQuery(helper).trigger('change');
+     return {length:html.length,hasAlt:html.includes('alt=')};
+   },result.mediaId);
+   record('IMAGE_NATIVE_HELPER_RECOVERED',fallback);
+   value=await page.evaluate(()=>String(window.tp.editor.getValueFromCoords(1,1)||''));
+ }
+ if(!value.includes('<img')||!value.includes('banner1-1-690x336'))throw Error('WordPress native image insertion not persisted to selected cell');
  record('IMAGE_INSERTED_NATIVE',{altPresent:/\balt=/.test(value),relativeSrc:/src=["']\/wp-content\/uploads\//.test(value)});
  await page.getByRole('button',{name:/Save Changes/i}).first().click();
  await page.waitForTimeout(2000);
