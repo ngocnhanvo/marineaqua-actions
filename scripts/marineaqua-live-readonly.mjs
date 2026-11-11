@@ -70,6 +70,19 @@ try {
                 rect:{x:Math.round(rect.x),y:Math.round(rect.y),w:Math.round(rect.width),h:Math.round(rect.height)},
                 slideCount:el.querySelectorAll("[data-home-slide]").length,
                 borderRadius:style.borderRadius,
+                dotCount:el.querySelectorAll("[data-slider-dot]").length,
+                split: (() => {
+                  const slide=el.querySelector("[data-home-slide].is-active");
+                  const copy=slide?.querySelector(".marine-hero-copy");
+                  const media=slide?.querySelector(".marine-hero-media");
+                  const c=copy?.getBoundingClientRect(),m=media?.getBoundingClientRect();
+                  return {layout:slide?getComputedStyle(slide).display:"",
+                    text:(copy?.innerText||"").slice(0,180),
+                    copyWidth:Math.round(c?.width||0),
+                    mediaWidth:Math.round(m?.width||0),
+                    copyLeft:Math.round(c?.left||0),mediaLeft:Math.round(m?.left||0),
+                    copyTop:Math.round(c?.top||0),mediaTop:Math.round(m?.top||0)};
+                })(),
                 srcs:[...el.querySelectorAll("[data-home-slide] img")].map(img=>({
                   src:(img.currentSrc||img.src||"").slice(0,180), loaded:img.complete&&img.naturalWidth>0,
                   naturalW:img.naturalWidth,naturalH:img.naturalHeight,
@@ -287,9 +300,14 @@ const bannerChecks = [1917,1440,768,390].map(width=>{
     (img.src.includes("marine-aqua.io.vn/images/pages/banner1-1-690x336-1-") ||
      img.src.includes("admin.marine-aqua.io.vn/wp-content/uploads/2026/11/banner1-1-690x336-1.jpg"))));
   const radiusPass=Boolean(hero && hero.borderRadius===(width<640?"12px":"19px"));
-  return {width,passed:widthPass&&mediaPass&&radiusPass&&!view?.horizontalOverflow,
+  const splitPass=Boolean(hero && hero.slideCount===3 && hero.dotCount===3
+    && hero.split?.copyWidth>150 && hero.split?.mediaWidth>150
+    && hero.split?.text.includes("Chạm gần hơn")
+    && (width<640 ? hero.split.copyTop>hero.split.mediaTop
+       : hero.split.copyLeft<hero.split.mediaLeft));
+  return {width,passed:widthPass&&mediaPass&&radiusPass&&splitPass&&!view?.horizontalOverflow,
     carouselCount:carousels.length,loadedMedia:mediaPass,frameWidth:hero?.rect.w||0,
-    frameHeight:hero?.rect.h||0,borderRadius:hero?.borderRadius||"",radiusPass};
+    frameHeight:hero?.rect.h||0,borderRadius:hero?.borderRadius||"",radiusPass,splitPass,slideCount:hero?.slideCount||0,split:hero?.split||null};
 });
 const bannerPass=bannerChecks.every(x=>x.passed);
 console.log("MARINEAQUA_HOME00_BANNER=" + (bannerPass?"PASS":"FAIL") + " " + JSON.stringify(bannerChecks));
