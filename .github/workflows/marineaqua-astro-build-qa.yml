@@ -67,7 +67,7 @@ jobs:
           assert.match(header, /ProductCategorySidebar/);
           assert.match(layout, /productCategories=\{productCategories\}/);
           assert.match(home, /data-home-slider/);
-          assert.match(home, /data-marine-home-variant=\\{variant.key\\}/);
+          assert.ok(home.includes('data-marine-home-variant={variant.key}'));
           assert.doesNotMatch(home, /marine-home-banner-with-catalog|marine-home-catalog|ProductCategorySidebar|showHomeCategories/);
           assert.match(header, /data-header-catalog-trigger/);
           assert.match(header, /header-product-catalog-panel/);
