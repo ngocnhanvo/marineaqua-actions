@@ -31,10 +31,25 @@ try{
    if(!response.ok())throw Error(step+" HTTP "+response.status()+" "+(await response.text()).slice(0,240));
    return response.json();
  }
- const api=(method,path,payload)=>context.request.fetch(WP+path,{
-   method,headers:{...headers,...(payload?{"Content-Type":"application/json"}:{})},
-   data:payload?JSON.stringify(payload):undefined,failOnStatusCode:false,timeout:45000
- }).then(r=>decoded(r,method+" "+path));
+ async function api(method,path,payload){
+   const maxAttempts=method==="GET"?4:1;
+   for(let attempt=1;attempt<=maxAttempts;attempt++){
+     try{
+       const response=await context.request.fetch(WP+path,{
+         method,headers:{...headers,...(payload?{"Content-Type":"application/json"}:{})},
+         data:payload?JSON.stringify(payload):undefined,failOnStatusCode:false,timeout:45000
+       });
+       if(method==="GET"&&response.status()>=500&&attempt<maxAttempts){
+         await new Promise(resolve=>setTimeout(resolve,attempt*900));continue;
+       }
+       return await decoded(response,method+" "+path);
+     }catch(error){
+       if(attempt>=maxAttempts||!/ECONNRESET|socket hang up|ETIMEDOUT|ECONNABORTED|TimeoutError/i.test(String(error)))throw error;
+       console.log("WP_GET_TRANSIENT_RETRY="+attempt+" path="+path);
+       await new Promise(resolve=>setTimeout(resolve,attempt*900));
+     }
+   }
+ }
  const existing=await api("GET","/wp-json/wc/v3/products?per_page=100&status=any");
  valid(Array.isArray(existing),"WC product list unavailable");
  const products=new Map(existing.map(x=>[x.slug,x]));
