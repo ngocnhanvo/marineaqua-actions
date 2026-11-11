@@ -302,16 +302,19 @@ try {
     try {
       await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
       await page.waitForTimeout(650);
-      const firstHomeSidebar=page.locator("#marine-home-catalog [data-marine-product-sidebar]");
+      const activeVariant = width < 640 ? "mobile" : "desktop";
+      const homeSection=page.locator('[data-marine-home-variant="' + activeVariant + '"]');
+      const firstHomeSidebar=homeSection.locator("[data-marine-product-sidebar]");
       const homeVisible=await firstHomeSidebar.isVisible().catch(()=>false);
       const headerTrigger=page.locator('[data-header-catalog-trigger]:visible').first();
       const headerVisible=await headerTrigger.count()>0;
       const initial=await page.evaluate(()=>{
-        const sidebar=document.querySelector("#marine-home-catalog [data-marine-product-sidebar]");
+        const parent=document.querySelector('[data-marine-home-variant="' + activeVariant + '"]');
+        const sidebar=parent?.querySelector("[data-marine-product-sidebar]");
         const hero=[...document.querySelectorAll('[data-home-slider]')].find(el=>getComputedStyle(el).display!=="none" && el.getBoundingClientRect().width>0);
         const r=el=>{if(!el)return null;const box=el.getBoundingClientRect();
           return {x:Math.round(box.x),y:Math.round(box.y),width:Math.round(box.width),height:Math.round(box.height)};};
-        const cat=document.querySelector("#marine-home-catalog");
+        const cat=parent?.querySelector("[data-marine-home-catalog]");
         return {
           homeSidebar:r(sidebar),hero:r(hero),catalog:r(cat),
           categoryRows:sidebar?.querySelectorAll("[data-marine-category-item]").length||0,
@@ -320,7 +323,7 @@ try {
           documentWidth:document.documentElement.scrollWidth,
           viewportWidth:window.innerWidth
         };
-      });
+      },activeVariant);
       let childFlyout="NO_CHILDREN";
       if(homeVisible){
         const trigger=firstHomeSidebar.locator("[data-marine-category-trigger]").first();
