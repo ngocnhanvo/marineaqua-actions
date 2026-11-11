@@ -62,7 +62,7 @@ try {
       await page.locator("#esc-menu-type").selectOption("dropdown");
       evidence.stage = "create_native_menu";
       await page.locator("#save_menu_footer").click();
-      await page.waitForURL(/nav-menus\\.php.*menu=\\d+/, { timeout: 45000 });
+      await page.waitForURL(url => url.pathname.endsWith("/nav-menus.php") && Number(url.searchParams.get("menu")) > 0, { timeout: 45000 });
       evidence.createdMenu = true;
       console.log("HEADER_MENU_CREATED=PASS");
     }
