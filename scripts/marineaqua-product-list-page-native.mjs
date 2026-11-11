@@ -27,10 +27,17 @@ try {
 
   // API nonce comes only from the current authenticated WordPress admin, never
   // from user input or a hard-coded token.
-  const nonce = await page.evaluate(() =>
-    window.wpApiSettings?.nonce ||
-    document.querySelector('input[name="_wpnonce"]')?.value || "");
-  if (!nonce) throw Error("WordPress REST nonce unavailable");
+  await page.goto(WP + "/wp-admin/post-new.php?post_type=page", { waitUntil: "domcontentloaded", timeout: 45000 });
+  if (page.url().includes("wp-login.php")) throw Error("Native page editor permission unavailable");
+  const nonce = await page.evaluate(async () => {
+    if (window.wpApiSettings?.nonce) return window.wpApiSettings.nonce;
+    const response = await fetch("/wp-admin/admin-ajax.php?action=rest-nonce", {
+      method: "GET", credentials: "same-origin",
+    });
+    const value = response.ok ? (await response.text()).trim() : "";
+    return /^[a-zA-Z0-9]+$/.test(value) && value.length >= 8 && value.length <= 32 ? value : "";
+  });
+  if (!nonce) throw Error("WordPress REST nonce unavailable in authenticated editor");
 
   const request = async (method, path, payload) => {
     const response = await page.evaluate(async ({ method, path, payload, nonce }) => {
