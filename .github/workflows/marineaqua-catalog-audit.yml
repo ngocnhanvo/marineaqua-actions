@@ -1,0 +1,35 @@
+name: Marine Aqua catalog source inventory (read only)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-catalog-audit.mjs'
+      - '.github/workflows/marineaqua-catalog-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  catalog-readonly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-catalog-audit.mjs
+      - name: Read source and target without changes
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-catalog-audit.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-catalog-source-audit
+          path: catalog-audit-evidence/
+          retention-days: 7
