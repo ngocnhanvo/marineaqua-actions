@@ -48,7 +48,7 @@ try{
  let currentMedia=await listMedia();
  record('MEDIA_PRECHECK',{count:currentMedia.length});
  let found=currentMedia.find(x=>x.slug==='banner1-1-690x336' && /^banner1-1-690x336(?:-1)?\.jpg$/i.test(String(x.source_url||'').split('/').pop()));
- if(found){result.mediaId=found.id;record('MEDIA_REUSED',{id:found.id});}
+ if(found){result.mediaId=found.id;record('MEDIA_REUSED',{id:found.id,file:String(found.source_url).split('/').pop()});}
  if(!result.mediaId){
    // Use WordPress's authenticated Media REST endpoint. The ESC Table
    // image itself is subsequently inserted using the native Insert Image control.
