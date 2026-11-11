@@ -139,8 +139,17 @@ try{
  const nativeButton=picker.getByRole('button',{name:/Insert into Table|Chèn vào bảng|Insert/i}).last();
  await nativeButton.click();
  await picker.waitFor({state:'hidden',timeout:20000});
- const value=await page.evaluate(()=>window.tp.editor.getValueFromCoords(1,1));
- if(typeof value!=='string'||!value.includes('<img')||!value.includes('banner1-1-690x336.jpg'))throw Error('Image picker did not insert expected img tag');
+ await page.waitForTimeout(1300);
+ const nativeResult=await page.evaluate(()=>({
+    cell:String(window.tp.editor.getValueFromCoords(1,1)||''),
+    helper:String(document.querySelector('#textarea-insert-helper')?.value||''),
+    selected:window.tp.helpers.selection,
+ }));
+ record('IMAGE_PICKER_READBACK',{cellLength:nativeResult.cell.length,helperLength:nativeResult.helper.length,
+   cellHasImg:nativeResult.cell.includes('<img'),helperHasImg:nativeResult.helper.includes('<img'),
+   selection:nativeResult.selected});
+ const value=nativeResult.cell;
+ if(!value.includes('<img')||!value.includes('banner1-1-690x336'))throw Error('Image picker did not insert expected img tag');
  record('IMAGE_INSERTED_NATIVE',{altPresent:/\balt=/.test(value),relativeSrc:/src=["']\/wp-content\/uploads\//.test(value)});
  await page.getByRole('button',{name:/Save Changes/i}).first().click();
  await page.waitForTimeout(2000);
