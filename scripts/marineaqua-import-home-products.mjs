@@ -57,7 +57,7 @@ try{
   const src=new URL(image.src);
   valid(src.origin===SOURCE&&src.pathname.startsWith("/wp-content/uploads/"),"Unowned original image");
   const filename=decodeURIComponent(src.pathname.split("/").at(-1));
-  valid(/^[^\/\\\x00-\x1f]{2,170}\.(png|jpe?g|webp)$/i.test(filename),"Image filename invalid");
+  valid(/^[^\/\\\x00-\x1f]{1,170}\.(png|jpe?g|webp)$/i.test(filename),"Image filename invalid");
   valid(!originalSources.has(filename)||originalSources.get(filename)===src.href,"Filename collision "+filename);
   originalSources.set(filename,src.href);
   const reused=mediaByFilename.get(filename);
