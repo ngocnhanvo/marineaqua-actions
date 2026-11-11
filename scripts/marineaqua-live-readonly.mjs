@@ -557,6 +557,46 @@ try {
   console.log("MARINEAQUA_TOP_HEADER_SQUARE="+(summary.topHeaderSquare.every(x=>x.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.topHeaderSquare));
   if(!summary.topHeaderSquare.every(x=>x.pass))process.exitCode=1;
 
+  // Square left edges and lightweight opening effects for catalog/nav submenus.
+  summary.menuOpeningMotion = [];
+  for (const width of [1024,1440,1917]) {
+    const page = await browser.newPage({viewport:{width,height:850},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      const trigger=page.locator("#header-navrow [data-header-catalog-trigger]:visible").first();
+      await trigger.click();
+      const catalog=page.locator("#header-product-catalog-panel");
+      const panelStyle=await catalog.evaluate(el=>{
+        const st=getComputedStyle(el);
+        return {radius:st.borderRadius,animation:st.animationName,hidden:el.hidden};
+      });
+      const parent=catalog.locator("[data-marine-category-trigger]").first();
+      await parent.click();
+      const nestedStyle=await page.evaluate(()=>{
+        const open=document.querySelector("#header-product-catalog-panel .marine-product-category-flyout:not([hidden])");
+        const st=open?getComputedStyle(open):null;
+        return {exists:!!open,animation:st?.animationName||"none"};
+      });
+      const nav=page.locator("#desktop-menu [data-menu-trigger]:visible").first();
+      await trigger.click();
+      await nav.click();
+      const navStyle=await page.evaluate(()=>{
+        const open=document.querySelector("#desktop-menu [data-menu-panel]:not([hidden])");
+        return {exists:!!open,animation:open?getComputedStyle(open).animationName:"none"};
+      });
+      const pass=panelStyle.radius==="0px"&&!panelStyle.hidden&&
+        panelStyle.animation.includes("marineCatalogReveal")&&
+        nestedStyle.exists&&nestedStyle.animation.includes("marineSubmenuReveal")&&
+        navStyle.exists&&navStyle.animation.includes("marineSubmenuReveal");
+      summary.menuOpeningMotion.push({width,pass,panelStyle,nestedStyle,navStyle});
+      await page.screenshot({path:dir+"/menu-opening-motion-"+width+".png",fullPage:false});
+    }catch(error){
+      summary.menuOpeningMotion.push({width,pass:false,error:String(error.message||error).slice(0,250)});
+    }finally{await page.close();}
+  }
+  console.log("MARINEAQUA_MENU_OPENING_MOTION="+(summary.menuOpeningMotion.every(x=>x.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.menuOpeningMotion));
+  if(!summary.menuOpeningMotion.every(x=>x.pass))process.exitCode=1;
+
   // Category navigation is click-only on ALL pages. Homepage banner stays
   // full-width and must not carry a permanently visible catalog sidebar.
   summary.categorySidebar = [];
