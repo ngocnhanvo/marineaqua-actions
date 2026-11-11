@@ -318,10 +318,13 @@ const bannerChecks = [1917,1440,768,390].map(width=>{
     entry.slideCount>0 && entry.borderRadius!=="0px");
   const hero=carousels.find(entry=>entry.srcs.some(img=>img.loaded && img.naturalW>10));
   const widthPass=Boolean(hero && Math.abs(hero.rect.w-width*0.925)<6);
-  const mediaPass=Boolean(hero && hero.srcs.some(img=>img.loaded && img.naturalW>10 &&
-    (img.src.includes("banner1-1-1380x672") &&
-      (img.src.includes("marine-aqua.io.vn/images/pages/") ||
-       img.src.includes("marine-aqua.vn/wp-content/uploads/2026/08/"))))));
+  const mediaPass=hero ? hero.srcs.some(img=>{
+    const src=String(img.src||"");
+    const expectedHost=src.startsWith("https://marine-aqua.io.vn/images/pages/") ||
+      src.startsWith("https://marine-aqua.vn/wp-content/uploads/2026/08/");
+    return img.loaded && img.naturalW>10 && expectedHost &&
+      src.includes("banner1-1-1380x672");
+  }) : false;
   const radiusPass=Boolean(hero && hero.borderRadius===(width<640?"12px":"19px"));
   const splitPass=Boolean(hero && hero.slideCount===3 && hero.dotCount===3
     && hero.split?.copyWidth>150 && hero.split?.mediaWidth>150
