@@ -308,8 +308,7 @@ try {
       const headerVisible=await headerTrigger.count()>0;
       const initial=await page.evaluate(()=>{
         const sidebar=document.querySelector("#marine-home-catalog [data-marine-product-sidebar]");
-        const hero=document.querySelector('[data-home-slider]:visible') ||
-          [...document.querySelectorAll('[data-home-slider]')].find(el=>getComputedStyle(el).display!=="none");
+        const hero=[...document.querySelectorAll('[data-home-slider]')].find(el=>getComputedStyle(el).display!=="none" && el.getBoundingClientRect().width>0);
         const r=el=>{if(!el)return null;const box=el.getBoundingClientRect();
           return {x:Math.round(box.x),y:Math.round(box.y),width:Math.round(box.width),height:Math.round(box.height)};};
         const cat=document.querySelector("#marine-home-catalog");
@@ -354,11 +353,12 @@ try {
         : width>=640
           ? Boolean(initial.homeSidebar&&initial.hero &&
             initial.homeSidebar.y>=initial.hero.y+initial.hero.height-3)
-          : !homeVisible;
+          : Boolean(initial.homeSidebar&&initial.hero &&
+            initial.homeSidebar.y>=initial.hero.y+initial.hero.height-3);
       const pass=initial.documentWidth<=width+2 && headerVisible &&
         headerFlyout==="PASS" && sidebarLayoutOk &&
-        (width<640||Boolean(homeVisible&&initial.categoryRows>0 &&
-          initial.categoryLinks>0&&initial.expanded===0&&childFlyout!=="FAIL"));
+        Boolean(homeVisible&&initial.categoryRows>0 &&
+          initial.categoryLinks>0&&initial.expanded===0&&childFlyout!=="FAIL");
       summary.categorySidebar.push({width,pass,homeVisible,headerVisible,
         childFlyout,headerFlyout,sidebarLayoutOk,...initial});
       if(width===1440||width===390)
