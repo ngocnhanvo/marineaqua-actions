@@ -69,6 +69,7 @@ try {
                 visible:Boolean(rect.width&&rect.height&&style.display!=="none"),
                 rect:{x:Math.round(rect.x),y:Math.round(rect.y),w:Math.round(rect.width),h:Math.round(rect.height)},
                 slideCount:el.querySelectorAll("[data-home-slide]").length,
+                borderRadius:style.borderRadius,
                 srcs:[...el.querySelectorAll("[data-home-slide] img")].map(img=>({
                   src:(img.currentSrc||img.src||"").slice(0,180), loaded:img.complete&&img.naturalWidth>0,
                   naturalW:img.naturalWidth,naturalH:img.naturalHeight,
@@ -273,5 +274,20 @@ console.log("MARINEAQUA_V3_NAV_COLOR=" + (v3Pass ? "PASS" : "FAIL") +
   " items=" + itemsV3.length + " normalText=" + normalColorPass + " saleRedGradient=" + salePass +
   " orderedLabels=" + labelsPass + " matchedPills=" + v3PillPass + " boltSvg=" + boltPass);
 if (!v3Pass) process.exitCode = 1;
+
+
+const bannerChecks = [1917,1440,768,390].map(width=>{
+  const view=summary.views.find(v=>v.width===width);
+  const carousels=(view?.bannerAudit||[]).filter(entry=>entry.slideCount>0 && entry.visible);
+  const hero=carousels.find(entry=>entry.srcs.some(img=>img.loaded && img.naturalW>0));
+  const widthPass=Boolean(hero && Math.abs(hero.rect.w-width*0.925)<6);
+  const mediaPass=Boolean(hero && hero.srcs.some(img=>img.loaded && img.src.includes("admin.marine-aqua.io.vn/wp-content/uploads/")));
+  return {width,passed:widthPass&&mediaPass&&!view?.horizontalOverflow,
+    carouselCount:carousels.length,loadedMedia:mediaPass,frameWidth:hero?.rect.w||0,
+    frameHeight:hero?.rect.h||0,borderRadius:hero?.borderRadius||""};
+});
+const bannerPass=bannerChecks.every(x=>x.passed);
+console.log("MARINEAQUA_HOME00_BANNER=" + (bannerPass?"PASS":"FAIL") + " " + JSON.stringify(bannerChecks));
+if(!bannerPass)process.exitCode=1;
 
 console.log("MARINEAQUA_TEST_WRITE_REQUESTS=0 DEPLOY_REQUESTS=0");
