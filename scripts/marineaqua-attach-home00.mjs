@@ -27,17 +27,31 @@ try{
  if(home.id!==PAGE||home.slug!=="trang-chu"||home.acf?.key!=="home"||home.acf?.action!=="HomePage"||home.status!=="publish")throw Error("Unexpected WordPress homepage identity");
  await page.goto(WP+"/wp-admin/post.php?post="+PAGE+"&action=edit",{waitUntil:"domcontentloaded",timeout:45000});
  if(page.url().includes("wp-login.php"))throw new Error("Editor unauthenticated");
- const tab=page.locator("#content-html");if(await tab.count())await tab.click();
+ const tab=page.locator("#content-html");if(await tab.isVisible())await tab.click();
  const contentBefore=await page.locator("#content").inputValue();
  log("PAGE_BEFORE",{chars:contentBefore.length,hasTable:contentBefore.includes(TABLE)});
  if(contentBefore.includes(TABLE)){report.saved=true;log("ALREADY_ATTACHED",{id:TABLE});}
  else{
    if(contentBefore.trim())throw Error("Existing content not empty; refuse overwrite");
-   // Activate the correct Classic Editor before using native ESC Table Insert Code.
-   await page.evaluate(()=>{window.wpActiveEditor="content";});
-   const trigger=page.locator("#qt_content_tablepress_quicktags_button");
-   await trigger.waitFor({state:"visible",timeout:15000});
-   await trigger.click();
+   // Insert only through the registered WordPress ESC Table toolbar control.
+   let chosenEditor="";
+   const quick=page.locator("#qt_content_tablepress_quicktags_button");
+   if(await quick.isVisible()){
+     chosenEditor="quicktags";
+     await quick.click();
+   }else{
+     const visual=page.locator("#content-tmce");
+     if(await visual.isVisible())await visual.click();
+     const button=page.locator("#content_tablepress_insert_table, #content_tablepress_insert_table-button, .mce-btn[aria-label*='ESC Table']").first();
+     const controls=await page.locator("#wp-content-wrap .mce-btn").evaluateAll(els=>els.slice(0,40).map(el=>({
+       id:el.id,title:el.title,aria:el.getAttribute("aria-label"),text:(el.textContent||"").slice(0,35)
+     })));
+     log("NATIVE_EDITOR_CONTROLS",{quickVisible:await quick.isVisible(),buttonVisible:await button.isVisible(),controls});
+     if(!await button.isVisible())throw Error("No native ESC Table Insert Code control visible");
+     chosenEditor="tinymce";
+     await button.click();
+   }
+   log("NATIVE_BUTTON_CLICKED",{editor:chosenEditor});
    const frame=page.frameLocator("#TB_iframeContent");
    const insert=frame.locator('input.insert-shortcode[title*="home_00"]').first();
    await insert.waitFor({state:"visible",timeout:20000});
@@ -45,17 +59,27 @@ try{
    if(title!=="[table id=home_00 /]")throw Error("Native insertion target mismatch");
    await insert.click();
    await page.waitForTimeout(900);
-   const probe=await page.evaluate(()=>({
+   let probe=await page.evaluate(()=>({
       active:String(window.wpActiveEditor||""),
       pageText:String(document.querySelector("#content")?.value||""),
       acfText:String(document.querySelector("#acf_content")?.value||""),
       tinymceText:String(window.tinymce?.get("content")?.getContent()||"")
    }));
-   log("INSERT_PROBE",{active:probe.active,pageChars:probe.pageText.length,
+   log("INSERT_PROBE",{editor:chosenEditor,active:probe.active,pageChars:probe.pageText.length,
        pageOccurrences:(probe.pageText.match(/home_00/g)||[]).length,
        acfOccurrences:(probe.acfText.match(/home_00/g)||[]).length,
        tinymceOccurrences:(probe.tinymceText.match(/home_00/g)||[]).length});
-   if((probe.pageText.match(/home_00/g)||[]).length!==1)throw Error("Native button did not insert into Page content");
+   if(chosenEditor==="tinymce"){
+     const textTab=page.locator("#content-html");
+     if(await textTab.isVisible())await textTab.click();
+     await page.waitForTimeout(400);
+     probe=await page.evaluate(()=>({
+       active:String(window.wpActiveEditor||""),
+       pageText:String(document.querySelector("#content")?.value||""),
+       tinymceText:String(window.tinymce?.get("content")?.getContent()||"")
+     }));
+   }
+   if((probe.pageText.match(/home_00/g)||[]).length!==1)throw Error("Native Insert Code did not insert precisely one shortcode");
    await page.locator("#publish").click();
    await page.waitForLoadState("domcontentloaded",{timeout:45000});
    await page.goto(WP+"/wp-admin/post.php?post="+PAGE+"&action=edit",{waitUntil:"domcontentloaded",timeout:45000});
