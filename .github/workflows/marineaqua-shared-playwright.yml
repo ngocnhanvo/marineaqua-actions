@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/marineaqua-shared-playwright.yml'
       - 'scripts/marineaqua-live-readonly.mjs'
+      - 'scripts/marineaqua-ftps-upload.py'
+      - '.github/workflows/marineaqua-production-deploy.yml'
       - 'scripts/marineaqua-cms-inventory.mjs'
       - 'scripts/marineaqua-home-section-native.mjs'
       - 'scripts/marineaqua-catalog-sections-native.mjs'
