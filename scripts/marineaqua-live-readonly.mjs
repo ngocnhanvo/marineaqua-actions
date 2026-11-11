@@ -612,6 +612,54 @@ try {
   console.log("MARINEAQUA_CATEGORY_SCROLL_ANCHOR="+(summary.categoryScrollAnchor.every(v=>v.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.categoryScrollAnchor));
   if(!summary.categoryScrollAnchor.every(v=>v.pass))process.exitCode=1;
 
+  // Product category arrows and nested bullets must match the approved accordion.
+  summary.categoryVisual = [];
+  for (const width of [1024,1440]) {
+    const page=await browser.newPage({viewport:{width,height:820},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      await page.locator("[data-header-catalog-trigger]:visible").first().click();
+      const parent=page.locator("#header-product-catalog-panel .marine-product-sidebar-parent[data-marine-category-trigger]").first();
+      const collapsed=await parent.evaluate(el=>({
+        path:el.querySelector(".marine-category-chevron path")?.getAttribute("d"),
+        rotation:getComputedStyle(el.querySelector(".marine-category-chevron")).transform,
+        expanded:el.getAttribute("aria-expanded")
+      }));
+      await parent.click();
+      await page.waitForTimeout(230);
+      const open=await parent.evaluate(el=>{
+        const panel=document.getElementById(el.getAttribute("aria-controls")||"");
+        const group=panel?.querySelector(".marine-product-category-group-title");
+        const groupStyle=group?getComputedStyle(group,"::before"):null;
+        const groupBox=group?.getBoundingClientRect();
+        const container=panel?.querySelector(".marine-product-category-grid");
+        const parentBox=el.getBoundingClientRect();
+        return {
+          expanded:el.getAttribute("aria-expanded"),
+          rotation:getComputedStyle(el.querySelector(".marine-category-chevron")).transform,
+          groupMarkerContent:groupStyle?.content,
+          groupMarkerWidth:groupStyle?.width,
+          groupMarkerRadius:groupStyle?.borderRadius,
+          groupInset:(groupBox?.left||0)-(container?.getBoundingClientRect().left||0),
+          groupLeft:groupBox?.left||0,
+          parentLeft:parentBox.left,
+          hasVerticalRule:Boolean(groupStyle?.borderLeftWidth&&groupStyle.borderLeftWidth!=="0px")
+        };
+      });
+      const pass=collapsed.expanded==="false"&&collapsed.path==="m6 9 6 6 6-6"&&
+        collapsed.rotation==="none"&&open.expanded==="true"&&
+        open.rotation!=="none"&&open.groupMarkerContent!=="none"&&
+        open.groupMarkerRadius==="50%"&&parseFloat(open.groupMarkerWidth||"0")>=5&&
+        open.groupInset>=10&&!open.hasVerticalRule;
+      summary.categoryVisual.push({width,pass,collapsed,open});
+      await page.screenshot({path:dir+"/category-arrow-bullet-"+width+".png",fullPage:false});
+    }catch(error){
+      summary.categoryVisual.push({width,pass:false,error:String(error.message||error).slice(0,250)});
+    }finally{await page.close()}
+  }
+  console.log("MARINEAQUA_CATEGORY_VISUAL="+(summary.categoryVisual.every(v=>v.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.categoryVisual));
+  if(!summary.categoryVisual.every(v=>v.pass))process.exitCode=1;
+
   // All WooCommerce category levels live in the single hamburger menu below 1024.
   summary.mobileCatalog = [];
   for (const width of [390, 768, 1023]) {
