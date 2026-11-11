@@ -77,6 +77,11 @@ jobs:
           assert.match(header, /ProductCategorySidebar/);
           assert.match(layout, /productCategories=\{productCategories\}/);
           assert.match(home, /data-home-slider/);
+          assert.ok(home.includes('m-0 mb-6 w-full max-w-none bg-transparent'));
+          assert.ok(home.includes('rounded-none bg-[#0a2e6a] shadow-none'));
+          assert.ok(home.includes('h-[clamp(300px,34vw,650px)]'));
+          assert.ok(style.includes('Home_00 full-bleed hero'));
+          assert.ok(style.includes('background:rgb(243,249,255)'));
           assert.ok(home.includes('data-marine-home-variant={variant.key}'));
           assert.doesNotMatch(home, /marine-home-banner-with-catalog|marine-home-catalog|ProductCategorySidebar|showHomeCategories/);
           assert.match(header, /data-header-catalog-trigger/);
