@@ -8,6 +8,7 @@ on:
       - 'scripts/marineaqua-live-readonly.mjs'
       - 'scripts/marineaqua-cms-inventory.mjs'
       - 'scripts/marineaqua-home00-native.mjs'
+      - 'scripts/marineaqua-attach-home00.mjs'
   workflow_dispatch:
     inputs:
       suite:
@@ -195,12 +196,12 @@ jobs:
       - name: Install Playwright driver only
         run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
       - name: Validate native migration script
-        run: node --check scripts/marineaqua-home00-native.mjs
+        run: node --check scripts/marineaqua-attach-home00.mjs
       - name: Migrate approved banner and insert one native ESC Table
         env:
           WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
           WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
-        run: node scripts/marineaqua-home00-native.mjs
+        run: node scripts/marineaqua-attach-home00.mjs
       - name: Preserve non-sensitive CMS write evidence
         if: always()
         uses: actions/upload-artifact@v4
