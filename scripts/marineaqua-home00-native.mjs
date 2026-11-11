@@ -122,8 +122,13 @@ try{
  const controls=await page.locator('button, input[type=button]').evaluateAll(els=>els.filter(x=>/insert image|ch.n .*nh|image/i.test((x.innerText||'')+' '+(x.title||'')+' '+(x.value||''))).slice(0,15).map(x=>({tag:x.tagName,id:x.id,txt:(x.innerText||x.value||'').trim().slice(0,45),title:x.title})));
  record('IMAGE_CONTROLS',{controls});
  const insertImage=page.getByRole('button',{name:/Insert Image|Chèn ảnh/i}).first();
- if(await insertImage.count()===0)throw Error('Native Insert Image control not found; table schema retained but no page attach');
- await insertImage.click();
+ if(await insertImage.count()===0){
+   // The official React Insert Image button may be hidden by an editor panel.
+   // Call the exact native TablePress callback used by that button.
+   await page.evaluate(()=>window.tp.callbacks.insert_image.open_dialog());
+ }else{
+   await insertImage.click();
+ }
  const picker=page.locator('.media-modal');
  await picker.waitFor({state:'visible',timeout:15000});
  const tile=picker.locator('li.attachment[data-id="'+result.mediaId+'"]').first();
