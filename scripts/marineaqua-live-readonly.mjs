@@ -294,44 +294,73 @@ try {
   console.log("MARINEAQUA_NAV_RESPONSIVE="+(navigationPass?"PASS":"FAIL")+" "+JSON.stringify(summary.navResponsive));
   if(!navigationPass)process.exitCode=1;
 
-  // Post-migration verify the sidebar reflects the WordPress category tree, not a
-  // copy of the reference screenshot or placeholder static labels.
+  // Verify requested WooCommerce navigation: homepage sidebar visible by default,
+  // children open by click; inner pages show collapsed catalog in Header.
   summary.categorySidebar = [];
   for (const width of [1440, 1024, 390]) {
     const page = await browser.newPage({viewport:{width,height:900},deviceScaleFactor:1});
     try {
       await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
-      await page.waitForTimeout(550);
-      const sidebar = page.locator("[data-marine-product-sidebar]");
-      const count=await sidebar.count();
-      const state=await page.evaluate(()=>{
-        const el=document.querySelector("[data-marine-product-sidebar]");
-        const area=document.querySelector("[data-marine-category-carousel-area]");
-        const sec=document.querySelector("[data-marine-category-section]");
-        const bounds=node=>{const r=node?.getBoundingClientRect();return r?{x:Math.round(r.x),y:Math.round(r.y),width:Math.round(r.width),height:Math.round(r.height)}:null;};
-        return {sidebar:bounds(el),carousel:bounds(area),section:bounds(sec),
-          topCount:el?.querySelectorAll(":scope nav > ul > li").length||0,
-          linkCount:el?.querySelectorAll("a[href^='/san-pham/']").length||0,
-          groupCount:el?.querySelectorAll("details").length||0,
-          heading:el?.querySelector(".marine-product-sidebar-title")?.textContent?.trim()||"",
-          scrollWidth:document.documentElement.scrollWidth};
+      await page.waitForTimeout(650);
+      const firstHomeSidebar=page.locator("#marine-home-catalog [data-marine-product-sidebar]");
+      const homeVisible=await firstHomeSidebar.isVisible().catch(()=>false);
+      const headerTrigger=page.locator('[data-header-catalog-trigger]:visible').first();
+      const headerVisible=await headerTrigger.count()>0;
+      const initial=await page.evaluate(()=>{
+        const sidebar=document.querySelector("#marine-home-catalog [data-marine-product-sidebar]");
+        const hero=document.querySelector('[data-home-slider]:visible') ||
+          [...document.querySelectorAll('[data-home-slider]')].find(el=>getComputedStyle(el).display!=="none");
+        const r=el=>{if(!el)return null;const box=el.getBoundingClientRect();
+          return {x:Math.round(box.x),y:Math.round(box.y),width:Math.round(box.width),height:Math.round(box.height)};};
+        const cat=document.querySelector("#marine-home-catalog");
+        return {
+          homeSidebar:r(sidebar),hero:r(hero),catalog:r(cat),
+          categoryRows:sidebar?.querySelectorAll("[data-marine-category-item]").length||0,
+          categoryLinks:sidebar?.querySelectorAll("a[href]").length||0,
+          expanded:sidebar?.querySelectorAll('[data-marine-category-trigger][aria-expanded="true"]').length||0,
+          documentWidth:document.documentElement.scrollWidth,
+          viewportWidth:window.innerWidth
+        };
       });
-      let expandable=true;
-      if(count){
-        const group=sidebar.locator("details").first();
-        if(await group.count()){
-          const wasOpen=await group.getAttribute("open")!==null;
-          await group.locator("summary").click();
-          const nowOpen=await group.getAttribute("open")!==null;
-          expandable=wasOpen!==nowOpen;
+      let childFlyout="NO_CHILDREN";
+      if(homeVisible){
+        const trigger=firstHomeSidebar.locator("[data-marine-category-trigger]").first();
+        if(await trigger.count()){
+          await trigger.click();
+          const panelId=await trigger.getAttribute("aria-controls");
+          const panel=page.locator("#"+panelId);
+          const opened=await panel.isVisible() &&
+            await trigger.getAttribute("aria-expanded")==="true";
+          await trigger.click();
+          const closed=!(await panel.isVisible()) &&
+            await trigger.getAttribute("aria-expanded")==="false";
+          childFlyout=opened&&closed?"PASS":"FAIL";
         }
       }
-      const pass=Boolean(count===1 && state.topCount>0 && state.linkCount>0 &&
-        state.heading==="DANH MỤC SẢN PHẨM" && expandable &&
-        state.scrollWidth<=width+1 && state.sidebar && state.carousel &&
-        (width>=1024 ? state.sidebar.x+state.sidebar.width<=state.carousel.x+2
-          : state.sidebar.y+state.sidebar.height<=state.carousel.y+3));
-      summary.categorySidebar.push({width,pass,expandable,...state});
+      let headerFlyout="NOT_TESTED";
+      if(headerVisible){
+        await headerTrigger.click();
+        const panel=page.locator("#header-product-catalog-panel");
+        const opened=await panel.isVisible() &&
+          await headerTrigger.getAttribute("aria-expanded")==="true";
+        await page.keyboard.press("Escape");
+        const closed=!(await panel.isVisible()) &&
+          await headerTrigger.getAttribute("aria-expanded")==="false";
+        headerFlyout=opened&&closed?"PASS":"FAIL";
+      }
+      const sidebarLayoutOk=width>=1100
+        ? Boolean(initial.homeSidebar&&initial.hero &&
+          initial.homeSidebar.x+initial.homeSidebar.width<=initial.hero.x+3)
+        : width>=640
+          ? Boolean(initial.homeSidebar&&initial.hero &&
+            initial.homeSidebar.y>=initial.hero.y+initial.hero.height-3)
+          : !homeVisible;
+      const pass=initial.documentWidth<=width+2 && headerVisible &&
+        headerFlyout==="PASS" && sidebarLayoutOk &&
+        (width<640||Boolean(homeVisible&&initial.categoryRows>0 &&
+          initial.categoryLinks>0&&initial.expanded===0&&childFlyout!=="FAIL"));
+      summary.categorySidebar.push({width,pass,homeVisible,headerVisible,
+        childFlyout,headerFlyout,sidebarLayoutOk,...initial});
       if(width===1440||width===390)
         await page.screenshot({path:dir+"/product-category-sidebar-"+width+".png",fullPage:false});
     }catch(error){
