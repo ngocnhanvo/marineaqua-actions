@@ -329,6 +329,8 @@ try {
             document.querySelector("#main-header")?.classList.contains("mobile-header-fixed"),
           position:cs?.position||"",
            backgroundColor:cs?.backgroundColor||"",
+          borderRadius:cs?.borderRadius||"",
+          backdropFilter:cs?.backdropFilter||"",
           top:Math.round(rect?.top||0),
           bottom:Math.round(rect?.bottom||0),
           left:Math.round(rect?.left||0),
@@ -348,11 +350,34 @@ try {
         await page.keyboard.press("Escape");
         menuWorks=menuWorks&&!(await page.locator("#header-product-catalog-panel").isVisible());
       }
+      let headerSubmenuWorks=!after.desktop;
+      if(after.desktop){
+        const root=page.locator("#desktop-menu [data-menu-trigger]:visible").first();
+        if(await root.count()){
+          const controlled=await root.getAttribute("aria-controls");
+          const menuPanel=page.locator('[id="'+controlled+'"]');
+          await root.click();
+          await page.waitForTimeout(160);
+          const shown=await root.getAttribute("aria-expanded")==="true" && await menuPanel.isVisible();
+          const hittable=shown && await menuPanel.evaluate((el)=>{
+            const r=el.getBoundingClientRect();
+            const x=Math.max(0,Math.min(innerWidth-1,r.left+Math.min(40,r.width/2)));
+            const y=Math.max(0,Math.min(innerHeight-1,r.top+Math.min(25,r.height/2)));
+            const hit=document.elementFromPoint(x,y);
+            return r.width>100 && r.height>30 && hit!==null && (el===hit || el.contains(hit));
+          });
+          await page.keyboard.press("Escape");
+          const closed=await root.getAttribute("aria-expanded")==="false" && !(await menuPanel.isVisible());
+          headerSubmenuWorks=shown&&hittable&&closed;
+        }
+      }
       const pass=!before.overflow&&!after.overflow&&after.scrollY>=600&&
-        after.backgroundColor===(after.desktop ? "rgb(243, 249, 255)" : "rgba(255, 255, 255, 0.97)")&&
+        after.backgroundColor===(after.desktop ? "rgba(243, 249, 255, 0.94)" : "rgba(255, 255, 255, 0.94)")&&
+        after.top===0&&after.left===0&&Math.abs(after.right-width)<=2&&
+        after.borderRadius==="0px"&&after.backdropFilter.includes("blur(")&&
         after.fixedClass&&after.position==="fixed"&&after.aboveContent&&
-        after.spacerVisible&&menuWorks;
-      summary.headerFloating.push({width,pass,menuWorks,...after});
+        after.spacerVisible&&menuWorks&&headerSubmenuWorks;
+      summary.headerFloating.push({width,pass,menuWorks,headerSubmenuWorks,...after});
       if([1440,390].includes(width))
         await page.screenshot({path:dir+"/clean-ocean-floating-"+width+".png",fullPage:false});
     }catch(error){
@@ -415,13 +440,14 @@ try {
             };
           });
           categoryRows=details.rows;categoryLinks=details.links;insideViewport=details.viewport;
-          const child=panel.locator("[data-marine-category-trigger]").first();
+          const child=panel.locator(".marine-product-sidebar-parent[data-marine-category-trigger]").first();
           if(await child.count()){
+            const originalUrl=page.url();
             await child.click();
             const childId=await child.getAttribute("aria-controls");
             const childPanel=panel.locator("[id='"+childId+"']");
             childOpened=await childPanel.isVisible() &&
-              await child.getAttribute("aria-expanded")==="true";
+              await child.getAttribute("aria-expanded")==="true" && page.url()===originalUrl;
             await child.click();
             childClosed=!(await childPanel.isVisible()) &&
               await child.getAttribute("aria-expanded")==="false";
