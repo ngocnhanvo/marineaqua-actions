@@ -33,8 +33,8 @@ for (const [label, host] of [["frontend", frontend.hostname], ["wordpress", word
 
 const browser = await chromium.launch({ headless: true });
 try {
-  for (const width of [1917, 390]) {
-    const height = width === 1917 ? 1092 : 844;
+  for (const width of [1917, 1440, 768, 390]) {
+    const height = width >= 1440 ? 1092 : 844;
     const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
     const problems = [];
     page.on("pageerror", error => problems.push(error.name || "pageerror"));
@@ -62,6 +62,30 @@ try {
           categoriesSlider: document.querySelectorAll("[data-marine-category-slider]").length,
           productPrices: document.querySelectorAll("[data-marine-product-price]").length,
           navLinks: document.querySelectorAll("header nav a, #desktop-menu a").length,
+          header: (() => {
+            const root = document.getElementById("main-header");
+            const brand = document.getElementById("header-brandbar");
+            const logo = brand?.querySelector('a[aria-label="Về trang chủ"] img');
+            const navrow = document.getElementById("header-navrow");
+            const hamburger = document.getElementById("hamburger-btn");
+            const brandBounds = brand?.firstElementChild?.getBoundingClientRect();
+            const desktop = window.matchMedia("(min-width: 900px)").matches;
+            return {
+              exists: Boolean(root && brand),
+              brandWidth: Math.round(brandBounds?.width || 0),
+              brandWidthPct: Number(((brandBounds?.width || 0) * 100 / window.innerWidth).toFixed(1)),
+              logoFromCms: Boolean(logo?.getAttribute("src")),
+              logoLoaded: Boolean(logo?.complete && logo?.naturalWidth > 0),
+              companyText: (document.getElementById("header-company-caption")?.textContent || "").trim().slice(0, 100),
+              fontFamily: getComputedStyle(document.body).fontFamily.slice(0, 110),
+              desktopNavPresent: Boolean(navrow),
+              desktopNavVisible: Boolean(navrow && getComputedStyle(navrow).display !== "none"),
+              desktopNavBackground: navrow ? getComputedStyle(navrow).backgroundImage : "",
+              desktopMenuItems: document.querySelectorAll("#desktop-menu > ul > li").length,
+              mobileMenuButtonVisible: Boolean(hamburger && getComputedStyle(hamburger).display !== "none" && hamburger.getClientRects().length),
+              expectedNavVisibility: desktop ? "visible" : "hidden",
+            };
+          })(),
           imageCount: imgs.length,
           brokenImages: imgs.filter(img => img.complete && img.naturalWidth === 0).length,
           horizontalOverflow: documentWidth > window.innerWidth + 2,
