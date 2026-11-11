@@ -39,26 +39,40 @@ try{
  if(content.trim()&&!content.includes('[table'))throw Error('Home Page has unexpected existing content; refuse overwrite');
  record('PAGE_PREFLIGHT',{id:PAGE,slug:pageData.slug,existingTableShortcodes:(content.match(/\[table\b/g)||[]).length});
  phase='media';
- const existingMedia=await context.request.get('/wp-json/wp/v2/media?search=banner1-1-690x336.jpg&per_page=30&_fields=id,source_url',{timeout:20000});
- if(existingMedia.ok()){
-  const items=await existingMedia.json();
-  const found=items.find(x=>new URL(x.source_url).pathname.endsWith('/banner1-1-690x336.jpg'));
-  if(found){result.mediaId=found.id;record('MEDIA_REUSED',{id:found.id});}
- }
+ const listMedia=async()=>{
+   const response=await context.request.get('/wp-json/wp/v2/media?per_page=100&_fields=id,source_url',{timeout:30000});
+   if(!response.ok())throw Error('Cannot read WordPress Media Library: '+response.status());
+   const items=await response.json();
+   return Array.isArray(items)?items:[];
+ };
+ let currentMedia=await listMedia();
+ let found=currentMedia.find(x=>String(x.source_url||'').endsWith('/banner1-1-690x336.jpg'));
+ if(found){result.mediaId=found.id;record('MEDIA_REUSED',{id:found.id});}
  if(!result.mediaId){
-   await page.goto(WP+'/wp-admin/media-new.php?browser-uploader',{waitUntil:'domcontentloaded',timeout:45000});
-   const fileInput=page.locator('input[type=file][name="async-upload"],#async-upload').first();
-   await fileInput.waitFor({state:'attached',timeout:12000});
-   await fileInput.setInputFiles({name:'banner1-1-690x336.jpg',mimeType:'image/jpeg',buffer:bytes});
-   await page.locator('#html-upload,input[type=submit]').first().click();
-   await page.waitForLoadState('domcontentloaded',{timeout:45000});
-   const mediaRes=await context.request.get('/wp-json/wp/v2/media?search=banner1-1-690x336.jpg&per_page=30&_fields=id,source_url',{timeout:20000});
-   if(!mediaRes.ok())throw Error('Media readback failed: '+mediaRes.status());
-   const media=await mediaRes.json();
-   const found=media.find(x=>new URL(x.source_url).pathname.endsWith('/banner1-1-690x336.jpg'));
-   if(!found)throw Error('Native media upload not visible in REST readback');
-   result.mediaId=found.id;
-   record('MEDIA_UPLOADED',{id:found.id});
+   // Use WordPress's authenticated Media REST endpoint. The ESC Table
+   // image itself is subsequently inserted using the native Insert Image control.
+   await page.goto(WP+'/wp-admin/media-new.php',{waitUntil:'domcontentloaded',timeout:45000});
+   const nonce=await page.evaluate(()=>String(window.wpApiSettings?.nonce||''));
+   record('MEDIA_NONCE_AVAILABLE',{yes:Boolean(nonce)});
+   if(!nonce)throw Error('WordPress media REST nonce not exposed; cannot safely upload');
+   const response=await context.request.post('/wp-json/wp/v2/media',{
+      headers:{'X-WP-Nonce':nonce,'Content-Type':'image/jpeg',
+       'Content-Disposition':'attachment; filename="banner1-1-690x336.jpg"'},
+      data:bytes,timeout:60000,failOnStatusCode:false,
+   });
+   if(!response.ok()){
+     record('MEDIA_UPLOAD_REJECTED',{status:response.status()});
+     throw Error('WordPress media upload returned HTTP '+response.status());
+   }
+   const uploaded=await response.json();
+   if(!Number.isInteger(uploaded?.id)||uploaded.id<=0)throw Error('Media upload gave no id');
+   result.mediaId=uploaded.id;
+   record('MEDIA_UPLOADED',{id:uploaded.id});
+   currentMedia=await listMedia();
+   found=currentMedia.find(x=>x.id===result.mediaId);
+   if(!found||!String(found.source_url||'').includes('banner1-1-690x336.jpg')){
+     throw Error('Media readback missing expected asset after REST upload');
+   }
  }
  phase='table';
  const all=await context.request.get('/wp-json/tablepress/v1/tables/prefix/all?per_page=100&page=1',{timeout:30000});
