@@ -27,16 +27,7 @@ try{
  if(home.id!==PAGE||home.slug!=="trang-chu"||home.acf?.key!=="home"||home.acf?.action!=="HomePage"||home.status!=="publish")throw Error("Unexpected WordPress homepage identity");
  await page.goto(WP+"/wp-admin/post.php?post="+PAGE+"&action=edit",{waitUntil:"domcontentloaded",timeout:45000});
  if(page.url().includes("wp-login.php"))throw new Error("Editor unauthenticated");
- const tab=page.locator("#content-html");
- if(await tab.isVisible()){
-   await tab.click();
-   // Classic Editor asynchronously toggles from TinyMCE to Quicktags.
-   // Do not switch back to Visual before the native TablePress control appears.
-   await page.waitForFunction(
-     ()=>document.querySelector("#wp-content-wrap")?.classList.contains("html-active"),
-     null,{timeout:12000}
-   );
- }
+ // Keep the current native editor mode; never paste a shortcode manually.
  const contentBefore=await page.locator("#content").inputValue();
  log("PAGE_BEFORE",{chars:contentBefore.length,hasTable:contentBefore.includes(TABLE)});
  if(contentBefore.includes(TABLE)){report.saved=true;log("ALREADY_ATTACHED",{id:TABLE});}
@@ -74,9 +65,21 @@ try{
      log("NATIVE_EDITOR_DOM_DIAGNOSTICS",snapshot);
      await page.screenshot({path:evidence+"/editor-controls-before.png",fullPage:false});
      log("NATIVE_EDITOR_CONTROLS",{quickVisible:await quick.isVisible(),buttonVisible:await button.isVisible(),controls});
-     if(!await button.isVisible())throw Error("No native ESC Table Insert Code control visible");
-     chosenEditor="tinymce";
-     await button.click();
+     chosenEditor="native-plugin-command";
+     // The registered ESC Table button command opens the same WordPress Thickbox;
+     // a real target row must still be selected in the native dialog.
+     const command=await page.evaluate(()=>{
+       const editor=window.tinymce?.get("content");
+       if(!editor||typeof window.tablepress_open_shortcode_thickbox!=="function")
+         return "UNAVAILABLE";
+       if(typeof editor.execCommand==="function"){
+         try{editor.execCommand("TablePress_insert_table");return "TINYMCE_COMMAND";}catch(e){}
+       }
+       window.tablepress_open_shortcode_thickbox();
+       return "TABLEPRESS_REGISTERED_COMMAND";
+     });
+     log("NATIVE_PLUGIN_COMMAND",{command});
+     if(command==="UNAVAILABLE")throw Error("No supported native ESC Table editor command available");
    }
    log("NATIVE_BUTTON_CLICKED",{editor:chosenEditor});
    const frame=page.frameLocator("#TB_iframeContent");
@@ -96,7 +99,7 @@ try{
        pageOccurrences:(probe.pageText.match(/home_00/g)||[]).length,
        acfOccurrences:(probe.acfText.match(/home_00/g)||[]).length,
        tinymceOccurrences:(probe.tinymceText.match(/home_00/g)||[]).length});
-   if(chosenEditor==="tinymce"){
+   if(chosenEditor==="tinymce"||chosenEditor==="native-plugin-command"){
      const textTab=page.locator("#content-html");
      if(await textTab.isVisible())await textTab.click();
      await page.waitForTimeout(400);
@@ -106,7 +109,14 @@ try{
        tinymceText:String(window.tinymce?.get("content")?.getContent()||"")
      }));
    }
-   if((probe.pageText.match(/home_00/g)||[]).length!==1)throw Error("Native Insert Code did not insert precisely one shortcode");
+   const rawCount=(probe.pageText.match(/home_00/g)||[]).length;
+   const visualCount=(probe.tinymceText.match(/home_00/g)||[]).length;
+   if(rawCount!==1 && visualCount!==1)
+     throw Error("Native Insert Code did not insert precisely one shortcode");
+   if(rawCount===0 && visualCount===1){
+     // WordPress's own editor synchronization, not a raw shortcode injection.
+     await page.evaluate(()=>window.tinymce?.triggerSave());
+   }
    await page.locator("#publish").click();
    await page.waitForLoadState("domcontentloaded",{timeout:45000});
    await page.goto(WP+"/wp-admin/post.php?post="+PAGE+"&action=edit",{waitUntil:"domcontentloaded",timeout:45000});
