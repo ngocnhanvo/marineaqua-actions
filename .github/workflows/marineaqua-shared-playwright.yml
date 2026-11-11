@@ -8,6 +8,7 @@ on:
       - 'scripts/marineaqua-live-readonly.mjs'
       - 'scripts/marineaqua-cms-inventory.mjs'
       - 'scripts/marineaqua-home-section-native.mjs'
+      - 'scripts/marineaqua-catalog-sections-native.mjs'
       - 'scripts/marineaqua-home00-native.mjs'
       - 'scripts/marineaqua-attach-home00.mjs'
   workflow_dispatch:
@@ -244,5 +245,40 @@ jobs:
         with:
           name: marine-aqua-first-home-esc-table
           path: cms-section-implementation-evidence/
+          retention-days: 7
+          if-no-files-found: warn
+
+  native-home-catalog-sections:
+    name: Create five real Marine Aqua catalog ESC Tables through WordPress UI
+    if: >-
+      github.event_name == 'push' && github.event.head_commit.message == 'cms: add real catalog ESC Table sections' && github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: marine-aqua-cms-catalog-write
+      cancel-in-progress: false
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Playwright driver only
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Native ESC Table catalog section creation and REST readback
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-catalog-sections-native.mjs
+      - name: Upload section creation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marine-aqua-catalog-sections-native
+          path: cms-catalog-section-evidence/
           retention-days: 7
           if-no-files-found: warn
