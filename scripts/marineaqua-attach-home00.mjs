@@ -99,14 +99,16 @@ try{
        pageOccurrences:(probe.pageText.match(/home_00/g)||[]).length,
        acfOccurrences:(probe.acfText.match(/home_00/g)||[]).length,
        tinymceOccurrences:(probe.tinymceText.match(/home_00/g)||[]).length});
-   const rawCount=(probe.pageText.match(/home_00/g)||[]).length;
-   const visualCount=(probe.tinymceText.match(/home_00/g)||[]).length;
+   // WordPress's native preview contains the table ID in multiple HTML
+   // attributes. Count the REAL shortcode, not every occurrence of its ID.
+   const shortcodeRegex=/\\[table\\s+id=["']?home_00["']?\\s*\\/\\]/gi;
+   const rawCount=(probe.pageText.match(shortcodeRegex)||[]).length;
+   const visualCount=(probe.tinymceText.match(shortcodeRegex)||[]).length;
+   log("NATIVE_SHORTCODE_COUNT",{raw:rawCount,visual:visualCount,visualWrapper:probe.tinymceText.includes("tablepress-preview-wrap")});
    if(rawCount!==1 && visualCount!==1)
-     throw Error("Native Insert Code did not insert precisely one shortcode");
-   if(rawCount===0 && visualCount===1){
-     // WordPress's own editor synchronization, not a raw shortcode injection.
-     await page.evaluate(()=>window.tinymce?.triggerSave());
-   }
+     throw Error("Native Insert Code produced no unique shortcode");
+   // WordPress's own editor synchronization, not a raw shortcode injection.
+   await page.evaluate(()=>window.tinymce?.triggerSave());
    await page.locator("#publish").click();
    await page.waitForLoadState("domcontentloaded",{timeout:45000});
    await page.goto(WP+"/wp-admin/post.php?post="+PAGE+"&action=edit",{waitUntil:"domcontentloaded",timeout:45000});
