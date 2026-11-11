@@ -9,6 +9,7 @@ on:
       - 'scripts/marineaqua-*-delta-package.py'
       - 'scripts/marineaqua-remote-unzip.py'
       - 'scripts/marineaqua-resumable-ftp.sh'
+      - 'scripts/marineaqua-ftps-upload.py'
       - 'scripts/marineaqua-php-live-release.py'
       - 'tests/marineaqua-*.test.py'
   workflow_dispatch:
@@ -45,7 +46,7 @@ jobs:
         run: |
           set -euo pipefail
           command -v php
-          bash -n scripts/marineaqua-resumable-ftp.sh
+          python3 -m py_compile scripts/marineaqua-ftps-upload.py
           for test in tests/marineaqua-*.test.py; do
             python3 "$test" -v
           done
