@@ -62,6 +62,18 @@ try {
           categoriesSlider: document.querySelectorAll("[data-marine-category-slider]").length,
           productPrices: document.querySelectorAll("[data-marine-product-price]").length,
 
+          headerActionsAudit: (() => {
+            const actions = [...document.querySelectorAll("#header-contacts > [data-header-action]")];
+            return actions.map(el => ({
+              type: el.getAttribute("data-header-action"),
+              tag: el.tagName.toLowerCase(),
+              svgPresent: Boolean(el.querySelector("svg")),
+              svgMarkup: el.querySelector("svg")?.outerHTML.slice(0,420) || "",
+              label: el.getAttribute("aria-label") || "",
+              bg: getComputedStyle(el).backgroundColor,
+              borderRadius: getComputedStyle(el).borderRadius,
+            }));
+          })(),
           headerV3ColorAudit: (() => {
             const items = [...document.querySelectorAll("#desktop-menu > ul > li")];
             return {
@@ -200,6 +212,16 @@ if (!desktop || desktop.httpStatus < 200 || desktop.httpStatus >= 400 ||
 console.log("MARINEAQUA_HOMEPAGE_CONTENT=" +
   ((desktop?.content === "PRESENT" && mobile?.content === "PRESENT") ? "PRESENT" : "MISSING_OR_EMPTY"));
 
+const headerActions = desktop?.headerActionsAudit || [];
+const accountAction = headerActions.find(x=>x.type==="account");
+const cartAction = headerActions.find(x=>x.type==="cart");
+const headerActionPass = headerActions.length===2 && Boolean(accountAction?.svgPresent && cartAction?.svgPresent)
+  && accountAction.borderRadius==="50%" && cartAction.borderRadius==="50%"
+  && !headerActions.some(x=>x.label.includes("Facebook") || x.label.startsWith("Gọi"));
+console.log("MARINEAQUA_HEADER_ACCOUNT_CART=" + (headerActionPass ? "PASS":"FAIL") +
+ " actions=" + headerActions.length + " account=" + Boolean(accountAction) +
+ " cart=" + Boolean(cartAction));
+if (!headerActionPass) process.exitCode=1;
 const v3 = desktop?.headerV3ColorAudit;
 const v3Labels = ["trang chủ", "giảm giá khủng", "chính sách và hướng dẫn", "thời gian bán hàng", "liên hệ", "phí ship hàng", "bài viết chia sẻ kinh nghiệm"];
 const normalizeV3 = text => String(text || "").replace(/⚡/g, "").trim().toLocaleLowerCase("vi");
