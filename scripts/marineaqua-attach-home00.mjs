@@ -34,7 +34,7 @@ try{
  else{
    if(contentBefore.trim())throw Error("Existing content not empty; refuse overwrite");
    // Activate the correct Classic Editor before using native ESC Table Insert Code.
-   await page.evaluate(()=>{window.wpActiveEditor="content";if(window.QTags?.instances?.content){window.QTags.instances.content.canvas.focus();}});
+   await page.evaluate(()=>{window.wpActiveEditor="content";});
    const trigger=page.locator("#qt_content_tablepress_quicktags_button");
    await trigger.waitFor({state:"visible",timeout:15000});
    await trigger.click();
