@@ -85,7 +85,7 @@ jobs:
           assert.match(header, /instanceId="header"/);
           assert.match(sidebar, /data-marine-category-trigger/);
           assert.match(sidebar, /data-marine-category-panel/);
-          assert.doesNotMatch(sidebar, /<h2>\\{node.name\\}<\\/h2>/);
+          assert.ok(!sidebar.includes('<h2>{node.name}</h2>'));
           assert.match(header, /border:0;border-radius:0 0 11px 11px/);
           assert.match(sidebar, /instanceId/);
           assert.match(header, /instanceId="header"/);
