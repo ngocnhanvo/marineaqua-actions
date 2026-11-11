@@ -67,7 +67,14 @@ jobs:
           assert.match(header, /header-product-catalog-panel/);
           assert.match(header, /header-nav-floating/);
           assert.match(header, /mobile-header-fixed/);
-          assert.match(header, /min-width: 1440px/);
+          assert.match(header, /min-width: 1024px/);
+           const mobile = read("src/astro/components/Menu/Mobile.astro");
+           const mobileCategories = read("src/astro/components/Menu/MobileProductCategoryBranch.astro");
+           assert.match(header, /categoryRootUrl=\{categoryRootUrl\}/);
+           assert.match(mobile, /MobileProductCategoryBranch/);
+           assert.match(mobileCategories, /data-menu-toggle/);
+           assert.match(style, /min-width:1024px/);
+           assert.match(style, /max-width:1023px/);
           assert.doesNotMatch(header, /id="header-hotline"/);
           assert.ok(style.includes('gap:clamp(8px,1vw,18px);justify-content:flex-start;'));
           assert.match(style, /Clean Ocean header/);
