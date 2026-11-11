@@ -1,6 +1,11 @@
 name: Marine Aqua shared Playwright (manual, read-only)
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-shared-playwright.yml'
+      - 'scripts/marineaqua-live-readonly.mjs'
   workflow_dispatch:
     inputs:
       suite:
@@ -103,3 +108,34 @@ jobs:
     secrets:
       WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
       WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+
+  live-readonly-diagnostics:
+    name: Live public DNS, homepage and WordPress read-only diagnostics
+    if: github.event_name == 'push' && github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Playwright driver only
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Test public live domains and homepage (read only)
+        env:
+          FRONTEND_URL: https://marine-aqua.io.vn
+          WORDPRESS_URL: https://admin.marine-aqua.io.vn
+        run: node scripts/marineaqua-live-readonly.mjs
+      - name: Preserve non-sensitive diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marine-aqua-live-readonly-diagnostics
+          path: live-diagnostics-evidence/
+          retention-days: 7
+          if-no-files-found: warn
