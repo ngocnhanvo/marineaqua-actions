@@ -231,7 +231,7 @@ try {
 
   // Verify deployed compact menu click hit-testing and visibility above the banner.
   summary.navResponsive = [];
-  for (const width of [900, 1024, 1190, 1280, 1366, 1439, 1440]) {
+  for (const width of [390, 768, 900, 1023, 1024, 1190, 1280, 1366, 1439, 1440]) {
     const page = await browser.newPage({viewport:{width,height:850},deviceScaleFactor:1});
     try {
       await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
@@ -258,7 +258,7 @@ try {
       });
       let menuOpened=false;
       let menuText="";
-      if(width<1440 && initial.toggleVisible){
+      if(width<1024 && initial.toggleVisible){
         await page.locator("#hamburger-btn").click();
         await page.waitForTimeout(100);
         const menuLayer=await page.evaluate(()=>{
@@ -279,17 +279,19 @@ try {
           };
         });
         menuOpened=menuLayer.open && menuLayer.aboveBanner &&
-          menuLayer.headerRaised && menuLayer.menuBg==="rgb(255, 255, 255)";
-        menuText=(await page.locator("#mobile-menu-container").innerText()).slice(0,500);
+          menuLayer.headerRaised && ["rgb(255, 255, 255)","rgb(243, 248, 252)"].includes(menuLayer.menuBg);
+        menuText=(await page.locator("#mobile-menu-container").innerText()).slice(0,1200);
       }
-      const pass=width<1440
+      const pass=width<1024
         ? !initial.navVisible && initial.compactVisible && initial.toggleVisible &&
           menuOpened && menuText.includes("Trang chủ") &&
           menuText.includes("Chính sách và hướng dẫn") && menuText.includes("Liên hệ") &&
+          menuText.includes("Danh mục sản phẩm") &&
+          await page.locator("#mobile-menu-container .marine-mobile-category-item").count()>0 &&
           initial.documentWidth<=width+1
         : initial.navVisible && !initial.compactVisible && initial.documentWidth<=width+1;
       summary.navResponsive.push({width,pass,...initial,menuOpened});
-      if([1190,1366,1440].includes(width))
+      if([390,1023,1024,1190,1366,1440].includes(width))
         await page.screenshot({path:dir+"/navigation-"+width+".png",fullPage:false});
     }catch(error){
       summary.navResponsive.push({width,pass:false,error:String(error.message||error).slice(0,250)});
@@ -317,7 +319,7 @@ try {
       const after=await page.evaluate(()=>{
         const nav=document.querySelector("#header-navrow");
         const brand=document.querySelector("#header-brandbar");
-        const desktop=innerWidth>=1440;
+        const desktop=innerWidth>=1024;
         const target=desktop?nav:brand;
         const rect=target?.getBoundingClientRect();
         const cs=target?getComputedStyle(target):null;
@@ -343,7 +345,7 @@ try {
         };
       });
       const trigger=page.locator("[data-header-catalog-trigger]:visible").first();
-      let menuWorks=false;
+      let menuWorks=!after.desktop;
       if(await trigger.count()){
         await trigger.click();
         menuWorks=await page.locator("#header-product-catalog-panel").isVisible();
@@ -394,7 +396,7 @@ try {
   // Category navigation is click-only on ALL pages. Homepage banner stays
   // full-width and must not carry a permanently visible catalog sidebar.
   summary.categorySidebar = [];
-  for (const width of [1917, 1440, 1024, 390]) {
+  for (const width of [1917, 1440, 1200, 1024]) {
     const page = await browser.newPage({viewport:{width,height:900},deviceScaleFactor:1});
     try {
       await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
@@ -475,7 +477,7 @@ try {
       summary.categorySidebar.push({width,pass,triggerVisible,clickOpened,clickClosed,
         outsideClosed,escapeClosed,childOpened,childClosed,insideViewport,
         categoryRows,categoryLinks,...first});
-      if([1440,390].includes(width)){
+      if([1440,1024].includes(width)){
         await trigger.click();
         await page.screenshot({path:dir+"/product-category-click-menu-"+width+".png",fullPage:false});
       }
@@ -487,6 +489,37 @@ try {
   console.log("MARINEAQUA_PRODUCT_CATEGORY_SIDEBAR="+(categorySidebarPass?"PASS":"FAIL")+
     " "+JSON.stringify(summary.categorySidebar));
   if(!categorySidebarPass)process.exitCode=1;
+
+  // All WooCommerce category levels live in the single hamburger menu below 1024.
+  summary.mobileCatalog = [];
+  for (const width of [390, 768, 1023]) {
+    const page=await browser.newPage({viewport:{width,height:850},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      const compactCatalog=await page.locator("#header-compact-actions [data-header-catalog-trigger]:visible").count();
+      await page.locator("#hamburger-btn").click();
+      const categories=page.locator("#mobile-menu-container .marine-mobile-menu-categories");
+      const parent=categories.locator(".marine-mobile-category-link[data-menu-toggle]").first();
+      const count=await categories.locator(".marine-mobile-category-item").count();
+      const sectionVisible=await categories.isVisible();
+      const urlBefore=page.url();
+      const panelId=await parent.getAttribute("aria-controls");
+      const panel=page.locator('[id="'+panelId+'"]');
+      await parent.click();
+      const opened=await panel.isVisible()&&await parent.getAttribute("aria-expanded")==="true"&&page.url()===urlBefore;
+      await parent.click();
+      const closed=!(await panel.isVisible())&&await parent.getAttribute("aria-expanded")==="false";
+      const horizontalOverflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2);
+      const pass=compactCatalog===0&&sectionVisible&&count>5&&opened&&closed&&!horizontalOverflow;
+      summary.mobileCatalog.push({width,pass,compactCatalog,sectionVisible,count,opened,closed,horizontalOverflow});
+      await page.screenshot({path:dir+"/unified-mobile-menu-"+width+".png",fullPage:false});
+    } catch(error) {
+      summary.mobileCatalog.push({width,pass:false,error:String(error.message||error).slice(0,240)});
+    } finally {await page.close()}
+  }
+  const mobileCatalogPass=summary.mobileCatalog.every(item=>item.pass);
+  console.log("MARINEAQUA_MOBILE_CATALOG="+(mobileCatalogPass?"PASS":"FAIL")+" "+JSON.stringify(summary.mobileCatalog));
+  if(!mobileCatalogPass)process.exitCode=1;
 
   // Search focus must use a blue glow on the complete form, never an orange inner outline.
   summary.headerSearchFocus = {};
@@ -528,7 +561,7 @@ try {
   // Regression: left-clustered nav; a single visually connected category
   // parent/submenu surface; no repeated heading or consultation CTA.
   summary.headerRefinements = [];
-  for (const width of [1440, 1024, 390]) {
+  for (const width of [1440, 1200, 1024]) {
     const page = await browser.newPage({viewport:{width,height:900},deviceScaleFactor:1});
     try {
       await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
@@ -579,7 +612,7 @@ try {
         visuals.parentBottomRadius==="0px" &&
         visuals.childTopRadius==="0px" && visuals.childVisible;
       summary.headerRefinements.push({width,pass,nav:headerBefore,submenu:visuals});
-      if(width===1440||width===390)await page.screenshot({
+      if(width===1440||width===1024)await page.screenshot({
         path:dir+"/header-category-unified-"+width+".png",fullPage:false
       });
     }catch(error){
