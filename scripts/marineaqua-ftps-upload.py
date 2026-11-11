@@ -106,15 +106,21 @@ def transfer(values: dict[str, str], archive: Path, remote_temp: str, size: int)
             try:
                 ftp.rename(remote_temp, final_name)
             except ftplib.error_perm:
-                # Servers commonly refuse RNTO over an existing file. Keep the
-                # previous artifact intact until the new staging size is checked.
+                # Only replace an existing archive; never delete it on other
+                # permission failures. Signed PHP still validates the ZIP SHA.
+                try:
+                    prior = remote_size(ftp, final_name)
+                except ftplib.error_perm:
+                    raise
+                if prior <= 0:
+                    raise
                 ftp.delete(final_name)
                 ftp.rename(remote_temp, final_name)
             if remote_size(ftp, final_name) != size:
                 raise UploadError("Final remote archive size mismatch")
-            print(f"FTPS_UPLOAD=PASS bytes={size} sha_prefix={remote_temp[18:30]}", flush=True)
+            print(f"FTPS_UPLOAD=PASS bytes={size} sha_prefix={remote_temp.split(".")[2][:12]}", flush=True)
             return
-        except (OSError, EOFError, ftplib.all_errors, UploadError) as exc:
+        except (OSError, EOFError, UploadError, *ftplib.all_errors) as exc:
             last_error = exc
             print(f"FTPS_UPLOAD_RETRY attempt={attempt} reason={type(exc).__name__}", flush=True)
             if attempt < 3:
@@ -144,6 +150,6 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except (UploadError, ftplib.all_errors, OSError, ssl.SSLError, socket.error) as exc:
+    except (UploadError, OSError, EOFError, *ftplib.all_errors) as exc:
         print(f"::error::Python FTPS upload failed ({type(exc).__name__})", file=sys.stderr)
         sys.exit(1)
