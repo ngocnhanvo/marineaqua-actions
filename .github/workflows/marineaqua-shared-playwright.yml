@@ -175,7 +175,8 @@ jobs:
 
   native-home-banner-cms:
     name: Install one source-backed ESC Table banner through native WordPress UI
-    if: github.event_name == 'push' && github.event.head_commit.message == 'cms: start home ESC Table migration' && github.repository == 'ngocnhanvo/marineaqua-actions'
+    if: >-
+      github.event_name == 'push' && github.event.head_commit.message == 'cms: start home ESC Table migration' && github.repository == 'ngocnhanvo/marineaqua-actions'
     runs-on: ubuntu-latest
     timeout-minutes: 18
     container:
