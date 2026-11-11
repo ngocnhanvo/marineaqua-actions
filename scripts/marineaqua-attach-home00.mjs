@@ -30,7 +30,7 @@ try{
  // Keep the current native editor mode; never paste a shortcode manually.
  const contentBefore=await page.locator("#content").inputValue();
  log("PAGE_BEFORE",{chars:contentBefore.length,hasTable:contentBefore.includes(TABLE)});
- if(contentBefore.includes(TABLE)){report.saved=true;log("ALREADY_ATTACHED",{id:TABLE});}
+ if(/\[table\s+id=["']?home_00["']?\s*\/\]/i.test(contentBefore)){report.saved=true;log("ALREADY_ATTACHED",{id:TABLE});}
  else{
    if(contentBefore.trim())throw Error("Existing content not empty; refuse overwrite");
    // Insert only through the registered WordPress ESC Table toolbar control.
@@ -113,7 +113,9 @@ try{
    await page.waitForLoadState("domcontentloaded",{timeout:45000});
    await page.goto(WP+"/wp-admin/post.php?post="+PAGE+"&action=edit",{waitUntil:"domcontentloaded",timeout:45000});
    const persisted=await page.locator("#content").inputValue();
-   if((persisted.match(/home_00/g)||[]).length!==1)throw Error("Native Page Save readback mismatch");
+   const persistedShortcodes=(persisted.match(/\[table\s+id=["']?home_00["']?\s*\/\]/gi)||[]).length;
+   log("PAGE_PERSISTED_COUNTS",{characters:persisted.length,tableIdOccurrences:(persisted.match(/home_00/g)||[]).length,shortcodes:persistedShortcodes,hasPreviewWrap:persisted.includes("tablepress-preview-wrap")});
+   if(persistedShortcodes!==1)throw Error("Native Page Save readback expected one actual shortcode");
    report.saved=true;log("PAGE_SAVED",{source:"native_insert_code",id:TABLE,occurrences:1});
  }
  await page.screenshot({path:evidence+"/home-editor-after.png",fullPage:false});
