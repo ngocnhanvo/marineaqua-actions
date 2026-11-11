@@ -9,6 +9,7 @@ const TARGETS = [
   {filename:"slide-marine-aqua-1.jpg",path:"/wp-content/uploads/2020/06/slide-marine-aqua-1.jpg",title:"Marine Aqua"},
 ];
 const dir="home00-import-evidence"; await mkdir(dir,{recursive:true});
+// Use the native WordPress upload control when REST nonce is unavailable.
 const report={table:ID,targetCount:TARGETS.length,steps:[],success:false};
 const record=(name,details={})=>{report.steps.push({name,...details});console.log("BANNER_IMPORT_"+name+"="+JSON.stringify(details));};
 const u=process.env.WP_ADMIN_USERNAME,p=process.env.WP_ADMIN_PASSWORD;
