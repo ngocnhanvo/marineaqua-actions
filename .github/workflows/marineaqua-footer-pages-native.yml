@@ -1,0 +1,37 @@
+name: Marine Aqua publish genuine footer destination Pages
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-footer-pages-native.mjs'
+      - '.github/workflows/marineaqua-footer-pages-native.yml'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-footer-pages-native
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-footer-pages-native.mjs
+      - name: Publish only the two requested footer destination Pages via WordPress
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-footer-pages-native.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-footer-destination-pages
+          path: footer-pages-evidence/
+          retention-days: 7
