@@ -162,6 +162,28 @@ try {
           horizontalOverflow: documentWidth > window.innerWidth + 2,
         };
       });
+      if (width === 1917 || width === 390) {
+        const carousel=page.locator('[data-home-slider]:visible').first();
+        const dots=carousel.locator('[data-slider-dot]');
+        result.bannerSlideNavigation=[];
+        if(await dots.count()===3) {
+          for(let i=1;i<=2;i++){
+            await dots.nth(i).click();
+            await page.waitForTimeout(900);
+            const slide=await carousel.evaluate((el)=>{
+              const active=el.querySelector('[data-home-slide].is-active');
+              const img=active?.querySelector('img');
+              const source=active?.querySelector('source');
+              return {title:active?.querySelector('figcaption')?.textContent?.trim()||"",
+                currentIndex:[...el.querySelectorAll('[data-home-slide]')].indexOf(active),
+                imageSrc:img?.currentSrc||img?.src||"",sourceSet:source?.srcset||"",
+                imageLoaded:Boolean(img?.complete && img?.naturalWidth>10)};
+            });
+            result.bannerSlideNavigation.push(slide);
+          }
+        }
+        console.log('BANNER_NAVIGATION_'+width+'='+JSON.stringify(result.bannerSlideNavigation));
+      }
       if (width === 1917 && result.headerNavTargets?.length) {
         result.headerTargetChecks = [];
         for (const target of result.headerNavTargets.slice(0, 8)) {
@@ -309,7 +331,14 @@ const bannerChecks = [1917,1440,768,390].map(width=>{
     carouselCount:carousels.length,loadedMedia:mediaPass,frameWidth:hero?.rect.w||0,
     frameHeight:hero?.rect.h||0,borderRadius:hero?.borderRadius||"",radiusPass,splitPass,slideCount:hero?.slideCount||0,split:hero?.split||null};
 });
-const bannerPass=bannerChecks.every(x=>x.passed);
+const interactionChecks=[1917,390].map(width=>{
+  const samples=summary.views.find(v=>v.width===width)?.bannerSlideNavigation||[];
+  return {width,passed:samples.length===2 && samples.every((v,i)=>v.currentIndex===i+1 &&
+    v.imageLoaded && (v.imageSrc.includes("slide-pro-reef") || v.imageSrc.includes("slide-marine-aqua-1") ||
+      v.sourceSet.includes("slide-pro-reef") || v.sourceSet.includes("slide-marine-aqua-1")))};
+});
+const bannerPass=bannerChecks.every(x=>x.passed)&&interactionChecks.every(x=>x.passed);
+console.log("MARINEAQUA_HOME00_NAVIGATION="+JSON.stringify(interactionChecks));
 console.log("MARINEAQUA_HOME00_BANNER=" + (bannerPass?"PASS":"FAIL") + " " + JSON.stringify(bannerChecks));
 if(!bannerPass)process.exitCode=1;
 
