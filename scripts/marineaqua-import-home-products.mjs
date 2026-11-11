@@ -143,6 +143,7 @@ try{
   result.mediaCreated.push({filename,id:uploaded.id});
   return uploaded.id;
  }
+ const normalizeName=s=>String(s||"").replace(/&#(x[0-9a-f]+|[0-9]+);?/gi,(_,n)=>String.fromCodePoint(n[0].toLowerCase()==="x"?parseInt(n.slice(1),16):parseInt(n,10))).replace(/&(amp|quot|apos|lt|gt|nbsp);/gi,(_,v)=>({amp:"&",quot:'"\x22"',apos:"\x27",lt:"<",gt:">",nbsp:" "}[v.toLowerCase()])).normalize("NFC").replace(/\\s+/g," ").trim();
  const safeText=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
  const paragraphs=s=>String(s||"").split(/\n+/).map(x=>x.trim()).filter(Boolean).map(x=>"<p>"+safeText(x)+"</p>").join("\n");
  for(let i=0;i<5;i++){
@@ -158,7 +159,7 @@ try{
    valid(stock,"Stock not verifiable "+slug);
    const found=products.get(slug);
    if(found){
-    valid(found.name===product.title&&Number(found.regular_price||found.price)===price&&found.stock_status===stock,"Existing product differs "+slug);
+    valid(normalizeName(found.name)===normalizeName(product.title)&&Number(found.regular_price||found.price)===price&&found.stock_status===stock,"Existing product differs "+slug);
     valid(found.categories?.some(c=>c.id===cat.id)&&found.images?.some(m=>isOwnedMedia(m.src)),"Existing product media/category differs "+slug);
     result.reused.push({id:found.id,slug,brand});continue;
    }
@@ -175,7 +176,7 @@ try{
    const created=await api("POST","/wp-json/wc/v3/products",payload);
    valid(created.id&&created.slug===slug,"WC product create failed "+slug);
    const check=await api("GET","/wp-json/wc/v3/products/"+created.id);
-   valid(check.name===product.title&&check.slug===slug&&Number(check.regular_price)===price&&check.stock_status===stock,"WC product readback failed "+slug);
+   valid(normalizeName(check.name)===normalizeName(product.title)&&check.slug===slug&&Number(check.regular_price)===price&&check.stock_status===stock,"WC product readback failed "+slug+" observed="+JSON.stringify({name:check.name,price:check.regular_price,stock:check.stock_status}));
    valid(check.images?.[0]?.id===mediaId&&isOwnedMedia(check.images[0].src)&&check.categories?.some(c=>c.id===cat.id),"WC product image/category mismatch "+slug);
    products.set(slug,check);
    result.created.push({id:created.id,slug,brand,price,stock,mediaId});
