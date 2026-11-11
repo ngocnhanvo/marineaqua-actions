@@ -85,8 +85,11 @@ try{
      }
      for(const url of [...new Set(audit.map(x=>x.moreHref))]){
        const res=await page.request.get(SITE+url,{timeout:30000,failOnStatusCode:false});
-       report.pages.push({category:url,status:res.status()});
+       const html=res.ok()?await res.text():"";
+       const renderedCards=(html.match(/class="product-card-img/g)||[]).length;
+       report.pages.push({category:url,status:res.status(),renderedCards});
        if(res.status()<200||res.status()>=400)fail("broken category "+url+" status="+res.status());
+       else if(renderedCards!==4)fail("category "+url+" expected 4 products, rendered "+renderedCards);
      }
    }
    console.log("HOME_BRAND_"+name.toUpperCase()+"="+JSON.stringify({audit,details}));
