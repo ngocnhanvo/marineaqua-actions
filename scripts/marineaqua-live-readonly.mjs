@@ -296,86 +296,100 @@ try {
   console.log("MARINEAQUA_NAV_RESPONSIVE="+(navigationPass?"PASS":"FAIL")+" "+JSON.stringify(summary.navResponsive));
   if(!navigationPass)process.exitCode=1;
 
-  // Verify requested WooCommerce navigation: homepage sidebar visible by default,
-  // children open by click; inner pages show collapsed catalog in Header.
+  // Category navigation is click-only on ALL pages. Homepage banner stays
+  // full-width and must not carry a permanently visible catalog sidebar.
   summary.categorySidebar = [];
-  for (const width of [1440, 1024, 390]) {
+  for (const width of [1917, 1440, 1024, 390]) {
     const page = await browser.newPage({viewport:{width,height:900},deviceScaleFactor:1});
     try {
       await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
-      await page.waitForTimeout(650);
-      const activeVariant = width < 640 ? "mobile" : "desktop";
-      const homeSection=page.locator('[data-marine-home-variant="' + activeVariant + '"]');
-      const firstHomeSidebar=homeSection.locator("[data-marine-product-sidebar]");
-      const homeVisible=await firstHomeSidebar.isVisible().catch(()=>false);
-      const headerTrigger=page.locator('[data-header-catalog-trigger]:visible').first();
-      const headerVisible=await headerTrigger.count()>0;
-      const initial=await page.evaluate((activeVariant)=>{
-        const parent=document.querySelector('[data-marine-home-variant="' + activeVariant + '"]');
-        const sidebar=parent?.querySelector("[data-marine-product-sidebar]");
-        const hero=[...document.querySelectorAll('[data-home-slider]')].find(el=>getComputedStyle(el).display!=="none" && el.getBoundingClientRect().width>0);
-        const r=el=>{if(!el)return null;const box=el.getBoundingClientRect();
-          return {x:Math.round(box.x),y:Math.round(box.y),width:Math.round(box.width),height:Math.round(box.height)};};
-        const cat=parent?.querySelector("[data-marine-home-catalog]");
+      await page.waitForTimeout(500);
+      const trigger=page.locator('[data-header-catalog-trigger]:visible').first();
+      const panel=page.locator("#header-product-catalog-panel");
+      const first=await page.evaluate(()=>{
+        const headerCatalog=document.querySelector("#header-product-catalog-panel");
+        const visible=el=>!!el && getComputedStyle(el).display!=="none" &&
+          el.getBoundingClientRect().height>0;
+        const banner=[...document.querySelectorAll("[data-home-slider]")].find(visible);
+        const bannerRect=banner?.getBoundingClientRect();
+        const duplicateId=[...document.querySelectorAll("[id]")].map(el=>el.id)
+          .filter((id,index,ids)=>id && ids.indexOf(id)!==index);
         return {
-          homeSidebar:r(sidebar),hero:r(hero),catalog:r(cat),
-          categoryRows:sidebar?.querySelectorAll("[data-marine-category-item]").length||0,
-          categoryLinks:sidebar?.querySelectorAll("a[href]").length||0,
-          expanded:sidebar?.querySelectorAll('[data-marine-category-trigger][aria-expanded="true"]').length||0,
-          documentWidth:document.documentElement.scrollWidth,
-          visibleBannerVariants:[...document.querySelectorAll("[data-marine-home-variant]")]
-            .filter(el=>getComputedStyle(el).display!=="none" && el.getBoundingClientRect().width>0).length,
-          viewportWidth:window.innerWidth
+          fixedSidebarCount:document.querySelectorAll("[data-marine-home-catalog],.marine-home-catalog").length,
+          categoryPanelCount:document.querySelectorAll("[data-marine-product-sidebar]").length,
+          catalogInitiallyHidden:headerCatalog?.hasAttribute("hidden")===true,
+          bannerWidth:Math.round(bannerRect?.width||0),
+          expectedWidth:Math.round(window.innerWidth*.925),
+          horizontalOverflow:document.documentElement.scrollWidth>innerWidth+2,
+          bannerVariants:[...document.querySelectorAll("[data-marine-home-variant]")]
+            .filter(visible).length,
+          duplicateIds:duplicateId.length
         };
-      },activeVariant);
-      let childFlyout="NO_CHILDREN";
-      if(homeVisible){
-        const trigger=firstHomeSidebar.locator("[data-marine-category-trigger]").first();
-        if(await trigger.count()){
-          await trigger.click();
-          const panelId=await trigger.getAttribute("aria-controls");
-          const panel=page.locator("#"+panelId);
-          const opened=await panel.isVisible() &&
-            await trigger.getAttribute("aria-expanded")==="true";
-          await trigger.click();
-          const closed=!(await panel.isVisible()) &&
-            await trigger.getAttribute("aria-expanded")==="false";
-          childFlyout=opened&&closed?"PASS":"FAIL";
+      });
+      const triggerVisible=(await trigger.count())===1;
+      let clickOpened=false, clickClosed=false, outsideClosed=false;
+      let escapeClosed=false, childOpened=false, childClosed=false;
+      let categoryLinks=0, categoryRows=0, insideViewport=false;
+      if(triggerVisible){
+        await trigger.click();
+        clickOpened=await panel.isVisible() &&
+          await trigger.getAttribute("aria-expanded")==="true";
+        if(clickOpened){
+          const details=await panel.evaluate(el=>{
+            const r=el.getBoundingClientRect();
+            return {
+              rows:el.querySelectorAll("[data-marine-category-item]").length,
+              links:el.querySelectorAll("a[href]").length,
+              viewport: r.left>=0 && r.right<=innerWidth+2 &&
+                r.top>=0 && r.bottom<=innerHeight+2
+            };
+          });
+          categoryRows=details.rows;categoryLinks=details.links;insideViewport=details.viewport;
+          const child=panel.locator("[data-marine-category-trigger]").first();
+          if(await child.count()){
+            await child.click();
+            const childId=await child.getAttribute("aria-controls");
+            const childPanel=panel.locator("[id='"+childId+"']");
+            childOpened=await childPanel.isVisible() &&
+              await child.getAttribute("aria-expanded")==="true";
+            await child.click();
+            childClosed=!(await childPanel.isVisible()) &&
+              await child.getAttribute("aria-expanded")==="false";
+          }else{childOpened=true;childClosed=true}
         }
-      }
-      let headerFlyout="NOT_TESTED";
-      if(headerVisible){
-        await headerTrigger.click();
-        const panel=page.locator("#header-product-catalog-panel");
-        const opened=await panel.isVisible() &&
-          await headerTrigger.getAttribute("aria-expanded")==="true";
+        await trigger.click();
+        clickClosed=!(await panel.isVisible()) &&
+          await trigger.getAttribute("aria-expanded")==="false";
+        await trigger.click();
         await page.keyboard.press("Escape");
-        const closed=!(await panel.isVisible()) &&
-          await headerTrigger.getAttribute("aria-expanded")==="false";
-        headerFlyout=opened&&closed?"PASS":"FAIL";
+        escapeClosed=!(await panel.isVisible()) &&
+          await trigger.getAttribute("aria-expanded")==="false";
+        await trigger.click();
+        await page.locator("[data-home-slider]:visible").first().click({position:{x:12,y:12}});
+        outsideClosed=!(await panel.isVisible()) &&
+          await trigger.getAttribute("aria-expanded")==="false";
       }
-      const sidebarLayoutOk=width>=1100
-        ? Boolean(initial.homeSidebar&&initial.hero &&
-          initial.homeSidebar.x+initial.homeSidebar.width<=initial.hero.x+3)
-        : width>=640
-          ? Boolean(initial.homeSidebar&&initial.hero &&
-            initial.homeSidebar.y>=initial.hero.y+initial.hero.height-3)
-          : Boolean(initial.homeSidebar&&initial.hero &&
-            initial.homeSidebar.y>=initial.hero.y+initial.hero.height-3);
-      const pass=initial.documentWidth<=width+2 && initial.visibleBannerVariants===1 && headerVisible &&
-        headerFlyout==="PASS" && sidebarLayoutOk &&
-        Boolean(homeVisible&&initial.categoryRows>0 &&
-          initial.categoryLinks>0&&initial.expanded===0&&childFlyout!=="FAIL");
-      summary.categorySidebar.push({width,pass,homeVisible,headerVisible,
-        childFlyout,headerFlyout,sidebarLayoutOk,...initial});
-      if(width===1440||width===390)
-        await page.screenshot({path:dir+"/product-category-sidebar-"+width+".png",fullPage:false});
+      const pass=Boolean(triggerVisible && first.fixedSidebarCount===0 &&
+        first.categoryPanelCount===1 && first.catalogInitiallyHidden &&
+        first.bannerVariants===1 && Math.abs(first.bannerWidth-width*.925)<6 &&
+        !first.horizontalOverflow && first.duplicateIds===0 &&
+        clickOpened && clickClosed && outsideClosed && escapeClosed &&
+        childOpened && childClosed && insideViewport &&
+        categoryRows>0 && categoryLinks>0);
+      summary.categorySidebar.push({width,pass,triggerVisible,clickOpened,clickClosed,
+        outsideClosed,escapeClosed,childOpened,childClosed,insideViewport,
+        categoryRows,categoryLinks,...first});
+      if([1440,390].includes(width)){
+        await trigger.click();
+        await page.screenshot({path:dir+"/product-category-click-menu-"+width+".png",fullPage:false});
+      }
     }catch(error){
-      summary.categorySidebar.push({width,pass:false,error:String(error.message||error).slice(0,250)});
+      summary.categorySidebar.push({width,pass:false,error:String(error.message||error).slice(0,300)});
     }finally{await page.close();}
   }
   const categorySidebarPass=summary.categorySidebar.every(v=>v.pass);
-  console.log("MARINEAQUA_PRODUCT_CATEGORY_SIDEBAR="+(categorySidebarPass?"PASS":"FAIL")+" "+JSON.stringify(summary.categorySidebar));
+  console.log("MARINEAQUA_PRODUCT_CATEGORY_SIDEBAR="+(categorySidebarPass?"PASS":"FAIL")+
+    " "+JSON.stringify(summary.categorySidebar));
   if(!categorySidebarPass)process.exitCode=1;
 
   summary.productListingRoute = {};
@@ -511,13 +525,8 @@ const bannerChecks = [1917,1440,768,390].map(width=>{
   const carousels=(view?.bannerAudit||[]).filter(entry=>entry.tag==="DIV" && entry.visible &&
     entry.slideCount>0 && entry.borderRadius!=="0px");
   const hero=carousels.find(entry=>entry.srcs.some(img=>img.loaded && img.naturalW>10));
-  // On wide screens the WooCommerce sidebar occupies a measured grid column
-  // beside the banner; tablet/mobile retain the original 92.5vw banner.
-  // Keep strict width, media, radius and overflow assertions without imposing
-  // the obsolete full-width desktop layout on the new approved sidebar.
-  const sidebarColumn = width >= 1100 ? Math.min(320, Math.max(265, width * 0.21)) : 0;
-  const expectedBannerWidth = width * 0.925 - sidebarColumn - (width >= 1100 ? 16 : 0);
-  const widthPass = Boolean(hero && Math.abs(hero.rect.w - expectedBannerWidth) < 6);
+  // The catalog is now a click-only header popover, not a fixed banner column.
+  const widthPass=Boolean(hero && Math.abs(hero.rect.w-width*.925)<6);
   const mediaPass=hero ? hero.srcs.some(img=>{
     const src=String(img.src||"");
     const expectedHost=src.startsWith("https://marine-aqua.io.vn/images/pages/") ||
