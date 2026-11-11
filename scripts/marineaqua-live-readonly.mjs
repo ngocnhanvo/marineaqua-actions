@@ -310,7 +310,7 @@ try {
       const homeVisible=await firstHomeSidebar.isVisible().catch(()=>false);
       const headerTrigger=page.locator('[data-header-catalog-trigger]:visible').first();
       const headerVisible=await headerTrigger.count()>0;
-      const initial=await page.evaluate(()=>{
+      const initial=await page.evaluate((activeVariant)=>{
         const parent=document.querySelector('[data-marine-home-variant="' + activeVariant + '"]');
         const sidebar=parent?.querySelector("[data-marine-product-sidebar]");
         const hero=[...document.querySelectorAll('[data-home-slider]')].find(el=>getComputedStyle(el).display!=="none" && el.getBoundingClientRect().width>0);
@@ -323,6 +323,8 @@ try {
           categoryLinks:sidebar?.querySelectorAll("a[href]").length||0,
           expanded:sidebar?.querySelectorAll('[data-marine-category-trigger][aria-expanded="true"]').length||0,
           documentWidth:document.documentElement.scrollWidth,
+          visibleBannerVariants:[...document.querySelectorAll("[data-marine-home-variant]")]
+            .filter(el=>getComputedStyle(el).display!=="none" && el.getBoundingClientRect().width>0).length,
           viewportWidth:window.innerWidth
         };
       },activeVariant);
