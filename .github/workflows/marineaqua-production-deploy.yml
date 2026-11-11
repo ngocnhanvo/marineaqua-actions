@@ -283,39 +283,19 @@ jobs:
                   if required not in names:raise RuntimeError('Missing staged bundle file: '+required)
           print('PASS: ZIP contains dev server/client and provenance, no private environment file.')
           PY
-      - name: Prepare encrypted FTPS client (separate bounded step)
+      - name: Verify Python FTPS transport (stdlib, no APT)
         shell: bash
-        timeout-minutes: 5
+        timeout-minutes: 1
         run: |
           set -euo pipefail
-          if command -v lftp >/dev/null 2>&1; then
-            echo "FTPS_CLIENT_READY=PASS already-installed"
-            exit 0
-          fi
-          echo "::group::Ubuntu archive apt configuration"
-          if test -f /etc/apt/apt-mirrors.txt && grep -q 'azure.archive.ubuntu.com' /etc/apt/apt-mirrors.txt; then
-            sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/apt-mirrors.txt
-          fi
-          echo "::endgroup::"
-          echo "::group::Verify Ubuntu archive DNS before APT"
-          if ! timeout 20s getent ahostsv4 archive.ubuntu.com >/dev/null; then
-            echo "::error::FTPS preparation blocked: runner cannot resolve archive.ubuntu.com (DNS). Astro build and packaging remain valid; no upload attempted."
-            exit 1
-          fi
-          echo "FTPS_ARCHIVE_DNS=PASS"
-          echo "::endgroup::"
-          echo "::group::Install signed lftp package (maximum 180 seconds)"
-          timeout --signal=TERM --kill-after=10s 180s bash -c '
-            set -euo pipefail
-            sudo apt-get -o Acquire::Retries=0 -o Acquire::http::Timeout=15 update -qq
-            sudo apt-get -o Acquire::Retries=0 -o Acquire::http::Timeout=15 install -y -qq --no-install-recommends lftp
-          '
-          echo "::endgroup::"
-          command -v lftp >/dev/null 2>&1 || { echo "::error::FTPS client unavailable; deployment stopped"; exit 1; }
-          echo "FTPS_CLIENT_READY=PASS"
-      - name: Upload compiled staging archive by FTP-TLS
+          python3 -m py_compile actions-hub/scripts/marineaqua-ftps-upload.py
+          echo "PYTHON_FTPS_TRANSPORT=READY"
+      - name: Upload compiled staging archive by verified Python FTP-TLS
         shell: bash
-        run: bash actions-hub/scripts/marineaqua-resumable-ftp.sh
+        timeout-minutes: 7
+        run: |
+          set -euo pipefail
+          timeout --signal=TERM --kill-after=10s 360s python3 -u actions-hub/scripts/marineaqua-ftps-upload.py
       - name: Verify provenance and activate staging bundle using signed PHP rollback
         shell: bash
         run: python3 actions-hub/scripts/marineaqua-remote-unzip.py unpack
