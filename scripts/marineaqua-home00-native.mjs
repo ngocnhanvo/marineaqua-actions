@@ -23,7 +23,7 @@ const browser=await chromium.launch({headless:true});
 try{
  const context=await browser.newContext({baseURL:WP,viewport:{width:1440,height:1000}});
  const page=await context.newPage();
- page.on('dialog',async d=>{if(d.type()==='confirm')await d.accept();else await d.dismiss()});
+ page.on('dialog',async d=>{if(d.type()==='confirm'||d.type()==='beforeunload')await d.accept();else await d.dismiss()});
  await page.goto(WP+'/wp-login.php',{waitUntil:'domcontentloaded',timeout:45000});
  await page.locator('#user_login').fill(authUser);
  await page.locator('#user_pass').fill(authPass);
@@ -180,7 +180,12 @@ try{
  if(!value.includes('<img')||!value.includes('banner1-1-690x336'))throw Error('WordPress native image insertion not persisted to selected cell');
  record('IMAGE_INSERTED_NATIVE',{altPresent:/\balt=/.test(value),relativeSrc:/src=["']\/wp-content\/uploads\//.test(value)});
  await page.getByRole('button',{name:/Save Changes/i}).first().click();
- await page.waitForTimeout(2000);
+ await page.waitForFunction(()=>Boolean(window.tp)&&window.tp.made_changes===false,{timeout:15000});
+ const readback=await context.request.get('/wp-json/tablepress/v1/table/home_00',{timeout:25000,failOnStatusCode:false});
+ if(!readback.ok())throw Error('ESC Table image readback HTTP '+readback.status());
+ const savedText=await readback.text();
+ if(!savedText.includes('banner1-1-690x336'))throw Error('ESC Table media not found after native Save');
+ record('TABLE_MEDIA_SAVED',{tableId:ID,restStatus:readback.status()});
  // Published shortcode must be inserted via the native Classic Editor button, not via REST/SQL.
  phase='native-shortcode';
  await page.goto(WP+'/wp-admin/post.php?post='+PAGE+'&action=edit',{waitUntil:'domcontentloaded',timeout:45000});
