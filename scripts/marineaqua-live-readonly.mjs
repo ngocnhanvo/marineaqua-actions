@@ -226,7 +226,7 @@ try {
     }
   }
 
-  // Post-deploy regression: WordPress menu must never clip on intermediate laptop widths.
+  // Verify deployed compact menu click hit-testing and visibility above the banner.
   summary.navResponsive = [];
   for (const width of [900, 1024, 1190, 1280, 1366, 1439, 1440]) {
     const page = await browser.newPage({viewport:{width,height:850},deviceScaleFactor:1});
