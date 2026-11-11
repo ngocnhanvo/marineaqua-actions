@@ -511,7 +511,13 @@ const bannerChecks = [1917,1440,768,390].map(width=>{
   const carousels=(view?.bannerAudit||[]).filter(entry=>entry.tag==="DIV" && entry.visible &&
     entry.slideCount>0 && entry.borderRadius!=="0px");
   const hero=carousels.find(entry=>entry.srcs.some(img=>img.loaded && img.naturalW>10));
-  const widthPass=Boolean(hero && Math.abs(hero.rect.w-width*0.925)<6);
+  // On wide screens the WooCommerce sidebar occupies a measured grid column
+  // beside the banner; tablet/mobile retain the original 92.5vw banner.
+  // Keep strict width, media, radius and overflow assertions without imposing
+  // the obsolete full-width desktop layout on the new approved sidebar.
+  const sidebarColumn = width >= 1100 ? Math.min(320, Math.max(265, width * 0.21)) : 0;
+  const expectedBannerWidth = width * 0.925 - sidebarColumn - (width >= 1100 ? 16 : 0);
+  const widthPass = Boolean(hero && Math.abs(hero.rect.w - expectedBannerWidth) < 6);
   const mediaPass=hero ? hero.srcs.some(img=>{
     const src=String(img.src||"");
     const expectedHost=src.startsWith("https://marine-aqua.io.vn/images/pages/") ||
