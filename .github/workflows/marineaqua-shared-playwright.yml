@@ -213,7 +213,7 @@ jobs:
           if-no-files-found: warn
 
   first-home-esc-table-native:
-    name: Create first real homepage ESC Table through native WordPress editor
+    name: Create source-backed Home_03 ESC Table through native WordPress editor
     if: >-
       github.event_name == 'push' && github.event.head_commit.message == 'cms: create home_03 via native editor' && github.repository == 'ngocnhanvo/marineaqua-actions'
     runs-on: ubuntu-latest
