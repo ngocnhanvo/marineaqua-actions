@@ -294,6 +294,54 @@ try {
   console.log("MARINEAQUA_NAV_RESPONSIVE="+(navigationPass?"PASS":"FAIL")+" "+JSON.stringify(summary.navResponsive));
   if(!navigationPass)process.exitCode=1;
 
+  // Verify the sidebar reflects the WordPress product-category tree, not a
+  // copy of the reference screenshot or placeholder static labels.
+  summary.categorySidebar = [];
+  for (const width of [1440, 1024, 390]) {
+    const page = await browser.newPage({viewport:{width,height:900},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      await page.waitForTimeout(550);
+      const sidebar = page.locator("[data-marine-product-sidebar]");
+      const count=await sidebar.count();
+      const state=await page.evaluate(()=>{
+        const el=document.querySelector("[data-marine-product-sidebar]");
+        const area=document.querySelector("[data-marine-category-carousel-area]");
+        const sec=document.querySelector("[data-marine-category-section]");
+        const bounds=node=>{const r=node?.getBoundingClientRect();return r?{x:Math.round(r.x),y:Math.round(r.y),width:Math.round(r.width),height:Math.round(r.height)}:null;};
+        return {sidebar:bounds(el),carousel:bounds(area),section:bounds(sec),
+          topCount:el?.querySelectorAll(":scope nav > ul > li").length||0,
+          linkCount:el?.querySelectorAll("a[href^='/san-pham/']").length||0,
+          groupCount:el?.querySelectorAll("details").length||0,
+          heading:el?.querySelector(".marine-product-sidebar-title")?.textContent?.trim()||"",
+          scrollWidth:document.documentElement.scrollWidth};
+      });
+      let expandable=true;
+      if(count){
+        const group=sidebar.locator("details").first();
+        if(await group.count()){
+          const wasOpen=await group.getAttribute("open")!==null;
+          await group.locator("summary").click();
+          const nowOpen=await group.getAttribute("open")!==null;
+          expandable=wasOpen!==nowOpen;
+        }
+      }
+      const pass=Boolean(count===1 && state.topCount>0 && state.linkCount>0 &&
+        state.heading==="DANH MỤC SẢN PHẨM" && expandable &&
+        state.scrollWidth<=width+1 && state.sidebar && state.carousel &&
+        (width>=1024 ? state.sidebar.x+state.sidebar.width<=state.carousel.x+2
+          : state.sidebar.y+state.sidebar.height<=state.carousel.y+3));
+      summary.categorySidebar.push({width,pass,expandable,...state});
+      if(width===1440||width===390)
+        await page.screenshot({path:dir+"/product-category-sidebar-"+width+".png",fullPage:false});
+    }catch(error){
+      summary.categorySidebar.push({width,pass:false,error:String(error.message||error).slice(0,250)});
+    }finally{await page.close();}
+  }
+  const categorySidebarPass=summary.categorySidebar.every(v=>v.pass);
+  console.log("MARINEAQUA_PRODUCT_CATEGORY_SIDEBAR="+(categorySidebarPass?"PASS":"FAIL")+" "+JSON.stringify(summary.categorySidebar));
+  if(!categorySidebarPass)process.exitCode=1;
+
   const context = await browser.newContext();
   for (const [label, path] of [
     ["menus", "/wp-json/esc-api/v1/menus"],
