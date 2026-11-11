@@ -62,7 +62,7 @@ try{
   originalSources.set(filename,src.href);
   const reused=mediaByFilename.get(filename);
   if(reused){
-   valid(new URL(reused.source_url).origin===WP,"Media origin mismatch");
+   valid(new URL(reused.source_url,WP).origin===WP,"Media origin mismatch");
    result.mediaReused.push({filename,id:reused.id});return reused.id;
   }
   let bytes=null;
@@ -116,8 +116,10 @@ try{
   }
   valid(uploaded?.id,"Native media upload did not persist "+filename);
   console.log("CATALOG_MEDIA_NATIVE_VERIFIED="+filename+" id="+uploaded.id);
-  valid(uploaded.id&&new URL(uploaded.source_url).origin===WP,"Media upload invalid");
-  valid(decodeURIComponent(new URL(uploaded.source_url).pathname.split("/").at(-1))===filename,"Media filename changed");
+  const confirmed=await api("GET","/wp-json/wp/v2/media/"+uploaded.id+"?_fields=id,source_url,alt_text");
+  const confirmedUrl=new URL(String(confirmed.source_url||""),WP);
+  valid(confirmed.id===uploaded.id&&confirmedUrl.origin===WP&&confirmedUrl.pathname.startsWith("/wp-content/uploads/"),"Media upload invalid "+filename+" source="+String(confirmed.source_url).slice(0,120));
+  valid(decodeURIComponent(confirmedUrl.pathname.split("/").at(-1))===filename,"Media filename changed "+filename);
   const alt=String(image.alt||name).slice(0,220);
   const media=await api("POST","/wp-json/wp/v2/media/"+uploaded.id,{alt_text:alt});
   valid(media.id===uploaded.id&&media.alt_text===alt,"Media alt readback mismatch");
