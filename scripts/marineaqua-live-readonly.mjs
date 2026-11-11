@@ -70,6 +70,7 @@ try {
                 rect:{x:Math.round(rect.x),y:Math.round(rect.y),w:Math.round(rect.width),h:Math.round(rect.height)},
                 slideCount:el.querySelectorAll("[data-home-slide]").length,
                 borderRadius:style.borderRadius,
+                 borderWidth:style.borderTopWidth,
                 dotCount:el.querySelectorAll("[data-slider-dot]").length,
                 split: (() => {
                   const slide=el.querySelector("[data-home-slide].is-active");
@@ -325,6 +326,7 @@ try {
           fixedClass:desktop?nav?.classList.contains("header-nav-floating"):
             document.querySelector("#main-header")?.classList.contains("mobile-header-fixed"),
           position:cs?.position||"",
+           backgroundColor:cs?.backgroundColor||"",
           top:Math.round(rect?.top||0),
           bottom:Math.round(rect?.bottom||0),
           left:Math.round(rect?.left||0),
@@ -345,6 +347,7 @@ try {
         menuWorks=menuWorks&&!(await page.locator("#header-product-catalog-panel").isVisible());
       }
       const pass=!before.overflow&&!after.overflow&&after.scrollY>=600&&
+        after.backgroundColor==="rgb(243, 249, 255)"&&
         after.fixedClass&&after.position==="fixed"&&after.aboveContent&&
         after.spacerVisible&&menuWorks;
       summary.headerFloating.push({width,pass,menuWorks,...after});
@@ -381,7 +384,7 @@ try {
           categoryPanelCount:document.querySelectorAll("[data-marine-product-sidebar]").length,
           catalogInitiallyHidden:headerCatalog?.hasAttribute("hidden")===true,
           bannerWidth:Math.round(bannerRect?.width||0),
-          expectedWidth:Math.round(window.innerWidth*.925),
+          expectedWidth:window.innerWidth,
           horizontalOverflow:document.documentElement.scrollWidth>innerWidth+2,
           bannerVariants:[...document.querySelectorAll("[data-marine-home-variant]")]
             .filter(visible).length,
@@ -433,7 +436,7 @@ try {
       }
       const pass=Boolean(triggerVisible && first.fixedSidebarCount===0 &&
         first.categoryPanelCount===1 && first.catalogInitiallyHidden &&
-        first.bannerVariants===1 && Math.abs(first.bannerWidth-width*.925)<6 &&
+        first.bannerVariants===1 && Math.abs(first.bannerWidth-width)<3 &&
         !first.horizontalOverflow && first.duplicateIds===0 &&
         clickOpened && clickClosed && outsideClosed && escapeClosed &&
         childOpened && childClosed && insideViewport &&
@@ -652,10 +655,10 @@ if(!cleanHeaderPass)process.exitCode=1;
 const bannerChecks = [1917,1440,768,390].map(width=>{
   const view=summary.views.find(v=>v.width===width);
   const carousels=(view?.bannerAudit||[]).filter(entry=>entry.tag==="DIV" && entry.visible &&
-    entry.slideCount>0 && entry.borderRadius!=="0px");
+    entry.slideCount>0 && entry.borderRadius==="0px");
   const hero=carousels.find(entry=>entry.srcs.some(img=>img.loaded && img.naturalW>10));
   // The catalog is now a click-only header popover, not a fixed banner column.
-  const widthPass=Boolean(hero && Math.abs(hero.rect.w-width*.925)<6);
+  const widthPass=Boolean(hero && Math.abs(hero.rect.w-width)<3 && Math.abs(hero.rect.x)<2);
   const mediaPass=hero ? hero.srcs.some(img=>{
     const src=String(img.src||"");
     const expectedHost=src.startsWith("https://marine-aqua.io.vn/images/pages/") ||
@@ -663,7 +666,7 @@ const bannerChecks = [1917,1440,768,390].map(width=>{
     return img.loaded && img.naturalW>10 && expectedHost &&
       src.includes("banner1-1-1380x672");
   }) : false;
-  const radiusPass=Boolean(hero && hero.borderRadius===(width<640?"12px":"19px"));
+  const radiusPass=Boolean(hero && hero.borderRadius==="0px" && hero.borderWidth==="0px");
   const splitPass=Boolean(hero && hero.slideCount===3 && hero.dotCount===3
     && hero.split?.copyWidth>150 && hero.split?.mediaWidth>150
     && hero.split?.text.includes("Chạm gần hơn")
