@@ -408,7 +408,7 @@ jobs:
   # Deploy account/cart Header icons from Astro master; retain WordPress-driven destinations.
   trigger-production-build-after-header:
     name: Dispatch existing production deploy after verified CMS update
-    # Build restored WooCommerce category tree and sidebar after native CMS migration.
+    # Publish finalized sidebar with explicit WooCommerce taxonomy data passing.
     if: >-
       github.event_name == 'push'
       && (github.event.head_commit.message == 'build: deploy approved WordPress Header menu'
