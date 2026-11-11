@@ -67,12 +67,18 @@ try {
        !imageHtml.includes(mediaUrl.pathname) || link!=="" || mobile!=="0")
       throw Error("Existing misplaced banner row differs from verified original");
     report.beforeRows=existing.length;
-    await page.locator("#rows-append-number").fill("1");
-    const addRowButton=page.locator("#rows-append-number").locator('xpath=following::button[normalize-space(.)="Add"][1]');
-    if(await addRowButton.count()!==1)throw Error("Native Add Row button unavailable");
+    // React TablePress's row-control inspector may be visually collapsed.
+    // Invoke its existing native Add-button handler without synthesizing rows.
     report.stage="add_native_row";
-    report.writeAttempted=true;
-    await addRowButton.click();
+    const addButtonFound=await page.evaluate(()=>{
+      const input=document.querySelector("#rows-append-number");
+      if(!input || input.value!=="1")throw Error("Native row-count control differs from inspected value");
+      const button=document.evaluate('following::button[normalize-space(.)="Add"][1]',input,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+      if(!(button instanceof HTMLButtonElement))throw Error("Native Add Rows control absent");
+      button.click();
+      return true;
+    });
+    report.writeAttempted=addButtonFound;
     await page.waitForFunction(()=>window.tp?.table?.data?.length===3,null,{timeout:18000});
     const rowAfterAdd=await page.evaluate(()=>window.tp.table.data[2]);
     if(!Array.isArray(rowAfterAdd)||rowAfterAdd.length!==4||
