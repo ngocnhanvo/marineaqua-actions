@@ -199,6 +199,10 @@ try {
           const table=payload?.table || payload?.data || payload;
           const items=table?.items || table?.data?.items || [];
           result.keys=Object.keys(payload||{}).slice(0,20);
+          result.fields=Array.isArray(table?.fields)?table.fields.map(f=>({key:f.key,label:f.label,type:f.type})):null;
+          result.meta=table?.meta ? {api:table.meta.api,keys:Object.keys(table.meta)} : null;
+          result.description=String(table?.description||"").slice(0,100);
+          result.settingsKeys=Object.keys(table?.settings||{}).slice(0,20);
           result.itemCount=Array.isArray(items)?items.length:null;
           result.rows=Array.isArray(items)?items.slice(0,8).map(row=>({keys:Object.keys(row||{}),title:String(row?.title||"").slice(0,65),image:row?.image?{src:String(row.image?.src||"").slice(0,180),width:row.image?.width,height:row.image?.height}:null,mobile:row?.mobile})):[];
         } else if (label === "menus") {
