@@ -46,6 +46,7 @@ try{
    return Array.isArray(items)?items:[];
  };
  let currentMedia=await listMedia();
+ record('MEDIA_PRECHECK',{count:currentMedia.length});
  let found=currentMedia.find(x=>String(x.source_url||'').endsWith('/banner1-1-690x336.jpg'));
  if(found){result.mediaId=found.id;record('MEDIA_REUSED',{id:found.id});}
  if(!result.mediaId){
