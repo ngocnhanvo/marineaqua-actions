@@ -12,6 +12,9 @@ try {
     ["pages","/wp-json/wp/v2/pages?status=publish&per_page=50&_fields=id,slug,status,title,content,acf"],
     ["tables","/wp-json/tablepress/v1/tables/prefix/all?per_page=100&page=1"],
     ["menus","/wp-json/esc-api/v1/menus"],
+    ["products","/wp-json/wp/v2/product?status=publish&per_page=1&_fields=id,slug"],
+    ["product_categories","/wp-json/wc/store/v1/products/categories?per_page=100"],
+    ["media","/wp-json/wp/v2/media?per_page=25&_fields=id,slug,source_url,alt_text"],
     ["wp","/wp-json/"]
   ];
   for(const [label,path] of urls){
@@ -36,6 +39,14 @@ try {
             component:t.options?.component||t.meta?.component||""
           }));
           console.log("CMS_TABLE_INVENTORY="+JSON.stringify(report.tables).slice(0,15000));
+        }else if(label==="products"||label==="product_categories"||label==="media"){
+          report.rest[label].recordCount=Array.isArray(data)?data.length:0;
+          report.rest[label].total=response.headers()["x-wp-total"]||"";
+          report.rest[label].sample=Array.isArray(data)?data.slice(0,10).map(x=>({
+            id:x.id,slug:x.slug,name:String(x.name||"").slice(0,100),
+            file:String(x.source_url||"").split("/").pop(),altLength:String(x.alt_text||"").length
+          })):[];
+          console.log("CMS_"+label.toUpperCase()+"="+JSON.stringify(report.rest[label]));
         }else if(label==="menus"){
           const header=data?.success===true?data?.menus?.Header:{};
           console.log("CMS_HEADER_LOCALES="+JSON.stringify(Object.fromEntries(Object.entries(header||{}).map(([lang,v])=>[lang,v?.items?.length||0]))));
@@ -64,6 +75,22 @@ try {
       report.admin.tablepressNewLinks=await page.locator("a[href*='page=tablepress_add']").count();
       console.log("CMS_ADMIN_TABLEPRESS_ACCESSIBLE="+(report.admin.tablepressAccessible?"yes":"no")+" add_links="+report.admin.tablepressNewLinks);
       await page.screenshot({path:outDir+"/tablepress-admin.png",fullPage:false});
+      await page.goto(origin+"/wp-admin/admin.php?page=tablepress_add",{waitUntil:"domcontentloaded",timeout:45000});
+      await page.waitForTimeout(1200);
+      report.admin.addTableControls=await page.locator("input,button").evaluateAll(els=>els.slice(0,35).map(el=>({
+        tag:el.tagName,type:el.getAttribute("type"),name:el.getAttribute("name"),id:el.id,
+        placeholder:el.getAttribute("placeholder"),text:(el.innerText||"").slice(0,55)
+      })));
+      console.log("CMS_ADD_TABLE_CONTROLS="+JSON.stringify(report.admin.addTableControls));
+      await page.screenshot({path:outDir+"/add-table-form.png",fullPage:false});
+      await page.goto(origin+"/wp-admin/post.php?post=82454&action=edit",{waitUntil:"domcontentloaded",timeout:45000});
+      await page.waitForTimeout(1400);
+      report.admin.editPageControls=await page.locator("button,input,a").evaluateAll(els=>els.filter(el=>/insert code|esc table|tablepress|visual|cập nhật|update|publish/i.test((el.textContent||"")+" "+(el.getAttribute("value")||"")+" "+(el.getAttribute("title")||""))).slice(0,35).map(el=>({
+        tag:el.tagName,type:el.getAttribute("type"),id:el.id,
+        cls:String(el.className).slice(0,100),text:(el.innerText||el.getAttribute("value")||"").slice(0,65)
+      })));
+      console.log("CMS_PAGE_EDITOR_CONTROLS="+JSON.stringify(report.admin.editPageControls));
+      await page.screenshot({path:outDir+"/home-editor.png",fullPage:false});
     }catch(e){report.admin.error=String(e.message||e).slice(0,160);console.log("CMS_ADMIN_READONLY_ERROR="+String(e.name||"error"))}finally{await page.close()}
   }
   await context.close();
