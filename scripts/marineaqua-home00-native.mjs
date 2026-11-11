@@ -114,6 +114,8 @@ try{
  const tile=picker.locator('li.attachment[data-id="'+result.mediaId+'"]').first();
  await tile.waitFor({state:'visible',timeout:20000});
  await tile.click();
+ const altInput=picker.locator('input[data-setting="alt"]').first();
+ if(await altInput.count()){await altInput.fill('Banner sản phẩm FISHLOVERSHOP');await altInput.blur();}
  const nativeButton=picker.getByRole('button',{name:/Insert into Table|Chèn vào bảng|Insert/i}).last();
  await nativeButton.click();
  await picker.waitFor({state:'hidden',timeout:20000});
