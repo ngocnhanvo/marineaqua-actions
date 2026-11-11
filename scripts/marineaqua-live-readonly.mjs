@@ -281,8 +281,8 @@ try {
       }
       const pass=width<1440
         ? !initial.navVisible && initial.compactVisible && initial.toggleVisible &&
-          menuOpened && menuText.includes("TRANG CHỦ") &&
-          menuText.includes("BÀI VIẾT CHIA SẺ KINH NGHIỆM") &&
+          menuOpened && menuText.includes("Trang chủ") &&
+          menuText.includes("Kiến thức") && menuText.includes("Hỗ trợ") &&
           initial.documentWidth<=width+1
         : initial.navVisible && !initial.compactVisible && initial.documentWidth<=width+1;
       summary.navResponsive.push({width,pass,...initial,menuOpened});
@@ -295,6 +295,68 @@ try {
   const navigationPass=summary.navResponsive.every(v=>v.pass);
   console.log("MARINEAQUA_NAV_RESPONSIVE="+(navigationPass?"PASS":"FAIL")+" "+JSON.stringify(summary.navResponsive));
   if(!navigationPass)process.exitCode=1;
+
+  // Verify floating header at scroll depth, click behavior, fixed placement
+  // and no layout shift on wide desktop, laptop and mobile.
+  summary.headerFloating = [];
+  for (const width of [1917,1440,1366,1190,1024,900,390]) {
+    const page=await browser.newPage({viewport:{width,height:850},deviceScaleFactor:1});
+    try{
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      await page.waitForTimeout(300);
+      const before=await page.evaluate(()=>({
+        overflow:document.documentElement.scrollWidth>innerWidth+2,
+        navWidth:document.querySelector("#header-navrow")?.getBoundingClientRect().width||0,
+        bannerTop:document.querySelector('[data-home-slider]:not([hidden])')?.getBoundingClientRect().top||0
+      }));
+      await page.evaluate(()=>window.scrollTo(0,700));
+      await page.waitForTimeout(400);
+      const after=await page.evaluate(()=>{
+        const nav=document.querySelector("#header-navrow");
+        const brand=document.querySelector("#header-brandbar");
+        const desktop=innerWidth>=1440;
+        const target=desktop?nav:brand;
+        const rect=target?.getBoundingClientRect();
+        const cs=target?getComputedStyle(target):null;
+        const navSpacer=document.querySelector("#header-nav-spacer");
+        const mobileSpacer=document.querySelector("#mobile-header-spacer");
+        return {
+          desktop,scrollY:scrollY,
+          fixedClass:desktop?nav?.classList.contains("header-nav-floating"):
+            document.querySelector("#main-header")?.classList.contains("mobile-header-fixed"),
+          position:cs?.position||"",
+          top:Math.round(rect?.top||0),
+          bottom:Math.round(rect?.bottom||0),
+          left:Math.round(rect?.left||0),
+          right:Math.round(rect?.right||0),
+          aboveContent:Boolean(rect&&rect.top>=0&&rect.bottom<innerHeight),
+          spacerVisible:desktop?
+            getComputedStyle(navSpacer).display!=="none":
+            getComputedStyle(mobileSpacer).display!=="none",
+          overflow:document.documentElement.scrollWidth>innerWidth+2
+        };
+      });
+      const trigger=page.locator("[data-header-catalog-trigger]:visible").first();
+      let menuWorks=false;
+      if(await trigger.count()){
+        await trigger.click();
+        menuWorks=await page.locator("#header-product-catalog-panel").isVisible();
+        await page.keyboard.press("Escape");
+        menuWorks=menuWorks&&!(await page.locator("#header-product-catalog-panel").isVisible());
+      }
+      const pass=!before.overflow&&!after.overflow&&after.scrollY>=600&&
+        after.fixedClass&&after.position==="fixed"&&after.aboveContent&&
+        after.spacerVisible&&menuWorks;
+      summary.headerFloating.push({width,pass,menuWorks,...after});
+      if([1440,390].includes(width))
+        await page.screenshot({path:dir+"/clean-ocean-floating-"+width+".png",fullPage:false});
+    }catch(error){
+      summary.headerFloating.push({width,pass:false,error:String(error.message||error).slice(0,240)});
+    }finally{await page.close();}
+  }
+  const floatPass=summary.headerFloating.every(item=>item.pass);
+  console.log("MARINEAQUA_HEADER_FLOATING="+(floatPass?"PASS":"FAIL")+" "+JSON.stringify(summary.headerFloating));
+  if(!floatPass)process.exitCode=1;
 
   // Category navigation is click-only on ALL pages. Homepage banner stays
   // full-width and must not carry a permanently visible catalog sidebar.
@@ -496,28 +558,27 @@ console.log("MARINEAQUA_HEADER_ACCOUNT_CART=" + (headerActionPass ? "PASS":"FAIL
  " actions=" + headerActions.length + " account=" + Boolean(accountAction) +
  " cart=" + Boolean(cartAction));
 if (!headerActionPass) process.exitCode=1;
-const v3 = desktop?.headerV3ColorAudit;
-const v3Labels = ["trang chủ", "giảm giá khủng", "chính sách và hướng dẫn", "thời gian bán hàng", "liên hệ", "phí ship hàng", "bài viết chia sẻ kinh nghiệm"];
-const normalizeV3 = text => String(text || "").replace(/⚡/g, "").trim().toLocaleLowerCase("vi");
-const itemsV3 = v3?.entries || [];
-const normalColorPass = itemsV3.filter((item,i) => i > 0 && !item.sale).every(item => item.color === "rgb(247, 251, 255)" || item.color === "rgb(255, 255, 255)");
-const saleV3 = itemsV3.find(item => item.sale);
-const salePass = Boolean(saleV3 && saleV3.backgroundImage.includes("linear-gradient") && saleV3.color === "rgb(255, 255, 255)");
-const labelsPass = itemsV3.length === 7 && itemsV3.every((item,i) => normalizeV3(item.label) === v3Labels[i]);
-const homeV3 = itemsV3[0];
-// Verify the final deployed CSS specificity correction for the two approved pills.
-const v3PillPass = Boolean(homeV3 && saleV3
-  && homeV3.height === saleV3.height && homeV3.height === 48
-  && homeV3.borderRadius === saleV3.borderRadius
-  && homeV3.borderRadius === "17px"
-  && saleV3.left - homeV3.right >= 10 && saleV3.left - homeV3.right <= 14);
-const boltPass = Boolean(saleV3?.boltSvg && saleV3?.boltAnimation?.includes("marine-sale-bolt-pulse"));
-const v3Pass = labelsPass && normalColorPass && salePass && v3PillPass && boltPass;
-console.log("MARINEAQUA_V3_NAV_COLOR=" + (v3Pass ? "PASS" : "FAIL") +
-  " items=" + itemsV3.length + " normalText=" + normalColorPass + " saleRedGradient=" + salePass +
-  " orderedLabels=" + labelsPass + " matchedPills=" + v3PillPass + " boltSvg=" + boltPass);
-if (!v3Pass) process.exitCode = 1;
-
+// The clean header intentionally removes the legacy navy background, paired
+// pills and glowing bolt. Validate the new CMS-owned five-item hierarchy.
+const clean = desktop?.headerV3ColorAudit;
+const cleanExpectedLabels=["trang chủ","khuyến mãi","kiến thức","hỗ trợ","liên hệ"];
+const normalizeClean = value=>String(value||"").replace(/⚡/g,"").trim().toLocaleLowerCase("vi");
+const cleanEntries=clean?.entries||[];
+const cleanLabelsPass=cleanEntries.length===5&&cleanEntries.every((item,i)=>
+  normalizeClean(item.label)===cleanExpectedLabels[i]);
+const cleanSale=cleanEntries.find(item=>item.sale);
+const cleanSalePass=Boolean(cleanSale &&
+  cleanSale.color==="rgb(216, 46, 74)" &&
+  cleanSale.backgroundColor==="rgb(255, 241, 243)" &&
+  !cleanSale.backgroundImage.includes("gradient") &&
+  cleanSale.boltAnimation==="none");
+const cleanNormalPass=cleanEntries.filter(entry=>!entry.sale).every(entry=>
+  ["rgb(36, 67, 92)","rgb(6, 119, 181)"].includes(entry.color));
+const cleanHeaderPass=cleanLabelsPass&&cleanSalePass&&cleanNormalPass;
+console.log("MARINEAQUA_CLEAN_OCEAN_HEADER="+(cleanHeaderPass?"PASS":"FAIL")+
+  " "+JSON.stringify({count:cleanEntries.length,labels:cleanEntries.map(e=>e.label),
+    normal:cleanNormalPass,sale:cleanSalePass}));
+if(!cleanHeaderPass)process.exitCode=1;
 
 // Verify final uncropped hero photography and soft left gradient after production deployment.
 const bannerChecks = [1917,1440,768,390].map(width=>{
