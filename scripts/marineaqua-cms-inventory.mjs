@@ -70,6 +70,17 @@ try {
       await page.goto(origin+"/wp-admin/edit.php?post_type=page",{waitUntil:"domcontentloaded",timeout:45000});
       report.admin.pagesAccessible=page.url().includes("/wp-admin/edit.php");
       console.log("CMS_ADMIN_PAGES_ACCESSIBLE="+(report.admin.pagesAccessible?"yes":"no"));
+      await page.goto(origin+"/wp-admin/nav-menus.php",{waitUntil:"domcontentloaded",timeout:45000});
+      report.admin.navMenusAccessible=page.url().includes("/wp-admin/nav-menus.php");
+      report.admin.navMenuControls=await page.locator("input,select,button").evaluateAll(els=>els.filter(el=>/menu|esc_menu|save|create/i.test([el.getAttribute("name"),el.getAttribute("id"),el.getAttribute("value"),el.innerText].join(" "))).slice(0,65).map(el=>({
+        tag:el.tagName,type:el.getAttribute("type"),name:el.getAttribute("name"),id:el.id,
+        value:el.getAttribute("type")==="hidden"?"[hidden]":String(el.value||"").slice(0,90),
+        text:String(el.innerText||"").slice(0,65)
+      })));
+      report.admin.navMenuScreenSummary=(await page.locator("body").innerText()).slice(0,1300);
+      console.log("CMS_NAV_MENU_ACCESSIBLE="+(report.admin.navMenusAccessible?"yes":"no"));
+      console.log("CMS_NAV_MENU_CONTROLS="+JSON.stringify(report.admin.navMenuControls));
+      await page.screenshot({path:outDir+"/nav-menu-admin.png",fullPage:false});
       await page.goto(origin+"/wp-admin/admin.php?page=tablepress",{waitUntil:"domcontentloaded",timeout:45000});
       report.admin.tablepressAccessible=page.url().includes("page=tablepress")&&!page.url().includes("wp-login.php");
       report.admin.tablepressNewLinks=await page.locator("a[href*='page=tablepress_add']").count();
