@@ -500,6 +500,12 @@ try {
           parentClass:parent?.className,
           itemClass:el.parentElement?.className,
           parentHasExpanded:el.parentElement?.classList.contains("is-expanded"),
+          parentInlineStyle:parent?.getAttribute("style")||"",
+          parentMatchesExpandedSelector:parent?.matches('body.marine-aqua-v3 #header-product-catalog-panel .marine-product-sidebar-item.is-expanded > .marine-product-sidebar-row')||false,
+          parentMatchesTriggerSelector:parent?.matches('body.marine-aqua-v3 #header-product-catalog-panel .marine-product-sidebar-row:has(> .marine-product-sidebar-expand[aria-expanded="true"])')||false,
+          bodyClass:document.body.className.slice(0,130),
+          revisedCssLoaded:[...document.styleSheets].some(sheet=>{try{return [...sheet.cssRules].some(rule=>rule.cssText.includes('Product category: expanded parent row'))}catch{return false}}),
+
           triggerExpanded:el.parentElement?.querySelector("[data-marine-category-trigger]")?.getAttribute("aria-expanded"),
           headerCssLoaded:Boolean([...document.styleSheets].some(sheet=>{try{return [...sheet.cssRules].some(rule=>rule.cssText.includes("marine-product-sidebar-item.is-expanded"))}catch{return false}}))
         };
