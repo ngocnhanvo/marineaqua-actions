@@ -79,7 +79,7 @@ try {
       })));
       report.admin.navMenuScreenSummary=(await page.locator("body").innerText()).slice(0,1300);
       report.admin.navMenuStructure=await page.evaluate(() => ({
-        forms:[...document.querySelectorAll("form")].filter(x=>/menu/i.test(x.id+" "+x.action)).map(x=>({id:x.id,action:new URL(x.action).pathname,inputs:[...x.querySelectorAll("input[type=text],input[type=submit],select")].slice(-25).map(y=>({id:y.id,name:y.name,value:y.type==="submit"?y.value:undefined}))})).slice(0,8),
+        forms:[...document.querySelectorAll("form")].filter(x=>/menu/i.test(x.id+" "+x.action)).map(x=>({id:x.id,action:x.action?new URL(x.action,location.href).pathname:"",inputs:[...x.querySelectorAll("input[type=text],input[type=submit],select")].slice(-25).map(y=>({id:y.id,name:y.name,value:y.type==="submit"?y.value:undefined}))})).slice(0,8),
         menuNameField:!!document.querySelector("#menu-name"),
         newMenuLink:!!document.querySelector("a[href*='menu=0']"),
         menuSelector:[...document.querySelectorAll("#select-menu-to-edit option")].map(x=>({id:x.value,name:x.textContent.trim()})).slice(0,20),
