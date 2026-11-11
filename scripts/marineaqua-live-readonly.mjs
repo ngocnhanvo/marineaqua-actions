@@ -284,7 +284,7 @@ try {
         });
         menuOpened=menuLayer.open && menuLayer.aboveBanner &&
           menuLayer.headerRaised && ["rgb(255, 255, 255)","rgb(243, 248, 252)"].includes(menuLayer.menuBg);
-        menuText=(await page.locator("#mobile-menu-container").innerText()).slice(0,1200);
+        menuText=await page.locator("#mobile-menu-container").innerText();
       }
       const pass=width<1024
         ? !initial.navVisible && initial.compactVisible && initial.toggleVisible &&
