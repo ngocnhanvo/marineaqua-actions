@@ -256,12 +256,25 @@ try {
       if(width<1440 && initial.toggleVisible){
         await page.locator("#hamburger-btn").click();
         await page.waitForTimeout(100);
-        const open=await page.evaluate(()=>{
-          const el=document.querySelector("#mobile-menu-container");
-          return Boolean(el && !el.hasAttribute("hidden") &&
-            getComputedStyle(el).display!=="none" && el.getBoundingClientRect().height>0);
+        const menuLayer=await page.evaluate(()=>{
+          const menu=document.querySelector("#mobile-menu-container");
+          const header=document.querySelector("#main-header");
+          const r=menu?.getBoundingClientRect();
+          const open=Boolean(menu && !menu.hasAttribute("hidden") &&
+            getComputedStyle(menu).display!=="none" && r?.height>0);
+          if(!open || !r)return {open,aboveBanner:false,topHit:""};
+          const x=r.left+Math.min(100,r.width/2);
+          const y=Math.max(0,Math.min(window.innerHeight-1,r.top+Math.min(40,r.height/2)));
+          const hit=document.elementFromPoint(x,y);
+          return {open,
+            aboveBanner:Boolean(hit && (menu.contains(hit) || hit===menu)),
+            topHit:hit?.tagName||"",
+            headerRaised:header?.classList.contains("mobile-nav-open"),
+            menuBg:getComputedStyle(menu).backgroundColor
+          };
         });
-        menuOpened=open;
+        menuOpened=menuLayer.open && menuLayer.aboveBanner &&
+          menuLayer.headerRaised && menuLayer.menuBg==="rgb(255, 255, 255)";
         menuText=(await page.locator("#mobile-menu-container").innerText()).slice(0,500);
       }
       const pass=width<1440
