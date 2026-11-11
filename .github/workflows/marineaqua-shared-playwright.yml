@@ -407,7 +407,7 @@ jobs:
   # Deploy account/cart Header icons from Astro master; retain WordPress-driven destinations.
   trigger-production-build-after-header:
     name: Dispatch existing production deploy after verified CMS update
-    # Deploy full-image Home_00 hero with left-only translucent text overlay.
+    # Rebuild Astro master after responsive WordPress Header navigation correction.
     if: >-
       github.event_name == 'push'
       && (github.event.head_commit.message == 'build: deploy approved WordPress Header menu'
