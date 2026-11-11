@@ -2,9 +2,9 @@
 
 Date: 2026-11-11 (Asia/Ho_Chi_Minh)
 Project: marine-aqua.vn
-Astro: ngocnhanvo/marineaqua-astro master @ 2b4b4b2ee0c24f4e5e59115aafdd7cf61d6af1a3
+Astro: ngocnhanvo/marineaqua-astro master @ aae07ca1d93463b932d8cb78186abb824f7e7a98
 PHP: ngocnhanvo/marineaqua-php master @ 54574851f0eaea9e40341b36c5a7215573bc436e
-Actions: ngocnhanvo/marineaqua-actions main
+Actions: ngocnhanvo/marineaqua-actions main @ e2a990792fa9c145500b90bc8584a0753e158e96 (observed before this checkpoint update)
 WordPress target: https://admin.marine-aqua.io.vn
 Frontend target: https://marine-aqua.io.vn
 Original content source: https://marine-aqua.vn
@@ -40,3 +40,14 @@ Original content source: https://marine-aqua.vn
 6. Once all release gates pass, use ONLY existing equivalent WordPress-controlled `marineaqua-production-deploy.yml` pipeline (auto-build authorization) and verify post-deploy provenance, smoke, network and rollback evidence. Do not create second deploy pipeline.
 
 **Checkpoint status:** CMS_LAYOUT_AND_SOURCE_BINDINGS_PASS, ASTRO_BUILD_NO_DEPLOY_PASS; CONTENT_MIGRATION_NOT_STARTED, MENU_NOT_CONFIGURED, VISUAL_QA_NOT_TESTED, PRODUCTION_RELEASE_NOT_DONE. Overall PARTIAL.
+
+
+## 2026-11-11 12:22 ICT — verified continuation, supersedes stale menu/deploy observations above
+
+- Astro master head **aae07ca1d93463b932d8cb78186abb824f7e7a98**, changes top strip to use real WordPress address; approved source remains `design/approved/marine-aqua-v3-preview.html`.
+- Header menu **HAS ONE real WordPress item**. Native CMS job [#42962595851](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42962595851) SUCCESS; idempotent job [#42962617672](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42962617672) SUCCESS with `HEADER_MENU_HOME=ALREADY_PRESENT`. Do **NOT** recreate this item.
+- Latest read-only live verification [#42963502876](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42963502876) SUCCESS: REST 200 `Header.vi=1`, frontend desktop `Trang chủ` at `/trang-chu` returns HTTP 200, logo loaded, Quicksand font, no overflow, no page errors at 1917px; homepage has ESC sections; 390px responsive HTTP 200. The run reports `categoriesSlider=0` and `productPrices=0` (source content absent).
+- Same latest CMS inventory job: WordPress target has exactly one published Page (`82454`, `trang-chu`) with seven table shortcodes; **0 Product** and **0 ProductCategory** records. Native ESC Tables remain seven. Thus extra Header destinations MUST wait until genuine target pages/categories exist and are verified; do not fabricate links or seed Astro fallback.
+- Actual WordPress-controlled production deployment [#42956575859](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42956575859) SUCCESS via repository_dispatch; its release target SHA must still be checked independently before declaring approved current Astro source deployed. The older statement 'no deployment after migration' is superseded by this run.
+- **Next non-duplicate work**: inventory original-site owned product/category/media with exact identity/SEO/image mapping, then migrate verified records idempotently to WooCommerce and bind `home_03`-`home_08` to true target IDs. After valid destinations exist, add remaining WordPress Header items and verify REST + frontend. Then run source tests/browser visual QA at 1917/1440/768/390 and production deploy through existing approved pipeline. Do not rerun already-successful page/table/header-Home creation.
+- This update records read-only verification only, not content migration, visual acceptance, or complete release. **Overall PARTIAL.**
