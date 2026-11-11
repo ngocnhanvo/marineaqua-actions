@@ -78,6 +78,17 @@ try {
         text:String(el.innerText||"").slice(0,65)
       })));
       report.admin.navMenuScreenSummary=(await page.locator("body").innerText()).slice(0,1300);
+      report.admin.navMenuStructure=await page.evaluate(() => ({
+        forms:[...document.querySelectorAll("form")].filter(x=>/menu/i.test(x.id+" "+x.action)).map(x=>({id:x.id,action:new URL(x.action).pathname,inputs:[...x.querySelectorAll("input[type=text],input[type=submit],select")].slice(-25).map(y=>({id:y.id,name:y.name,value:y.type==="submit"?y.value:undefined}))})).slice(0,8),
+        menuNameField:!!document.querySelector("#menu-name"),
+        newMenuLink:!!document.querySelector("a[href*='menu=0']"),
+        menuSelector:[...document.querySelectorAll("#select-menu-to-edit option")].map(x=>({id:x.value,name:x.textContent.trim()})).slice(0,20),
+        navMenuEditorPresent:!!document.querySelector("#menu-management"),
+        selectedMenuId:document.querySelector("#nav-menu-meta-object-id")?.value||"",
+        menuListItemCount:document.querySelectorAll("#menu-to-edit > li").length,
+        createMenuButtons:[...document.querySelectorAll("input[type=submit],button")].filter(x=>/tạo|create|lưu|save|menu/i.test(x.value||x.textContent||"")).slice(-20).map(x=>({id:x.id,name:x.name,value:x.value||x.textContent.trim().slice(0,40)})),
+      }));
+      console.log("CMS_NAV_MENU_STRUCTURE="+JSON.stringify(report.admin.navMenuStructure));
       console.log("CMS_NAV_MENU_ACCESSIBLE="+(report.admin.navMenusAccessible?"yes":"no"));
       console.log("CMS_NAV_MENU_CONTROLS="+JSON.stringify(report.admin.navMenuControls));
       await page.screenshot({path:outDir+"/nav-menu-admin.png",fullPage:false});
