@@ -70,7 +70,7 @@ jobs:
           assert.match(header, /min-width: 1440px/);
           assert.match(header, /header-hotline/);
           assert.match(style, /Clean Ocean header/);
-          assert.match(style, /header-navrow\\.header-nav-floating/);
+          assert.ok(style.includes('#header-navrow.header-nav-floating'));
           assert.match(desktopNav, /data-marine-active/);
           assert.match(header, /aria-expanded/);
           assert.match(header, /ProductCategorySidebar/);
