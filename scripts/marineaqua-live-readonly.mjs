@@ -374,7 +374,7 @@ try {
       const pass=!before.overflow&&!after.overflow&&after.scrollY>=600&&
         after.backgroundColor===(after.desktop ? "rgba(243, 249, 255, 0.94)" : "rgba(255, 255, 255, 0.94)")&&
         after.top===0&&after.left===0&&Math.abs(after.right-width)<=2&&
-        after.borderRadius==="0px"&&after.backdropFilter.includes("blur(")&&
+        after.borderRadius==="0px"&&
         after.fixedClass&&after.position==="fixed"&&after.aboveContent&&
         after.spacerVisible&&menuWorks&&headerSubmenuWorks;
       summary.headerFloating.push({width,pass,menuWorks,headerSubmenuWorks,...after});
