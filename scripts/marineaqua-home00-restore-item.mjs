@@ -37,7 +37,7 @@ try {
   if(before.items?.length===1) {
     const slide=before.items[0];
     if(String(slide.title)!=="Banner Marine Aqua" ||
-       !String(slide.image?.src||"").includes("banner1-1-690x336"))
+       !String(typeof slide.image==="string" ? slide.image : slide.image?.src||"").includes("banner1-1-690x336"))
       throw Error("Existing banner differs from approved media, refuse replace");
     report.verified=true;
     console.log("HOME00_BANNER=ALREADY_PRESENT");
@@ -113,9 +113,9 @@ try {
   report.afterCount=items.length;
   report.fields=after.fields?.map(f=>({key:f.key,label:f.label}));
   report.itemKeys=items[0] ? Object.keys(items[0]) : [];
-  report.imageSrc=String(items[0]?.image?.src||"").slice(0,230);
+  report.imageSrc=String(typeof items[0]?.image==="string" ? items[0].image : items[0]?.image?.src||"").slice(0,230);
   report.verified=items.length===1 && items[0].title==="Banner Marine Aqua"
-    && String(items[0].image?.src||"").includes("banner1-1-690x336");
+    && String(typeof items[0].image==="string" ? items[0].image : items[0].image?.src||"").includes("banner1-1-690x336");
   if(!report.verified)throw Error("Native save did not produce the verified WordPress banner item");
   console.log("HOME00_BANNER_REST=PASS items=1 source=wordpress locale=vi");
   await context.close();
