@@ -400,6 +400,7 @@ jobs:
           if-no-files-found: warn
 
 
+  # Rebuild approved V3 Header contrast from Astro master (WordPress menu stays authoritative).
   trigger-production-build-after-header:
     name: Dispatch existing production deploy after verified Header menu
     if: >-
