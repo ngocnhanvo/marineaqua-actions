@@ -111,8 +111,8 @@ try{
    await page.evaluate(()=>window.tinymce?.triggerSave());
    const beforeSubmit=await page.evaluate(()=>({
       rawLength:String(document.querySelector("#content")?.value||"").length,
-      rawShortcodes:(String(document.querySelector("#content")?.value||"").match(/\\[table\\s+id=/gi)||[]).length,
-      visualShortcodes:(String(window.tinymce?.get("content")?.getContent()||"").match(/\\[table\\s+id=/gi)||[]).length,
+      rawShortcodes:(String(document.querySelector("#content")?.value||"").match(/\[table\s+id=/gi)||[]).length,
+      visualShortcodes:(String(window.tinymce?.get("content")?.getContent()||"").match(/\[table\s+id=/gi)||[]).length,
       editorDirty:Boolean(window.tinymce?.get("content")?.isDirty()),
       formExists:Boolean(document.querySelector("form#post")),
    }));
