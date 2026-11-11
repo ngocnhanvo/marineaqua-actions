@@ -1,5 +1,10 @@
 name: Marine Aqua bind imported products to ESC Tables
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-bind-home-products.mjs'
+      - '.github/workflows/marineaqua-bind-home-products.yml'
   workflow_run:
     workflows: ["Marine Aqua import verified homepage WooCommerce products"]
     types: [completed]
@@ -11,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   bind-esc-products:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.repository == 'ngocnhanvo/marineaqua-actions'
+    if: github.repository == 'ngocnhanvo/marineaqua-actions' && (github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
     runs-on: ubuntu-latest
     timeout-minutes: 25
     container:
@@ -20,17 +25,51 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
       - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
       - run: node --check scripts/marineaqua-bind-home-products.mjs
+      - name: Select completed verified catalog import run
+        id: source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMPORT_RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE' >> "$GITHUB_OUTPUT"
+          const origin = "https://api.github.com/repos/" + process.env.GITHUB_REPOSITORY;
+          const id = process.env.IMPORT_RUN;
+          const headers = {
+            "Authorization": "Bearer " + process.env.GH_TOKEN,
+            "Accept": "application/vnd.github+json"
+          };
+          let runId = id && /^\\d+$/.test(id) ? Number(id) : 0;
+          if (!runId) {
+            const response = await fetch(origin + "/actions/runs?per_page=100", {headers});
+            if (!response.ok) throw Error("Cannot read migration runs HTTP "+response.status);
+            const payload = await response.json();
+            const selected = payload.workflow_runs.find(r =>
+              r.name === "Marine Aqua import verified homepage WooCommerce products" &&
+              r.head_branch === "main" && r.conclusion === "success");
+            if (!selected) throw Error("No successful 20-product import evidence");
+            runId = selected.id;
+          }
+          const artifacts = await fetch(origin + "/actions/runs/" + runId + "/artifacts", {headers});
+          if (!artifacts.ok) throw Error("Cannot read migration artifacts");
+          const payload = await artifacts.json();
+          if (!payload.artifacts.some(a=>a.name==="marine-aqua-original-product-migration" && !a.expired))
+            throw Error("Verified migration artifact missing");
+          process.stdout.write("run_id="+runId+"\\n");
+          NODE
       - name: Download exactly the verified migration run artifact
         uses: actions/download-artifact@v4
         with:
           name: marine-aqua-original-product-migration
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ steps.source.outputs.run_id }}
           github-token: ${{ github.token }}
           path: .
       - name: Bind 20 verified WooCommerce product IDs via native ESC Table admin
