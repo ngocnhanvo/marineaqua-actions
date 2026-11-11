@@ -101,7 +101,7 @@ try{
        tinymceOccurrences:(probe.tinymceText.match(/home_00/g)||[]).length});
    // WordPress's native preview contains the table ID in multiple HTML
    // attributes. Count the REAL shortcode, not every occurrence of its ID.
-   const shortcodeRegex=/\\[table\\s+id=["']?home_00["']?\\s*\\/\\]/gi;
+   const shortcodeRegex=/\[table\s+id=["']?home_00["']?\s*\/\]/gi;
    const rawCount=(probe.pageText.match(shortcodeRegex)||[]).length;
    const visualCount=(probe.tinymceText.match(shortcodeRegex)||[]).length;
    log("NATIVE_SHORTCODE_COUNT",{raw:rawCount,visual:visualCount,visualWrapper:probe.tinymceText.includes("tablepress-preview-wrap")});
