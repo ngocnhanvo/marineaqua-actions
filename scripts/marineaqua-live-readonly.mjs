@@ -246,6 +246,8 @@ try {
           toggleVisible:visible(toggle),
           menuHidden:menu?.hasAttribute("hidden"),
           documentWidth:document.documentElement.scrollWidth,
+          visibleBannerVariants:[...document.querySelectorAll("[data-marine-home-variant]")]
+            .filter(el=>getComputedStyle(el).display!=="none" && el.getBoundingClientRect().width>0).length,
           viewportWidth:window.innerWidth,
           desktopItemCount:document.querySelectorAll("#desktop-menu > ul > li").length,
           mobileItemCount:document.querySelectorAll("#mobile-menu-container [data-menu-item]").length
@@ -358,7 +360,7 @@ try {
             initial.homeSidebar.y>=initial.hero.y+initial.hero.height-3)
           : Boolean(initial.homeSidebar&&initial.hero &&
             initial.homeSidebar.y>=initial.hero.y+initial.hero.height-3);
-      const pass=initial.documentWidth<=width+2 && headerVisible &&
+      const pass=initial.documentWidth<=width+2 && initial.visibleBannerVariants===1 && headerVisible &&
         headerFlyout==="PASS" && sidebarLayoutOk &&
         Boolean(homeVisible&&initial.categoryRows>0 &&
           initial.categoryLinks>0&&initial.expanded===0&&childFlyout!=="FAIL");
@@ -373,6 +375,39 @@ try {
   const categorySidebarPass=summary.categorySidebar.every(v=>v.pass);
   console.log("MARINEAQUA_PRODUCT_CATEGORY_SIDEBAR="+(categorySidebarPass?"PASS":"FAIL")+" "+JSON.stringify(summary.categorySidebar));
   if(!categorySidebarPass)process.exitCode=1;
+
+  summary.productListingRoute = {};
+  {
+    const page = await browser.newPage({viewport:{width:1440,height:900}});
+    try {
+      const response = await page.goto(frontend.origin + "/san-pham", {
+        waitUntil:"domcontentloaded", timeout:45000
+      });
+      await page.waitForTimeout(500);
+      const trigger = page.locator("[data-header-catalog-trigger]:visible").first();
+      const panel = page.locator("#header-product-catalog-panel");
+      const beforeHidden = !(await panel.isVisible().catch(()=>false));
+      const triggerExists = await trigger.count() > 0;
+      let opened=false,closed=false;
+      if(triggerExists){
+        await trigger.click();
+        opened=await panel.isVisible() && await trigger.getAttribute("aria-expanded")==="true";
+        await page.keyboard.press("Escape");
+        closed=!(await panel.isVisible()) && await trigger.getAttribute("aria-expanded")==="false";
+      }
+      const status=response?.status()||0;
+      summary.productListingRoute={status,beforeHidden,triggerExists,opened,closed,
+        pass:status>=200&&status<400&&beforeHidden&&triggerExists&&opened&&closed};
+      console.log("MARINEAQUA_PRODUCT_LIST_ROUTE="+
+        (summary.productListingRoute.pass?"PASS":"FAIL")+" "+JSON.stringify(summary.productListingRoute));
+      if(!summary.productListingRoute.pass)process.exitCode=1;
+      await page.screenshot({path:dir+"/product-list-collapsed-1440.png",fullPage:false});
+    }catch(error){
+      summary.productListingRoute={pass:false,error:String(error.message||error).slice(0,220)};
+      console.log("MARINEAQUA_PRODUCT_LIST_ROUTE=FAIL "+JSON.stringify(summary.productListingRoute));
+      process.exitCode=1;
+    }finally{await page.close();}
+  }
 
   const context = await browser.newContext();
   for (const [label, path] of [
