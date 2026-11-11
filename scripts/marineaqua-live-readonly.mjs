@@ -209,6 +209,7 @@ const saleV3 = itemsV3.find(item => item.sale);
 const salePass = Boolean(saleV3 && saleV3.backgroundImage.includes("linear-gradient") && saleV3.color === "rgb(255, 255, 255)");
 const labelsPass = itemsV3.length === 7 && itemsV3.every((item,i) => normalizeV3(item.label) === v3Labels[i]);
 const homeV3 = itemsV3[0];
+// Verify the final deployed CSS specificity correction for the two approved pills.
 const v3PillPass = Boolean(homeV3 && saleV3
   && homeV3.height === saleV3.height && homeV3.height === 48
   && homeV3.borderRadius === saleV3.borderRadius
