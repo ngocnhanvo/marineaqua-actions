@@ -65,21 +65,16 @@ try{
      log("NATIVE_EDITOR_DOM_DIAGNOSTICS",snapshot);
      await page.screenshot({path:evidence+"/editor-controls-before.png",fullPage:false});
      log("NATIVE_EDITOR_CONTROLS",{quickVisible:await quick.isVisible(),buttonVisible:await button.isVisible(),controls});
-     chosenEditor="native-plugin-command";
-     // The registered ESC Table button command opens the same WordPress Thickbox;
-     // a real target row must still be selected in the native dialog.
-     const command=await page.evaluate(()=>{
+     if(!await button.isVisible())throw Error("No visible official TinyMCE ESC Table Insert Code button");
+     chosenEditor="tinymce";
+     await page.evaluate(()=>{
        const editor=window.tinymce?.get("content");
-       if(!editor||typeof window.tablepress_open_shortcode_thickbox!=="function")
-         return "UNAVAILABLE";
-       if(typeof editor.execCommand==="function"){
-         try{editor.execCommand("TablePress_insert_table");return "TINYMCE_COMMAND";}catch(e){}
-       }
-       window.tablepress_open_shortcode_thickbox();
-       return "TABLEPRESS_REGISTERED_COMMAND";
+       if(!editor||editor.isHidden())throw Error("Native content TinyMCE editor is unavailable");
+       editor.focus();
+       editor.selection.setCursorLocation(editor.getBody(),0);
+       window.wpActiveEditor="content";
      });
-     log("NATIVE_PLUGIN_COMMAND",{command});
-     if(command==="UNAVAILABLE")throw Error("No supported native ESC Table editor command available");
+     await button.click();
    }
    log("NATIVE_BUTTON_CLICKED",{editor:chosenEditor});
    const frame=page.frameLocator("#TB_iframeContent");
@@ -88,7 +83,12 @@ try{
    const title=await insert.getAttribute("title");
    if(title!=="[table id=home_00 /]")throw Error("Native insertion target mismatch");
    await insert.click();
-   await page.waitForTimeout(900);
+   await page.waitForFunction(()=>{
+     const raw=String(document.querySelector("#content")?.value||"");
+     const html=String(window.tinymce?.get("content")?.getContent()||"");
+     return raw.includes("home_00")||html.includes("home_00");
+   },null,{timeout:20000}).catch(()=>{});
+   await page.screenshot({path:evidence+"/native-insert-preview.png",fullPage:false});
    let probe=await page.evaluate(()=>({
       active:String(window.wpActiveEditor||""),
       pageText:String(document.querySelector("#content")?.value||""),
@@ -99,16 +99,6 @@ try{
        pageOccurrences:(probe.pageText.match(/home_00/g)||[]).length,
        acfOccurrences:(probe.acfText.match(/home_00/g)||[]).length,
        tinymceOccurrences:(probe.tinymceText.match(/home_00/g)||[]).length});
-   if(chosenEditor==="tinymce"||chosenEditor==="native-plugin-command"){
-     const textTab=page.locator("#content-html");
-     if(await textTab.isVisible())await textTab.click();
-     await page.waitForTimeout(400);
-     probe=await page.evaluate(()=>({
-       active:String(window.wpActiveEditor||""),
-       pageText:String(document.querySelector("#content")?.value||""),
-       tinymceText:String(window.tinymce?.get("content")?.getContent()||"")
-     }));
-   }
    const rawCount=(probe.pageText.match(/home_00/g)||[]).length;
    const visualCount=(probe.tinymceText.match(/home_00/g)||[]).length;
    if(rawCount!==1 && visualCount!==1)
