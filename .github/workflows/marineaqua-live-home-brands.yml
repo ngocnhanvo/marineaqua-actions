@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/marineaqua-live-home-brands.mjs'
+      - 'scripts/marineaqua-footer-readonly.mjs'
       - '.github/workflows/marineaqua-live-home-brands.yml'
   workflow_dispatch:
 permissions:
@@ -24,9 +25,13 @@ jobs:
       - run: node --check scripts/marineaqua-live-home-brands.mjs
       - name: Read-only browser test of production homepage and product pages
         run: node scripts/marineaqua-live-home-brands.mjs
+      - name: Inspect WordPress footer links and live routes (read only)
+        run: node scripts/marineaqua-footer-readonly.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: marine-aqua-live-home-brands-visual-qa
-          path: home-products-live-evidence/
+          path: |
+            home-products-live-evidence/
+            footer-live-evidence/
           retention-days: 7
