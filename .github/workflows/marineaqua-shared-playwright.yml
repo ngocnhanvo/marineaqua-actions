@@ -405,7 +405,7 @@ jobs:
   # Deploy account/cart Header icons from Astro master; retain WordPress-driven destinations.
   trigger-production-build-after-header:
     name: Dispatch existing production deploy after verified CMS update
-    # Publish the final Home_00 corner-radius parity revision.
+    # Publish the approved three-slide split hero from Astro master.
     if: >-
       github.event_name == 'push'
       && (github.event.head_commit.message == 'build: deploy approved WordPress Header menu'
