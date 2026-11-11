@@ -11,6 +11,7 @@ on:
       - 'scripts/marineaqua-catalog-sections-native.mjs'
       - 'scripts/marineaqua-home00-native.mjs'
       - 'scripts/marineaqua-attach-home00.mjs'
+      - 'scripts/marineaqua-attach-home-sections.mjs'
   workflow_dispatch:
     inputs:
       suite:
@@ -280,5 +281,42 @@ jobs:
         with:
           name: marine-aqua-catalog-sections-native
           path: cms-catalog-section-evidence/
+          retention-days: 7
+          if-no-files-found: warn
+
+  native-home-section-attachment:
+    name: Insert seven real ESC Tables into the WordPress homepage via native editor
+    if: >-
+      github.event_name == 'push' && github.event.head_commit.message == 'cms: attach all home ESC sections' && github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: marineaqua-home00-cms-native-write
+      cancel-in-progress: false
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Playwright driver only
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Verify native page insertion script
+        run: node --check scripts/marineaqua-attach-home-sections.mjs
+      - name: Use native ESC Table Insert Code for each approved section
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-attach-home-sections.mjs
+      - name: Save non-sensitive WordPress editor evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marine-aqua-native-home-sections-evidence
+          path: home-sections-native-evidence/
           retention-days: 7
           if-no-files-found: warn
