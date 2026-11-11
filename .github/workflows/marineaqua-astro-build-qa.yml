@@ -47,6 +47,35 @@ jobs:
           cache: pnpm
       - name: Install exact dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Verify WooCommerce category navigation integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const read = (path) => readFileSync(path, 'utf8');
+          const header = read('src/astro/components/Layout/Header.astro');
+          const layout = read('src/astro/components/Layout/Layout.astro');
+          const home = read('src/astro/tablepress/Home_00.astro');
+          const sidebar = read('src/astro/components/Product/ProductCategorySidebar.astro');
+          const branch = read('src/astro/components/Product/ProductCategorySidebarBranch.astro');
+          assert.match(header, /data-header-catalog-trigger/);
+          assert.match(header, /header-product-catalog-panel/);
+          assert.match(header, /aria-expanded/);
+          assert.match(header, /ProductCategorySidebar/);
+          assert.match(layout, /productCategories=\{productCategories\}/);
+          assert.match(home, /showHomeCategories/);
+          assert.match(home, /marine-home-banner-with-catalog/);
+          assert.match(home, /ProductCategorySidebar/);
+          assert.match(sidebar, /data-marine-category-trigger/);
+          assert.match(sidebar, /data-marine-category-panel/);
+          assert.match(sidebar, /productCategories/);
+          assert.match(sidebar, /rootPath/);
+          assert.match(branch, /Astro\.self/);
+          assert.doesNotMatch(sidebar, /thuancomputer\.com|menu\.json/);
+          console.log('CATEGORY_NAV_SOURCE_CONTRACT=PASS');
+          NODE
       - name: Build from real WordPress data without deploying
         shell: bash
         run: |
