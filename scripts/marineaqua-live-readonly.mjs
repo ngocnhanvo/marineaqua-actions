@@ -580,6 +580,38 @@ try {
     " "+JSON.stringify(summary.categorySidebar));
   if(!categorySidebarPass)process.exitCode=1;
 
+  // Switching long product category accordions must retain the clicked row
+  // inside the same scrollable popover at a stable viewport position.
+  summary.categoryScrollAnchor = [];
+  for (const width of [1024, 1440]) {
+    const page = await browser.newPage({viewport:{width,height:680},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      await page.locator("[data-header-catalog-trigger]:visible").first().click();
+      const panel=page.locator("#header-product-catalog-panel");
+      const parents=panel.locator(".marine-product-sidebar-parent[data-marine-category-trigger]");
+      const count=await parents.count();
+      if(count<2)throw new Error("Not enough expandable categories to test scroll anchoring");
+      const first=parents.first();
+      const next=parents.nth(1);
+      await first.click();
+      await panel.evaluate(el=>{el.scrollTop=Math.max(0,el.scrollHeight-el.clientHeight);});
+      await next.evaluate(el=>el.scrollIntoView({block:"center",behavior:"instant"}));
+      const before=await next.evaluate(el=>({top:el.getBoundingClientRect().top, scroll:el.closest("#header-product-catalog-panel")?.scrollTop||0}));
+      await next.click();
+      await page.waitForTimeout(110);
+      const after=await next.evaluate(el=>({top:el.getBoundingClientRect().top, scroll:el.closest("#header-product-catalog-panel")?.scrollTop||0, expanded:el.getAttribute("aria-expanded")}));
+      const panelRect=await panel.evaluate(el=>({top:el.getBoundingClientRect().top,bottom:el.getBoundingClientRect().bottom}));
+      const pass=after.expanded==="true"&&Math.abs(after.top-before.top)<3&&after.top>=panelRect.top&&after.top<panelRect.bottom;
+      summary.categoryScrollAnchor.push({width,pass,before,after,panelRect});
+      await page.screenshot({path:dir+"/category-scroll-anchor-"+width+".png",fullPage:false});
+    }catch(error){
+      summary.categoryScrollAnchor.push({width,pass:false,error:String(error.message||error).slice(0,220)});
+    }finally{await page.close();}
+  }
+  console.log("MARINEAQUA_CATEGORY_SCROLL_ANCHOR="+(summary.categoryScrollAnchor.every(v=>v.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.categoryScrollAnchor));
+  if(!summary.categoryScrollAnchor.every(v=>v.pass))process.exitCode=1;
+
   // All WooCommerce category levels live in the single hamburger menu below 1024.
   summary.mobileCatalog = [];
   for (const width of [390, 768, 1023]) {
