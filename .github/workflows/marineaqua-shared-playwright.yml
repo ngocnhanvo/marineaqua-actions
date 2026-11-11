@@ -10,6 +10,7 @@ on:
       - 'scripts/marineaqua-home-section-native.mjs'
       - 'scripts/marineaqua-catalog-sections-native.mjs'
       - 'scripts/marineaqua-home00-native.mjs'
+      - 'scripts/marineaqua-home00-restore-item.mjs'
       - 'scripts/marineaqua-attach-home00.mjs'
       - 'scripts/marineaqua-attach-home-sections.mjs'
       - 'scripts/marineaqua-home-esc-sources.mjs'
@@ -450,3 +451,43 @@ jobs:
             exit 1
           fi
           echo "PRODUCTION_DISPATCH=ACCEPTED event=wp_trigger_build"
+
+
+  restore-verified-home-banner-row:
+    name: Restore existing WordPress banner as one real Home_00 item
+    if: >-
+      github.event_name == 'push'
+      && github.event.head_commit.message == 'cms: restore native Home_00 banner row'
+      && github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    concurrency:
+      group: marineaqua-home00-cms-native-write
+      cancel-in-progress: false
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install matching Playwright driver
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Validate guarded Home_00 restoration script
+        run: node --check scripts/marineaqua-home00-restore-item.mjs
+      - name: Restore CMS field/slide rows and verify public REST readback
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-home00-restore-item.mjs
+      - name: Preserve native save evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marine-aqua-home00-item-restoration
+          path: home00-item-evidence/
+          retention-days: 7
+          if-no-files-found: warn
