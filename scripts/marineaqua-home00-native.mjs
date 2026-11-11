@@ -136,7 +136,14 @@ try{
  await tile.click();
  const altInput=picker.locator('input[data-setting="alt"]').first();
  if(await altInput.count()){await altInput.fill('Banner sản phẩm FISHLOVERSHOP');await altInput.blur();}
- const nativeButton=picker.getByRole('button',{name:/Insert into Table|Chèn vào bảng|Insert/i}).last();
+ const selectedState=await tile.getAttribute('aria-checked');
+ const mediaButtons=await picker.locator('button').evaluateAll(els=>els
+   .filter(el=>/insert|ch.n|media-button|select/i.test(el.className+' '+el.textContent))
+   .slice(-15).map(el=>({cls:String(el.className).slice(0,90),label:(el.textContent||'').trim().slice(0,65),disabled:el.disabled})));
+ record('IMAGE_MODAL_BUTTONS',{selectedState,buttons:mediaButtons});
+ const nativeButton=picker.locator('button.media-button-insert').first();
+ if(await nativeButton.count()===0)throw Error('Native Media Insert button not present');
+ if(!await nativeButton.isEnabled())throw Error('Native Media Insert button remained disabled');
  await nativeButton.click();
  await picker.waitFor({state:'hidden',timeout:20000});
  await page.waitForTimeout(1300);
