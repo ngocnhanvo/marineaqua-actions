@@ -21,6 +21,7 @@ on:
       - 'scripts/marineaqua-attach-home-sections.mjs'
       - 'scripts/marineaqua-home-esc-sources.mjs'
       - 'scripts/marineaqua-header-menu-native.mjs'
+      - 'scripts/marineaqua-clean-ocean-menu-native.mjs'
   workflow_dispatch:
     inputs:
       suite:
@@ -731,5 +732,44 @@ jobs:
         with:
           name: marine-aqua-product-list-rewrites
           path: product-list-rewrites-evidence/
+          retention-days: 7
+          if-no-files-found: warn
+
+  update-clean-ocean-header-menu:
+    name: Reorganize verified WordPress Header for Clean Ocean
+    if: >-
+      github.event_name == 'push'
+      && github.event.head_commit.message == 'cms: group Clean Ocean header menu'
+      && github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: marineaqua-header-native-cms-write
+      cancel-in-progress: false
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install matching Playwright driver
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Validate narrowly scoped Menu Manager writer
+        run: node --check scripts/marineaqua-clean-ocean-menu-native.mjs
+      - name: Update verified WordPress Header menu and read it back
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-clean-ocean-menu-native.mjs
+      - name: Preserve WordPress Header evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marine-aqua-clean-ocean-header
+          path: clean-ocean-header-evidence/
           retention-days: 7
           if-no-files-found: warn
