@@ -162,6 +162,8 @@ try {
               desktopNavPresent: Boolean(navrow),
               desktopNavVisible: Boolean(navrow && getComputedStyle(navrow).display !== "none"),
               desktopNavBackground: navrow ? getComputedStyle(navrow).backgroundImage : "",
+              desktopNavBgColor: navrow ? getComputedStyle(navrow).backgroundColor : "",
+              brandBgColor: getComputedStyle(brand).backgroundColor,
               desktopMenuItems: document.querySelectorAll("#desktop-menu > ul > li").length,
               mobileMenuButtonVisible: Boolean(hamburger && getComputedStyle(hamburger).display !== "none" && hamburger.getClientRects().length),
               expectedNavVisibility: desktop ? "visible" : "hidden",
@@ -347,7 +349,7 @@ try {
         menuWorks=menuWorks&&!(await page.locator("#header-product-catalog-panel").isVisible());
       }
       const pass=!before.overflow&&!after.overflow&&after.scrollY>=600&&
-        after.backgroundColor==="rgb(243, 249, 255)"&&
+        after.backgroundColor===(after.desktop ? "rgb(243, 249, 255)" : "rgb(255, 255, 255)")&&
         after.fixedClass&&after.position==="fixed"&&after.aboveContent&&
         after.spacerVisible&&menuWorks;
       summary.headerFloating.push({width,pass,menuWorks,...after});
@@ -357,6 +359,9 @@ try {
       summary.headerFloating.push({width,pass:false,error:String(error.message||error).slice(0,240)});
     }finally{await page.close();}
   }
+  const baseHeaderColorsPass=summary.views.every(view => view.error || (view.header?.brandBgColor === "rgb(255, 255, 255)" && (view.width < 1440 || view.header?.desktopNavBgColor === "rgb(243, 249, 255)")));
+  console.log("MARINEAQUA_HEADER_COLOR_SCOPE="+(baseHeaderColorsPass?"PASS":"FAIL"));
+  if(!baseHeaderColorsPass)process.exitCode=1;
   const floatPass=summary.headerFloating.every(item=>item.pass);
   console.log("MARINEAQUA_HEADER_FLOATING="+(floatPass?"PASS":"FAIL")+" "+JSON.stringify(summary.headerFloating));
   if(!floatPass)process.exitCode=1;
