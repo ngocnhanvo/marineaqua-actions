@@ -195,7 +195,7 @@ try{
  await insert.waitFor({state:'visible',timeout:15000});
  await insert.click();
  const dialog=page.frameLocator('#TB_iframeContent');
- const nativeInsert=dialog.locator('a.insert-shortcode[title*="home_00"]').first();
+ const nativeInsert=dialog.locator('input.insert-shortcode[title*="home_00"]').first();
  await nativeInsert.waitFor({state:'visible',timeout:20000});
  await nativeInsert.click();
  await page.waitForTimeout(500);
@@ -204,9 +204,16 @@ try{
  await page.locator('#publish').click();
  await page.waitForLoadState('domcontentloaded',{timeout:45000});
  const check=await context.request.get('/wp-json/wp/v2/pages/'+PAGE+'?_fields=id,content',{timeout:30000});
+ if(!check.ok())throw Error('Published Home Page REST HTTP '+check.status());
  const home=await check.json();
  const published=String(home.content?.rendered||'');
- if(!published.includes('home_00'))throw Error('Published Page readback did not include ESC Table');
+ if(!published.includes('home_00')){
+   // WordPress may render the shortcode to HTML in content.rendered.
+   // Check the saved native editor, not inferred HTML or manual REST edits.
+   await page.goto(WP+'/wp-admin/post.php?post='+PAGE+'&action=edit',{waitUntil:'domcontentloaded',timeout:45000});
+   const stored=await page.locator('#content').inputValue();
+   if(!stored.includes('home_00'))throw Error('Published Page native editor readback missing home_00');
+ }
  result.attached=true;
  record('PAGE_NATIVE_INSERT_SAVED',{page:PAGE,tableId:ID});
  await page.screenshot({path:evidence+'/home-editor-after.png',fullPage:false});
