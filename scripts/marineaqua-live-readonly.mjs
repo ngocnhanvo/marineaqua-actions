@@ -294,7 +294,7 @@ try {
   console.log("MARINEAQUA_NAV_RESPONSIVE="+(navigationPass?"PASS":"FAIL")+" "+JSON.stringify(summary.navResponsive));
   if(!navigationPass)process.exitCode=1;
 
-  // Verify the sidebar reflects the WordPress product-category tree, not a
+  // Post-migration verify the sidebar reflects the WordPress category tree, not a
   // copy of the reference screenshot or placeholder static labels.
   summary.categorySidebar = [];
   for (const width of [1440, 1024, 390]) {
