@@ -44,14 +44,19 @@ try{
    await page.waitForFunction(()=>Boolean(window.tp?.editor?.setValueFromCoords&&window.tp?.table?.data),null,{timeout:25000});
    const rows=await page.evaluate(()=>window.tp.table.data);
    check(rows.length===2&&rows.every(row=>Array.isArray(row)&&row.length===5)&&KEYS.every((key,index)=>rows[0][index]===key),"Native TablePress existing rows conflict "+table);
-   await page.locator("#rows-append-number").fill("4");
-   await page.evaluate(()=>{
-     const input=document.querySelector("#rows-append-number");
-     const button=document.evaluate('following::button[normalize-space(.)="Add"][1]',input,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
-     if(!(button instanceof HTMLButtonElement))throw Error("Native Append Rows button unavailable");
-     button.click();
-   });
-   await page.waitForFunction(()=>window.tp?.table?.data?.length===6,null,{timeout:18000});
+   // TablePress React row tools are sometimes collapsed and visually hidden.
+   // Use the existing native Add control four times (default one row), rather
+   // than filling the hidden React input or replacing editor table state.
+   for(let count=3;count<=6;count++){
+     await page.evaluate(()=>{
+       const input=document.querySelector("#rows-append-number");
+       if(!(input instanceof HTMLInputElement)||input.value!=="1")throw Error("Native row count must be one");
+       const button=document.evaluate('following::button[normalize-space(.)="Add"][1]',input,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+       if(!(button instanceof HTMLButtonElement))throw Error("Native Append Rows button unavailable");
+       button.click();
+     });
+     await page.waitForFunction(expected=>window.tp?.table?.data?.length===expected,count,{timeout:18000});
+   }
    const appended=await page.evaluate(()=>window.tp.table.data.slice(2));
    check(appended.length===4&&appended.every(row=>row.length===5&&row.every(cell=>!String(cell||"").trim())),"Native rows are not blank "+table);
    await page.evaluate(({products,paths})=>{
