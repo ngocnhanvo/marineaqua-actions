@@ -11,6 +11,7 @@ const SECTIONS=[
   ["home_08","CONTINUUM AQUATICS"],
 ];
 const FIELDS=["key","api-itemName","api-itemPrice","api-slug","api-itemImage"];
+// Native recovery is idempotent: only an existing matching draft is resumed.
 const LABELS=["Product ID","Nguồn tên","Nguồn giá","Nguồn slug","Nguồn ảnh"];
 const WP="https://admin.marine-aqua.io.vn";
 const u=process.env.WP_ADMIN_USERNAME,p=process.env.WP_ADMIN_PASSWORD;
