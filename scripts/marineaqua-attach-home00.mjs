@@ -27,7 +27,16 @@ try{
  if(home.id!==PAGE||home.slug!=="trang-chu"||home.acf?.key!=="home"||home.acf?.action!=="HomePage"||home.status!=="publish")throw Error("Unexpected WordPress homepage identity");
  await page.goto(WP+"/wp-admin/post.php?post="+PAGE+"&action=edit",{waitUntil:"domcontentloaded",timeout:45000});
  if(page.url().includes("wp-login.php"))throw new Error("Editor unauthenticated");
- const tab=page.locator("#content-html");if(await tab.isVisible())await tab.click();
+ const tab=page.locator("#content-html");
+ if(await tab.isVisible()){
+   await tab.click();
+   // Classic Editor asynchronously toggles from TinyMCE to Quicktags.
+   // Do not switch back to Visual before the native TablePress control appears.
+   await page.waitForFunction(
+     ()=>document.querySelector("#wp-content-wrap")?.classList.contains("html-active"),
+     null,{timeout:12000}
+   );
+ }
  const contentBefore=await page.locator("#content").inputValue();
  log("PAGE_BEFORE",{chars:contentBefore.length,hasTable:contentBefore.includes(TABLE)});
  if(contentBefore.includes(TABLE)){report.saved=true;log("ALREADY_ATTACHED",{id:TABLE});}
@@ -36,6 +45,7 @@ try{
    // Insert only through the registered WordPress ESC Table toolbar control.
    let chosenEditor="";
    const quick=page.locator("#qt_content_tablepress_quicktags_button");
+   if(!await quick.isVisible())await quick.waitFor({state:"visible",timeout:12000}).catch(()=>{});
    if(await quick.isVisible()){
      chosenEditor="quicktags";
      await quick.click();
