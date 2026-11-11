@@ -67,6 +67,8 @@ jobs:
           assert.match(layout, /productCategories=\{productCategories\}/);
           assert.match(home, /showHomeCategories/);
           assert.match(home, /marine-home-banner-with-catalog/);
+          assert.match(home, /showHomeCategories && \(/);
+          assert.match(home, /@media\(max-width:1099px\)/);
           assert.match(home, /ProductCategorySidebar/);
           assert.match(sidebar, /data-marine-category-trigger/);
           assert.match(sidebar, /data-marine-category-panel/);
