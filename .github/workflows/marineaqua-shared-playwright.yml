@@ -7,6 +7,7 @@ on:
       - '.github/workflows/marineaqua-shared-playwright.yml'
       - 'scripts/marineaqua-live-readonly.mjs'
       - 'scripts/marineaqua-cms-inventory.mjs'
+      - 'scripts/marineaqua-home00-native.mjs'
   workflow_dispatch:
     inputs:
       suite:
@@ -169,5 +170,41 @@ jobs:
         with:
           name: marine-aqua-cms-inventory
           path: cms-inventory-evidence/
+          retention-days: 7
+          if-no-files-found: warn
+
+  native-home-banner-cms:
+    name: Install one source-backed ESC Table banner through native WordPress UI
+    if: github.event_name == 'push' && github.event.head_commit.message == 'cms: start home ESC Table migration' && github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    concurrency:
+      group: marineaqua-home00-cms-native-write
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Playwright driver only
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Validate native migration script
+        run: node --check scripts/marineaqua-home00-native.mjs
+      - name: Migrate approved banner and insert one native ESC Table
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-home00-native.mjs
+      - name: Preserve non-sensitive CMS write evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marine-aqua-home00-native-cms-evidence
+          path: home00-native-evidence/
           retention-days: 7
           if-no-files-found: warn
