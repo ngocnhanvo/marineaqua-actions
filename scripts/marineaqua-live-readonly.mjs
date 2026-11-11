@@ -319,8 +319,9 @@ const bannerChecks = [1917,1440,768,390].map(width=>{
   const hero=carousels.find(entry=>entry.srcs.some(img=>img.loaded && img.naturalW>10));
   const widthPass=Boolean(hero && Math.abs(hero.rect.w-width*0.925)<6);
   const mediaPass=Boolean(hero && hero.srcs.some(img=>img.loaded && img.naturalW>10 &&
-    (img.src.includes("marine-aqua.io.vn/images/pages/banner1-1-690x336-1-") ||
-     img.src.includes("admin.marine-aqua.io.vn/wp-content/uploads/2026/11/banner1-1-690x336-1.jpg"))));
+    (img.src.includes("banner1-1-1380x672") &&
+      (img.src.includes("marine-aqua.io.vn/images/pages/") ||
+       img.src.includes("marine-aqua.vn/wp-content/uploads/2026/08/"))))));
   const radiusPass=Boolean(hero && hero.borderRadius===(width<640?"12px":"19px"));
   const splitPass=Boolean(hero && hero.slideCount===3 && hero.dotCount===3
     && hero.split?.copyWidth>150 && hero.split?.mediaWidth>150
@@ -334,8 +335,8 @@ const bannerChecks = [1917,1440,768,390].map(width=>{
 const interactionChecks=[1917,390].map(width=>{
   const samples=summary.views.find(v=>v.width===width)?.bannerSlideNavigation||[];
   return {width,passed:samples.length===2 && samples.every((v,i)=>v.currentIndex===i+1 &&
-    v.imageLoaded && (v.imageSrc.includes("slide-pro-reef") || v.imageSrc.includes("slide-marine-aqua-1") ||
-      v.sourceSet.includes("slide-pro-reef") || v.sourceSet.includes("slide-marine-aqua-1")))};
+    v.imageLoaded && (v.imageSrc.includes(i===0?"banner2-8-1440x672":"banner3-4-1440x672") ||
+      v.sourceSet.includes(i===0?"banner2-8-1440x672":"banner3-4-1440x672")))};
 });
 const bannerPass=bannerChecks.every(x=>x.passed)&&interactionChecks.every(x=>x.passed);
 console.log("MARINEAQUA_HOME00_NAVIGATION="+JSON.stringify(interactionChecks));
