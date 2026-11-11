@@ -7,6 +7,7 @@ on:
       - '.github/workflows/marineaqua-shared-playwright.yml'
       - 'scripts/marineaqua-live-readonly.mjs'
       - 'scripts/marineaqua-cms-inventory.mjs'
+      - 'scripts/marineaqua-home-section-native.mjs'
       - 'scripts/marineaqua-home00-native.mjs'
       - 'scripts/marineaqua-attach-home00.mjs'
   workflow_dispatch:
@@ -208,5 +209,39 @@ jobs:
         with:
           name: marine-aqua-home00-native-cms-evidence
           path: home00-native-evidence/
+          retention-days: 7
+          if-no-files-found: warn
+
+  first-home-esc-table-native:
+    name: Create first real homepage ESC Table through native WordPress editor
+    if: github.event_name == 'push' && github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: marine-aqua-cms-home-write
+      cancel-in-progress: false
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Playwright driver only
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Create Home_03 via native Add Table UI and read back
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-home-section-native.mjs
+      - name: Upload ESC Table creation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marine-aqua-first-home-esc-table
+          path: cms-section-implementation-evidence/
           retention-days: 7
           if-no-files-found: warn
