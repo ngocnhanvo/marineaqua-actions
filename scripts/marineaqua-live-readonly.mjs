@@ -454,6 +454,68 @@ try {
     " "+JSON.stringify(summary.categorySidebar));
   if(!categorySidebarPass)process.exitCode=1;
 
+  // Regression: left-clustered nav; a single visually connected category
+  // parent/submenu surface; no repeated heading or consultation CTA.
+  summary.headerRefinements = [];
+  for (const width of [1440, 1024, 390]) {
+    const page = await browser.newPage({viewport:{width,height:900},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      await page.waitForTimeout(350);
+      const headerBefore=await page.evaluate(()=>{
+        const items=[...document.querySelectorAll("#desktop-menu > ul > li")];
+        const rects=items.map(el=>el.getBoundingClientRect());
+        const gaps=rects.slice(1).map((r,i)=>Math.round(r.left-rects[i].right));
+        const row=document.querySelector("#desktop-menu > ul");
+        return {
+          hotlineExists:Boolean(document.querySelector("#header-hotline")),
+          display:row ? getComputedStyle(row).justifyContent : "",
+          gaps
+        };
+      });
+      const trigger=page.locator("[data-header-catalog-trigger]:visible").first();
+      await trigger.click();
+      const firstChildTrigger=page.locator("#header-product-catalog-panel [data-marine-category-trigger]").first();
+      await firstChildTrigger.click();
+      const panelId=await firstChildTrigger.getAttribute("aria-controls");
+      const submenu=page.locator("#header-product-catalog-panel [id='"+panelId+"']");
+      const visuals=await submenu.evaluate(el=>{
+        const parent=el.previousElementSibling;
+        const ps=getComputedStyle(parent),cs=getComputedStyle(el);
+        const title=el.querySelector(".marine-product-category-head h2");
+        const link=el.querySelector(".marine-product-category-head a");
+        return {
+          titleRepeated:Boolean(title),
+          allLinkPresent:Boolean(link?.getAttribute("href")),
+          childBorder:cs.borderTopWidth+" "+cs.borderRightWidth+" "+cs.borderBottomWidth+" "+cs.borderLeftWidth,
+          parentBackground:ps.backgroundColor,
+          childBackground:cs.backgroundColor,
+          parentBottomRadius:ps.borderBottomLeftRadius,
+          childTopRadius:cs.borderTopLeftRadius,
+          childVisible:el.getBoundingClientRect().height>0
+        };
+      });
+      const pass=!headerBefore.hotlineExists && (
+        width<1440 || (headerBefore.display==="flex-start" &&
+          headerBefore.gaps.length>0 && headerBefore.gaps.every(g=>g>=-2&&g<=30))
+      ) && !visuals.titleRepeated && visuals.allLinkPresent &&
+        visuals.childBorder==="0px 0px 0px 0px" &&
+        visuals.parentBackground===visuals.childBackground &&
+        visuals.parentBottomRadius==="0px" &&
+        visuals.childTopRadius==="0px" && visuals.childVisible;
+      summary.headerRefinements.push({width,pass,nav:headerBefore,submenu:visuals});
+      if(width===1440||width===390)await page.screenshot({
+        path:dir+"/header-category-unified-"+width+".png",fullPage:false
+      });
+    }catch(error){
+      summary.headerRefinements.push({width,pass:false,error:String(error.message||error).slice(0,260)});
+    }finally{await page.close();}
+  }
+  const headerRefinementsPass=summary.headerRefinements.every(v=>v.pass);
+  console.log("MARINEAQUA_HEADER_REFINEMENTS="+(headerRefinementsPass?"PASS":"FAIL")+
+    " "+JSON.stringify(summary.headerRefinements));
+  if(!headerRefinementsPass)process.exitCode=1;
+
   summary.productListingRoute = {};
   {
     const page = await browser.newPage({viewport:{width:1440,height:900}});
