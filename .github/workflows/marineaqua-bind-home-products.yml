@@ -1,0 +1,46 @@
+name: Marine Aqua bind imported products to ESC Tables
+on:
+  workflow_run:
+    workflows: ["Marine Aqua import verified homepage WooCommerce products"]
+    types: [completed]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: marineaqua-home-products-native-table-bind
+  cancel-in-progress: false
+jobs:
+  bind-esc-products:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-bind-home-products.mjs
+      - name: Download exactly the verified migration run artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: marine-aqua-original-product-migration
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          path: .
+      - name: Bind 20 verified WooCommerce product IDs via native ESC Table admin
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-bind-home-products.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-five-home-product-esc-tables
+          path: catalog-bind-evidence/
+          retention-days: 7
