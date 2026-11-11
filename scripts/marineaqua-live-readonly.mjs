@@ -92,6 +92,23 @@ try {
           horizontalOverflow: documentWidth > window.innerWidth + 2,
         };
       });
+      if (width === 1917 && result.headerNavTargets?.length) {
+        result.headerTargetChecks = [];
+        for (const target of result.headerNavTargets.slice(0, 8)) {
+          const href = target.href || "";
+          if (!href.startsWith("/") || href.startsWith("//")) {
+            result.headerTargetChecks.push({ label: target.label, result: "SKIPPED_NON_INTERNAL" });
+            continue;
+          }
+          const targetResponse = await page.request.get(frontend.origin + href, {
+            timeout: 20000, failOnStatusCode: false
+          });
+          result.headerTargetChecks.push({
+            label: target.label, href, status: targetResponse.status(),
+            ok: targetResponse.status() >= 200 && targetResponse.status() < 400
+          });
+        }
+      }
       result.httpStatus = response?.status() ?? 0;
       result.finalHost = new URL(page.url()).hostname;
       result.pageErrors = problems.length;
