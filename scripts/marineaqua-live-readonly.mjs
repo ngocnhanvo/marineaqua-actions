@@ -504,6 +504,7 @@ try {
       await page.locator("#hamburger-btn").click();
       const categories=page.locator("#mobile-menu-container .marine-mobile-menu-categories");
       const parent=categories.locator(".marine-mobile-category-link[data-menu-toggle]").first();
+      if(!(await parent.count()))throw new Error("WordPress product categories have no expandable mobile parent");
       const count=await categories.locator(".marine-mobile-category-item").count();
       const sectionVisible=await categories.isVisible();
       const urlBefore=page.url();
