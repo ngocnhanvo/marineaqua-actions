@@ -125,14 +125,12 @@ try{
        log("NATIVE_UPDATE_REQUEST",{method:"POST",postPath:"/wp-admin/post.php",hasShortcode:String(request.postData()||"").includes("home_00")});
      }
    });
-   await page.locator("#publish").click();
-   await page.waitForTimeout(4200);
-   const afterSubmit=await page.evaluate(()=>({
-     location:new URL(location.href).pathname,
-     wpNotice:(document.querySelector("#message")?.textContent||"").trim().slice(0,180),
-     rawLength:String(document.querySelector("#content")?.value||"").length
-   }));
-   log("AFTER_SUBMIT",{...afterSubmit,postRequests});
+   const [saveNavigation] = await Promise.all([
+     page.waitForNavigation({waitUntil:"domcontentloaded",timeout:45000}),
+     page.locator("#publish").click()
+   ]);
+   log("WORDPRESS_NATIVE_SAVE_NAVIGATED",{status:saveNavigation?.status()||0,path:new URL(page.url()).pathname,postRequests});
+   await page.waitForLoadState("domcontentloaded",{timeout:20000});
    await page.goto(WP+"/wp-admin/post.php?post="+PAGE+"&action=edit",{waitUntil:"domcontentloaded",timeout:45000});
    const persisted=await page.locator("#content").inputValue();
    const persistedShortcodes=(persisted.match(/\[table\s+id=["']?home_00["']?\s*\/\]/gi)||[]).length;
