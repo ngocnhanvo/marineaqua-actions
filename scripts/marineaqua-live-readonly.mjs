@@ -62,6 +62,7 @@ try {
           categoriesSlider: document.querySelectorAll("[data-marine-category-slider]").length,
           productPrices: document.querySelectorAll("[data-marine-product-price]").length,
           navLinks: document.querySelectorAll("header nav a, #desktop-menu a").length,
+          headerNavTargets: [...document.querySelectorAll("#desktop-menu > ul > li > a")].slice(0,8).map(a => ({label:(a.textContent||"").trim().slice(0,70),href:a.getAttribute("href")})),
           header: (() => {
             const root = document.getElementById("main-header");
             const brand = document.getElementById("header-brandbar");
