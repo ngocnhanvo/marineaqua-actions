@@ -60,6 +60,7 @@ jobs:
           const home = read('src/astro/tablepress/Home_00.astro');
           const sidebar = read('src/astro/components/Product/ProductCategorySidebar.astro');
           const branch = read('src/astro/components/Product/ProductCategorySidebarBranch.astro');
+          const pagesLoader = read('src/lib/wordpress/pages/index.ts');
           assert.match(header, /data-header-catalog-trigger/);
           assert.match(header, /header-product-catalog-panel/);
           assert.match(header, /aria-expanded/);
@@ -79,6 +80,9 @@ jobs:
           assert.match(sidebar, /productCategories/);
           assert.match(sidebar, /rootPath/);
           assert.match(branch, /Astro\.self/);
+          assert.match(pagesLoader, /Published Page ID Audit/);
+          assert.match(pagesLoader, /New Published Pages Audit/);
+          assert.match(pagesLoader, /deletedIds/);
           assert.doesNotMatch(sidebar, /thuancomputer\.com|menu\.json/);
           console.log('CATEGORY_NAV_SOURCE_CONTRACT=PASS');
           NODE
