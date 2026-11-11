@@ -316,6 +316,41 @@ try {
   console.log("MARINEAQUA_NAV_RESPONSIVE="+(navigationPass?"PASS":"FAIL")+" "+JSON.stringify(summary.navResponsive));
   if(!navigationPass)process.exitCode=1;
 
+  // Cross-check computed typography and the promotion's transparent surface.
+  summary.desktopTypography = [];
+  for (const width of [1024,1067,1200,1366,1440,1917]) {
+    const page=await browser.newPage({viewport:{width,height:850},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      const value=await page.evaluate(()=>{
+        const items=[...document.querySelectorAll("#desktop-menu > ul > li")];
+        const targets=items.map(li=>li.querySelector(":scope > a, :scope > button, :scope > span")).filter(Boolean);
+        const sizes=targets.map(el=>getComputedStyle(el).fontSize);
+        const sale=document.querySelector("#desktop-menu > ul > li[data-marine-sale] > a, #desktop-menu > ul > li[data-marine-sale] > button, #desktop-menu > ul > li[data-marine-sale] > span");
+        const css=sale?getComputedStyle(sale):null;
+        const rgb=css?.color||"";
+        const okColor=rgb==="rgb(214, 51, 75)";
+        return {
+          sizes, uniform:sizes.length>=5&&new Set(sizes).size===1,
+          saleBackground:css?.backgroundColor||"",
+          saleBorder:css?.borderTopWidth||"",
+          saleShadow:css?.boxShadow||"",
+          saleTextColor:rgb,
+          saleOk:!!css&&css.backgroundColor==="rgba(0, 0, 0, 0)"&&
+            css.borderTopWidth==="0px"&&css.boxShadow==="none"&&okColor
+        };
+      });
+      value.width=width;
+      value.pass=value.uniform&&value.saleOk;
+      summary.desktopTypography.push(value);
+      await page.screenshot({path:dir+"/desktop-typography-"+width+".png",fullPage:false});
+    } catch(error) {
+      summary.desktopTypography.push({width,pass:false,error:String(error.message||error).slice(0,220)});
+    } finally {await page.close()}
+  }
+  console.log("MARINEAQUA_DESKTOP_TYPOGRAPHY="+(summary.desktopTypography.every(x=>x.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.desktopTypography));
+  if(!summary.desktopTypography.every(x=>x.pass))process.exitCode=1;
+
   // Verify floating header at scroll depth, click behavior, fixed placement
   // and no layout shift on wide desktop, laptop and mobile.
   summary.headerFloating = [];
