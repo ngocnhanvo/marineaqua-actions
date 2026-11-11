@@ -130,6 +130,24 @@ jobs:
           test -s dist/client/robots.txt
           test -s dist/client/llms.txt
           echo 'ASTRO_PRODUCTION_EQUIVALENT_BUILD=PASS (NO FTP, NO DEPLOY)' >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify 20 real WooCommerce homepage products in compiled output
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          html = Path('dist/client/index.html').read_text()
+          brand_tables = [f'home_{n:02d}' for n in range(4, 9)]
+          for table in brand_tables:
+              if f'data-tablepress-preview="{table}"' not in html:
+                  raise SystemExit('HOME_CATALOG=FAIL missing ESC section ' + table)
+          count = html.count('data-marine-product-price')
+          if count < 20:
+              raise SystemExit(f'HOME_CATALOG=FAIL expected 20 CMS prices, found {count}')
+          if 'continuum-aquatics-bacter-clean-m' not in html:
+              raise SystemExit('HOME_CATALOG=FAIL missing original Continuum products')
+          print(f'HOME_CATALOG=PASS brands=5 prices={count} source=wordpress')
+          PY
       - name: Verify compiled Header comes only from WordPress (empty allowed)
         shell: bash
         run: |
