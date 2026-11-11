@@ -488,6 +488,43 @@ try {
     " "+JSON.stringify(summary.categorySidebar));
   if(!categorySidebarPass)process.exitCode=1;
 
+  // Search focus must use a blue glow on the complete form, never an orange inner outline.
+  summary.headerSearchFocus = {};
+  {
+    const page = await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      const input=page.locator("#header-product-search input");
+      await input.click();
+      summary.headerSearchFocus=await page.evaluate(()=>{
+        const form=document.querySelector("#header-product-search");
+        const input=form?.querySelector("input");
+        const button=form?.querySelector("button");
+        const outer=form?getComputedStyle(form):null;
+        const inner=input?getComputedStyle(input):null;
+        const action=button?getComputedStyle(button):null;
+        return {
+          active:document.activeElement===input,
+          outline:inner?.outlineStyle,
+          outlineWidth:inner?.outlineWidth,
+          borderColor:outer?.borderTopColor,
+          boxShadow:outer?.boxShadow,
+          buttonBackground:action?.backgroundColor,
+          buttonVisible:Boolean(button?.getBoundingClientRect().width)
+        };
+      });
+      const check=summary.headerSearchFocus;
+      check.pass=check.active&&check.outline==="none"&&
+        check.borderColor==="rgb(51, 184, 233)"&&
+        check.boxShadow?.includes("31, 171, 231")&&check.buttonVisible;
+      await page.screenshot({path:dir+"/header-search-focus-1440.png",fullPage:false});
+    }catch(error){
+      summary.headerSearchFocus={pass:false,error:String(error.message||error).slice(0,220)};
+    }finally{await page.close();}
+  }
+  console.log("MARINEAQUA_HEADER_SEARCH_FOCUS="+(summary.headerSearchFocus.pass?"PASS":"FAIL")+" "+JSON.stringify(summary.headerSearchFocus));
+  if(!summary.headerSearchFocus.pass)process.exitCode=1;
+
   // Regression: left-clustered nav; a single visually connected category
   // parent/submenu surface; no repeated heading or consultation CTA.
   summary.headerRefinements = [];
