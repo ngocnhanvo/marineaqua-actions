@@ -60,6 +60,11 @@ try {
     await page.locator("#user_login").fill(u);await page.locator("#user_pass").fill(p);await page.locator("#wp-submit").click();
     if(page.url().includes("wp-login.php"))throw Error("Admin login rejected");
     await page.goto(WP+"/wp-admin/media-new.php",{waitUntil:"domcontentloaded",timeout:45000});
+    // WordPress Plupload initializes asynchronously after DOMContentLoaded.
+    // If the HTML5 uploader has not initialized, classic multipart form is used.
+    await page.waitForFunction(()=>document.querySelector('input[type="file"][id^="html5_"]')||
+      document.querySelector('#file-form input[type="file"]'),null,{timeout:18000});
+    await page.waitForTimeout(1800);
     const nonceCandidates=await page.evaluate(()=>({
       api:window.wpApiSettings?.nonce||"",
       apiAlt:window.wp?.apiSettings?.nonce||"",
@@ -84,14 +89,30 @@ try {
           media=await res.json();
         } else {
           const pluploadInput=page.locator('input[type="file"][id^="html5_"]').first();
-          const fileInput=await pluploadInput.count() ? pluploadInput : page.locator('#async-upload');
+          const hasPlupload=await pluploadInput.count()>0;
+          const fileInput=hasPlupload ? pluploadInput : page.locator('#async-upload');
           if(!await fileInput.count())throw Error("No native WordPress media uploader or REST nonce");
+          record("UPLOAD_MODE",{name:asset.filename,plupload:hasPlupload});
           await fileInput.setInputFiles({name:asset.filename,mimeType:"image/jpeg",buffer:asset.bytes});
-          // Plupload automatically posts upon file selection. Do not click the
-          // classic HTML form submit, which is hidden in the active uploader.
-          for(let attempt=0;attempt<15;attempt++){
+          if(!hasPlupload) {
+            const submission=await page.evaluate(()=>{
+              const input=document.querySelector('#async-upload');
+              const form=input?.form;
+              if(!form || form.method.toLowerCase()!=="post" || form.enctype!=="multipart/form-data" ||
+                 !form.action.startsWith(location.origin+"/wp-admin/"))
+                throw Error("Unexpected classic upload form; refuse submit");
+              const submit=form.querySelector('input[type="submit"],button[type="submit"]');
+              if(!submit)throw Error("Native classic WordPress submit missing");
+              form.requestSubmit(submit);
+              return true;
+            });
+            if(!submission)throw Error("Native classic upload submit failed");
+            await page.waitForLoadState("domcontentloaded",{timeout:45000}).catch(()=>{});
+            await page.goto(WP+"/wp-admin/media-new.php",{waitUntil:"domcontentloaded",timeout:45000});
+          }
+          for(let attempt=0;attempt<18;attempt++){
             await page.waitForTimeout(1200);
-            const list=await api("/wp-json/wp/v2/media?per_page=100&_fields=id,slug,source_url");
+            const list=await api("/wp-json/wp/v2/media?search="+encodeURIComponent(asset.filename.replace(/\\.jpg$/,""))+"&per_page=100&_fields=id,slug,source_url");
             media=list.find(x=>String(x.source_url||"").split("/").pop()===asset.filename);
             if(media)break;
           }
