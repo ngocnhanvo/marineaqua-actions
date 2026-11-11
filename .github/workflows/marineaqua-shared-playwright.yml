@@ -214,7 +214,8 @@ jobs:
 
   first-home-esc-table-native:
     name: Create first real homepage ESC Table through native WordPress editor
-    if: github.event_name == 'push' && github.repository == 'ngocnhanvo/marineaqua-actions'
+    if: >-
+      github.event_name == 'push' && github.event.head_commit.message == 'cms: create home_03 via native editor' && github.repository == 'ngocnhanvo/marineaqua-actions'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     concurrency:
