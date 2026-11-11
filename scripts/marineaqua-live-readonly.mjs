@@ -76,7 +76,13 @@ try {
                   color: style?.color || "",
                   backgroundImage: style?.backgroundImage || "",
                   backgroundColor: style?.backgroundColor || "",
-                  sale: li.hasAttribute("data-marine-sale")
+                  sale: li.hasAttribute("data-marine-sale"),
+                  height: element ? Math.round(element.getBoundingClientRect().height) : 0,
+                  borderRadius: style?.borderRadius || "",
+                  left: element ? Math.round(element.getBoundingClientRect().left) : 0,
+                  right: element ? Math.round(element.getBoundingClientRect().right) : 0,
+                  boltSvg: Boolean(element?.querySelector(".marine-sale-bolt svg")),
+                  boltAnimation: element?.querySelector(".marine-sale-bolt") ? getComputedStyle(element.querySelector(".marine-sale-bolt")).animationName : ""
                 };
               })
             };
@@ -202,10 +208,17 @@ const normalColorPass = itemsV3.filter((item,i) => i > 0 && !item.sale).every(it
 const saleV3 = itemsV3.find(item => item.sale);
 const salePass = Boolean(saleV3 && saleV3.backgroundImage.includes("linear-gradient") && saleV3.color === "rgb(255, 255, 255)");
 const labelsPass = itemsV3.length === 7 && itemsV3.every((item,i) => normalizeV3(item.label) === v3Labels[i]);
-const v3Pass = labelsPass && normalColorPass && salePass;
+const homeV3 = itemsV3[0];
+const v3PillPass = Boolean(homeV3 && saleV3
+  && homeV3.height === saleV3.height && homeV3.height === 48
+  && homeV3.borderRadius === saleV3.borderRadius
+  && homeV3.borderRadius === "17px"
+  && saleV3.left - homeV3.right >= 10 && saleV3.left - homeV3.right <= 14);
+const boltPass = Boolean(saleV3?.boltSvg && saleV3?.boltAnimation?.includes("marine-sale-bolt-pulse"));
+const v3Pass = labelsPass && normalColorPass && salePass && v3PillPass && boltPass;
 console.log("MARINEAQUA_V3_NAV_COLOR=" + (v3Pass ? "PASS" : "FAIL") +
   " items=" + itemsV3.length + " normalText=" + normalColorPass + " saleRedGradient=" + salePass +
-  " orderedLabels=" + labelsPass);
+  " orderedLabels=" + labelsPass + " matchedPills=" + v3PillPass + " boltSvg=" + boltPass);
 if (!v3Pass) process.exitCode = 1;
 
 console.log("MARINEAQUA_TEST_WRITE_REQUESTS=0 DEPLOY_REQUESTS=0");
