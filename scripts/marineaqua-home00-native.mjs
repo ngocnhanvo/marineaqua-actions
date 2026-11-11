@@ -40,14 +40,14 @@ try{
  record('PAGE_PREFLIGHT',{id:PAGE,slug:pageData.slug,existingTableShortcodes:(content.match(/\[table\b/g)||[]).length});
  phase='media';
  const listMedia=async()=>{
-   const response=await context.request.get('/wp-json/wp/v2/media?per_page=100&_fields=id,source_url',{timeout:30000});
+   const response=await context.request.get('/wp-json/wp/v2/media?per_page=100&_fields=id,slug,source_url',{timeout:30000});
    if(!response.ok())throw Error('Cannot read WordPress Media Library: '+response.status());
    const items=await response.json();
    return Array.isArray(items)?items:[];
  };
  let currentMedia=await listMedia();
  record('MEDIA_PRECHECK',{count:currentMedia.length});
- let found=currentMedia.find(x=>String(x.source_url||'').endsWith('/banner1-1-690x336.jpg'));
+ let found=currentMedia.find(x=>x.slug==='banner1-1-690x336' && /^banner1-1-690x336(?:-1)?\.jpg$/i.test(String(x.source_url||'').split('/').pop()));
  if(found){result.mediaId=found.id;record('MEDIA_REUSED',{id:found.id});}
  if(!result.mediaId){
    // Use WordPress's authenticated Media REST endpoint. The ESC Table
