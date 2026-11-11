@@ -109,8 +109,30 @@ try{
      throw Error("Native Insert Code produced no unique shortcode");
    // WordPress's own editor synchronization, not a raw shortcode injection.
    await page.evaluate(()=>window.tinymce?.triggerSave());
+   const beforeSubmit=await page.evaluate(()=>({
+      rawLength:String(document.querySelector("#content")?.value||"").length,
+      rawShortcodes:(String(document.querySelector("#content")?.value||"").match(/\\[table\\s+id=/gi)||[]).length,
+      visualShortcodes:(String(window.tinymce?.get("content")?.getContent()||"").match(/\\[table\\s+id=/gi)||[]).length,
+      editorDirty:Boolean(window.tinymce?.get("content")?.isDirty()),
+      formExists:Boolean(document.querySelector("form#post")),
+   }));
+   log("BEFORE_SUBMIT",beforeSubmit);
+   if(beforeSubmit.rawLength===0)throw Error("Native TinyMCE sync left raw WordPress Page empty");
+   let postRequests=0;
+   page.on("request",request=>{
+     if(request.method()==="POST"&&new URL(request.url()).pathname==="/wp-admin/post.php"){
+       postRequests++;
+       log("NATIVE_UPDATE_REQUEST",{method:"POST",postPath:"/wp-admin/post.php",hasShortcode:String(request.postData()||"").includes("home_00")});
+     }
+   });
    await page.locator("#publish").click();
-   await page.waitForLoadState("domcontentloaded",{timeout:45000});
+   await page.waitForTimeout(4200);
+   const afterSubmit=await page.evaluate(()=>({
+     location:new URL(location.href).pathname,
+     wpNotice:(document.querySelector("#message")?.textContent||"").trim().slice(0,180),
+     rawLength:String(document.querySelector("#content")?.value||"").length
+   }));
+   log("AFTER_SUBMIT",{...afterSubmit,postRequests});
    await page.goto(WP+"/wp-admin/post.php?post="+PAGE+"&action=edit",{waitUntil:"domcontentloaded",timeout:45000});
    const persisted=await page.locator("#content").inputValue();
    const persistedShortcodes=(persisted.match(/\[table\s+id=["']?home_00["']?\s*\/\]/gi)||[]).length;
