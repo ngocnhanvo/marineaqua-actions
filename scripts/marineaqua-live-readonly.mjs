@@ -257,7 +257,17 @@ try {
             const rect=item.getBoundingClientRect();
             return rect.left>=-2&&rect.right<=innerWidth+2&&rect.width>0;
           }),
-          mobileItemCount:document.querySelectorAll("#mobile-menu-container [data-menu-item]").length
+          mobileItemCount:document.querySelectorAll("#mobile-menu-container [data-menu-item]").length,
+          catalogLabelVisible:(()=>{
+            const el=document.querySelector("#header-navrow .marine-catalog-nav-trigger > span");
+            return visible(el) && el.textContent.trim().includes("Danh mục sản phẩm");
+          })(),
+          desktopItemGapMax:(()=>{
+            const items=[...document.querySelectorAll("#desktop-menu > ul > li")];
+            if(items.length<2)return 0;
+            return Math.max(...items.slice(1).map((item,i)=>
+              item.getBoundingClientRect().left-items[i].getBoundingClientRect().right));
+          })()
         };
       });
       let menuOpened=false;
@@ -294,7 +304,7 @@ try {
         ? !initial.navVisible && initial.compactVisible && initial.toggleVisible &&
           menuOpened && mobileRootCount>0 && mobileCatalogCount>0 &&
           initial.documentWidth<=width+1
-        : initial.navVisible && initial.desktopItemsFit && !initial.compactVisible && initial.documentWidth<=width+1;
+        : initial.navVisible && initial.desktopItemsFit && initial.catalogLabelVisible && initial.desktopItemGapMax<=20 && !initial.compactVisible && initial.documentWidth<=width+1;
       summary.navResponsive.push({width,pass,...initial,menuOpened,mobileRootCount,mobileCatalogCount});
       if([390,1023,1024,1190,1366,1440].includes(width))
         await page.screenshot({path:dir+"/navigation-"+width+".png",fullPage:false});
