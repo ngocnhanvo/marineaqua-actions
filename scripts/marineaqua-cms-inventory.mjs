@@ -127,6 +127,48 @@ try {
       await page.screenshot({path:outDir+"/home-editor.png",fullPage:false});
     }catch(e){report.admin.error=String(e.message||e).slice(0,160);console.log("CMS_ADMIN_READONLY_ERROR="+String(e.name||"error"))}finally{await page.close()}
   }
+
+  // Read-only migration preflight: compare original site's real product-category
+  // links with the empty destination WooCommerce taxonomy.
+  try{
+    const src=await context.newPage();
+    await src.goto("https://marine-aqua.vn/san-pham/",{waitUntil:"domcontentloaded",timeout:45000});
+    const legacy=await src.evaluate(()=>{
+      const lists=[...document.querySelectorAll("ul.product-categories, .widget_product_categories ul, nav[aria-label*=Danh] ul")];
+      const selected=lists.sort((a,b)=>b.querySelectorAll("a[href*='/danh-muc/']").length-a.querySelectorAll("a[href*='/danh-muc/']").length)[0];
+      const walk=ul=>[...ul.children].filter(li=>li.tagName==="LI").map(li=>({
+        text:li.querySelector(":scope > a")?.textContent?.trim()||"",
+        href:li.querySelector(":scope > a")?.href||"",
+        children:li.querySelector(":scope > ul")?walk(li.querySelector(":scope > ul")):[]
+      })).filter(item=>item.href.includes("/danh-muc/"));
+      return {title:document.title,candidateLists:lists.length,categories:selected?walk(selected):[],
+        categoryLinks:document.querySelectorAll('a[href*="/danh-muc/"]').length};
+    });
+    console.log("LEGACY_CATEGORY_HIERARCHY="+JSON.stringify(legacy).slice(0,27000));
+    await src.close();
+  }catch(error){console.log("LEGACY_CATEGORY_READ_ERROR="+String(error.message||error).slice(0,200))}
+  if(username&&password){
+    const taxonomy=await context.newPage();
+    try{
+      await taxonomy.goto(origin+"/wp-admin/edit-tags.php?taxonomy=product_cat&post_type=product",
+        {waitUntil:"domcontentloaded",timeout:45000});
+      const admin=await taxonomy.evaluate(()=>({
+        url:location.pathname+location.search,
+        form:document.querySelector("#addtag")?{
+          action:document.querySelector("#addtag").getAttribute("action"),
+          fields:[...document.querySelector("#addtag").querySelectorAll("input,select,button")].map(el=>({
+            name:el.name,id:el.id,type:el.type,tag:el.tagName,
+            options:el.tagName==="SELECT"?[...el.options].slice(0,6).map(o=>({value:o.value,text:o.textContent})):undefined
+          }))
+        }:null,
+        termRows:document.querySelectorAll("#the-list tr").length,
+        login:document.querySelector("#user_login")!==null
+      }));
+      console.log("CMS_PRODUCT_CATEGORY_ADMIN="+JSON.stringify(admin).slice(0,7000));
+      await taxonomy.screenshot({path:outDir+"/product-category-admin.png",fullPage:false});
+    }catch(error){console.log("CMS_PRODUCT_CATEGORY_ADMIN_ERROR="+String(error.message||error).slice(0,200))}
+    finally{await taxonomy.close()}
+  }
   await context.close();
 }finally{await browser.close()}
 await writeFile(outDir+"/inventory.json",JSON.stringify(report,null,2)+"\n");
