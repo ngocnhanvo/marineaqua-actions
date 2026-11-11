@@ -65,7 +65,7 @@ try {
             return sections.map(el => {
               const rect=el.getBoundingClientRect(), style=getComputedStyle(el);
               return {
-                tag:el.tagName,marker:el.getAttribute("data-tablepress-preview")||el.getAttribute("data-home-slider"),
+                tag:el.tagName,marker:el.getAttribute("data-tablepress-preview")||el.getAttribute("data-home-slider"),isCarousel:el.hasAttribute("data-home-slider"),
                 visible:Boolean(rect.width&&rect.height&&style.display!=="none"),
                 rect:{x:Math.round(rect.x),y:Math.round(rect.y),w:Math.round(rect.width),h:Math.round(rect.height)},
                 slideCount:el.querySelectorAll("[data-home-slide]").length,
@@ -655,7 +655,7 @@ if(!cleanHeaderPass)process.exitCode=1;
 const bannerChecks = [1917,1440,768,390].map(width=>{
   const view=summary.views.find(v=>v.width===width);
   const carousels=(view?.bannerAudit||[]).filter(entry=>entry.tag==="DIV" && entry.visible &&
-    entry.slideCount>0 && entry.borderRadius==="0px");
+    entry.isCarousel && entry.slideCount>0 && entry.borderRadius==="0px");
   const hero=carousels.find(entry=>entry.srcs.some(img=>img.loaded && img.naturalW>10));
   // The catalog is now a click-only header popover, not a fixed banner column.
   const widthPass=Boolean(hero && Math.abs(hero.rect.w-width)<3 && Math.abs(hero.rect.x)<2);
