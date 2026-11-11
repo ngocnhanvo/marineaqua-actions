@@ -61,8 +61,17 @@ jobs:
           const sidebar = read('src/astro/components/Product/ProductCategorySidebar.astro');
           const branch = read('src/astro/components/Product/ProductCategorySidebarBranch.astro');
           const pagesLoader = read('src/lib/wordpress/pages/index.ts');
+          const desktopNav = read('src/astro/components/Menu/Desktop.astro');
+          const style = read('src/styles/marine-aqua-approved.css');
           assert.match(header, /data-header-catalog-trigger/);
           assert.match(header, /header-product-catalog-panel/);
+          assert.match(header, /header-nav-floating/);
+          assert.match(header, /mobile-header-fixed/);
+          assert.match(header, /min-width: 1440px/);
+          assert.match(header, /header-hotline/);
+          assert.match(style, /Clean Ocean header/);
+          assert.match(style, /header-navrow\\.header-nav-floating/);
+          assert.match(desktopNav, /data-marine-active/);
           assert.match(header, /aria-expanded/);
           assert.match(header, /ProductCategorySidebar/);
           assert.match(layout, /productCategories=\{productCategories\}/);
