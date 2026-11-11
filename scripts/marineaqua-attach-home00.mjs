@@ -46,6 +46,23 @@ try{
      const controls=await page.locator("#wp-content-wrap .mce-btn").evaluateAll(els=>els.slice(0,40).map(el=>({
        id:el.id,title:el.title,aria:el.getAttribute("aria-label"),text:(el.textContent||"").slice(0,35)
      })));
+     const snapshot=await page.evaluate(()=>{
+       const ids=["wp-content-wrap","content-html","content-tmce","qt_content_tablepress_quicktags_button","wp-acf_content-wrap","acf_content-html","acf_content-tmce","qt_acf_content_tablepress_quicktags_button"];
+       const info=ids.map(id=>{const el=document.getElementById(id);if(!el)return {id,found:false};
+         const rect=el.getBoundingClientRect(),css=getComputedStyle(el);return{id,found:true,tag:el.tagName,
+           visible:rect.width>0&&rect.height>0&&css.visibility!=="hidden"&&css.display!=="none",
+           rect:[Math.round(rect.x),Math.round(rect.y),Math.round(rect.width),Math.round(rect.height)],
+           cls:String(el.className||"").slice(0,140),title:el.getAttribute("title"),text:(el.textContent||"").slice(0,100)};
+       });
+       const buttons=[...document.querySelectorAll("button,input[type=button],a")].filter(el=>/table|insert|chèn|mã|trực quan/i.test((el.textContent||"")+" "+(el.title||"")+" "+(el.value||"")))
+         .slice(0,60).map(el=>({id:el.id,tag:el.tagName,title:el.title,text:(el.textContent||el.value||"").slice(0,55),
+           visible:Boolean(el.getClientRects().length)}));
+       return {info,buttons,wpActiveEditor:window.wpActiveEditor||"",
+         tinyMceReady:Boolean(window.tinymce?.get("content")),quicktagsReady:Boolean(window.QTags),
+         nativePluginReady:typeof window.tablepress_open_shortcode_thickbox==="function"};
+     });
+     log("NATIVE_EDITOR_DOM_DIAGNOSTICS",snapshot);
+     await page.screenshot({path:evidence+"/editor-controls-before.png",fullPage:false});
      log("NATIVE_EDITOR_CONTROLS",{quickVisible:await quick.isVisible(),buttonVisible:await button.isVisible(),controls});
      if(!await button.isVisible())throw Error("No native ESC Table Insert Code control visible");
      chosenEditor="tinymce";
