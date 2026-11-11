@@ -68,7 +68,8 @@ jobs:
           assert.match(header, /header-nav-floating/);
           assert.match(header, /mobile-header-fixed/);
           assert.match(header, /min-width: 1440px/);
-          assert.match(header, /header-hotline/);
+          assert.doesNotMatch(header, /id="header-hotline"/);
+          assert.ok(style.includes('gap:clamp(8px,1vw,18px);justify-content:flex-start;'));
           assert.match(style, /Clean Ocean header/);
           assert.ok(style.includes('#header-navrow.header-nav-floating'));
           assert.match(desktopNav, /data-marine-active/);
@@ -84,6 +85,8 @@ jobs:
           assert.match(header, /instanceId="header"/);
           assert.match(sidebar, /data-marine-category-trigger/);
           assert.match(sidebar, /data-marine-category-panel/);
+          assert.doesNotMatch(sidebar, /<h2>\\{node.name\\}<\\/h2>/);
+          assert.match(header, /border:0;border-radius:0 0 11px 11px/);
           assert.match(sidebar, /instanceId/);
           assert.match(header, /instanceId="header"/);
           assert.match(sidebar, /productCategories/);
