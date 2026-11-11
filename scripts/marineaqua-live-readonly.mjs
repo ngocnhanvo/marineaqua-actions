@@ -515,6 +515,48 @@ try {
   console.log("MARINEAQUA_CATALOG_CHEVRON="+(summary.catalogChevron.every(x=>x.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.catalogChevron));
   if(!summary.catalogChevron.every(x=>x.pass))process.exitCode=1;
 
+  // Approved navy top information strip must be square-edged, full-width
+  // and readable. This is independent of the lower light-blue navigation.
+  summary.topHeaderSquare = [];
+  for (const width of [1024, 1440, 1917]) {
+    const page=await browser.newPage({viewport:{width,height:840},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      const data=await page.evaluate(()=>{
+        const strip=document.querySelector("#header-topline");
+        const outer=document.querySelector("#main-header");
+        const strong=strip?.querySelector("strong");
+        const css=strip?getComputedStyle(strip):null;
+        const outerCss=outer?getComputedStyle(outer):null;
+        const rect=strip?.getBoundingClientRect();
+        return {
+          background:css?.backgroundColor,
+          text:css?.color,
+          companyText:strong?getComputedStyle(strong).color:"",
+          radiusTopLeft:css?.borderTopLeftRadius,
+          radiusBottomLeft:css?.borderBottomLeftRadius,
+          outerTopLeft:outerCss?.borderTopLeftRadius,
+          outerBottomLeft:outerCss?.borderBottomLeftRadius,
+          left:rect?.left,
+          right:rect?.right,
+          width:innerWidth
+        };
+      });
+      data.pass=data.background==="rgb(18, 57, 141)"&&
+        data.text==="rgb(255, 255, 255)"&&
+        data.companyText==="rgb(255, 255, 255)"&&
+        data.radiusTopLeft==="0px"&&data.radiusBottomLeft==="0px"&&
+        data.outerTopLeft==="0px"&&data.outerBottomLeft==="0px"&&
+        Math.abs(data.left)<=2&&Math.abs(data.right-width)<=2;
+      summary.topHeaderSquare.push(data);
+      await page.screenshot({path:dir+"/top-header-navy-"+width+".png",fullPage:false});
+    }catch(error){
+      summary.topHeaderSquare.push({width,pass:false,error:String(error.message||error).slice(0,220)});
+    }finally{await page.close()}
+  }
+  console.log("MARINEAQUA_TOP_HEADER_SQUARE="+(summary.topHeaderSquare.every(x=>x.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.topHeaderSquare));
+  if(!summary.topHeaderSquare.every(x=>x.pass))process.exitCode=1;
+
   // Category navigation is click-only on ALL pages. Homepage banner stays
   // full-width and must not carry a permanently visible catalog sidebar.
   summary.categorySidebar = [];
