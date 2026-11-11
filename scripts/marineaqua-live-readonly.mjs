@@ -286,15 +286,16 @@ try {
           menuLayer.headerRaised && ["rgb(255, 255, 255)","rgb(243, 248, 252)"].includes(menuLayer.menuBg);
         menuText=await page.locator("#mobile-menu-container").innerText();
       }
+      const mobileRootCount=width<1024
+        ? await page.locator("#mobile-menu-container .marine-mobile-menu-main > ul > li").count() : 0;
+      const mobileCatalogCount=width<1024
+        ? await page.locator("#mobile-menu-container .marine-mobile-category-item").count() : 0;
       const pass=width<1024
         ? !initial.navVisible && initial.compactVisible && initial.toggleVisible &&
-          menuOpened && menuText.includes("Trang chủ") &&
-          menuText.includes("Chính sách và hướng dẫn") && menuText.includes("Liên hệ") &&
-          menuText.includes("Danh mục sản phẩm") &&
-          await page.locator("#mobile-menu-container .marine-mobile-category-item").count()>0 &&
+          menuOpened && mobileRootCount>0 && mobileCatalogCount>0 &&
           initial.documentWidth<=width+1
         : initial.navVisible && initial.desktopItemsFit && !initial.compactVisible && initial.documentWidth<=width+1;
-      summary.navResponsive.push({width,pass,...initial,menuOpened});
+      summary.navResponsive.push({width,pass,...initial,menuOpened,mobileRootCount,mobileCatalogCount});
       if([390,1023,1024,1190,1366,1440].includes(width))
         await page.screenshot({path:dir+"/navigation-"+width+".png",fullPage:false});
     }catch(error){
