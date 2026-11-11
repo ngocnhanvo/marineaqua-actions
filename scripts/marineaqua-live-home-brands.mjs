@@ -12,6 +12,23 @@ try{
    const errors=[];page.on("pageerror",error=>errors.push(error.message));
    const response=await page.goto(SITE+"/",{waitUntil:"domcontentloaded",timeout:50000});
    await page.locator('section[data-tablepress-preview="home_08"]').waitFor({state:"attached",timeout:35000});
+   if(name==="desktop"){
+     const wp=await page.request.get("https://admin.marine-aqua.io.vn/wp-json/wp/v2/product/82568",{failOnStatusCode:false,timeout:20000});
+     const body=await wp.json().catch(()=>({}));
+     const urls=[
+       "/san-pham","/san-pham?catSlug=continuum-aquatics",
+       "/san-pham/continuum-aquatics",
+       "/san-pham/continuum-aquatics/1"
+     ];
+     const probes=[];
+     for(const url of urls){
+       const res=await page.request.get(SITE+url,{failOnStatusCode:false,timeout:25000});
+       probes.push({url,status:res.status(),contentType:res.headers()["content-type"]});
+     }
+     const stockFields=Object.entries(body||{}).filter(([k])=>/stock|inventory|status|class_list|meta|acf|price/i.test(k)).map(([k,v])=>[k,JSON.stringify(v).slice(0,360)]);
+     console.log("HOME_BRAND_WP_PRODUCT_FIELDS="+JSON.stringify({status:wp.status(),keys:Object.keys(body||{}),stockFields,probes}));
+     report.probes={wpProductStatus:wp.status(),stockFields,probes};
+   }
    const audit=[];
    for(const [id,title] of BRANDS){
      const section=page.locator('section[data-tablepress-preview="'+id+'"]');
