@@ -351,6 +351,46 @@ try {
   console.log("MARINEAQUA_DESKTOP_TYPOGRAPHY="+(summary.desktopTypography.every(x=>x.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.desktopTypography));
   if(!summary.desktopTypography.every(x=>x.pass))process.exitCode=1;
 
+  // Underline on the real text only (not the full clickable menu item).
+  summary.desktopUnderline = [];
+  for (const width of [1024,1067,1366,1440,1917]) {
+    const page=await browser.newPage({viewport:{width,height:850},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin+"/",{waitUntil:"domcontentloaded",timeout:45000});
+      const button=page.locator("#desktop-menu [data-menu-trigger]:visible").first();
+      await button.click();
+      await page.waitForTimeout(220);
+      const data=await button.evaluate(el=>{
+        const label=el.querySelector(".marine-nav-label");
+        const labelStyle=label?getComputedStyle(label,"::after"):null;
+        const outerStyle=getComputedStyle(el,"::after");
+        const buttonRect=el.getBoundingClientRect();
+        const labelRect=label?.getBoundingClientRect();
+        return {
+          expanded:el.getAttribute("aria-expanded"),
+          labelWidth:Math.round(labelRect?.width||0),
+          triggerWidth:Math.round(buttonRect.width),
+          underlineWidth:parseFloat(labelStyle?.width||"0"),
+          labelUnderlineOpacity:labelStyle?.opacity||"",
+          outerContent:outerStyle.content,
+          outerDisplay:outerStyle.display
+        };
+      });
+      data.width=width;
+      data.pass=data.expanded==="true"&&data.labelWidth>30&&
+        Math.abs(data.underlineWidth-data.labelWidth)<=2&&
+        data.labelUnderlineOpacity==="1"&&
+        data.triggerWidth>data.labelWidth&&
+        (data.outerContent==="none"||data.outerDisplay==="none");
+      summary.desktopUnderline.push(data);
+      await page.screenshot({path:dir+"/nav-label-underline-"+width+".png",fullPage:false});
+    } catch(error) {
+      summary.desktopUnderline.push({width,pass:false,error:String(error.message||error).slice(0,240)});
+    } finally {await page.close()}
+  }
+  console.log("MARINEAQUA_DESKTOP_UNDERLINE="+(summary.desktopUnderline.every(x=>x.pass)?"PASS":"FAIL")+" "+JSON.stringify(summary.desktopUnderline));
+  if(!summary.desktopUnderline.every(x=>x.pass))process.exitCode=1;
+
   // Verify floating header at scroll depth, click behavior, fixed placement
   // and no layout shift on wide desktop, laptop and mobile.
   summary.headerFloating = [];
