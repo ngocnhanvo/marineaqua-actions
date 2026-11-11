@@ -38,7 +38,8 @@ try{
  // Prevent turning a table with someone else's name into a new catalog section.
  for(const [id,title] of SECTIONS){
    const sameName=current.filter(t=>String(t.title||t.name||"").trim()===title);
-   if(sameName.some(t=>String(t.id)!==id))throw Error("Conflicting ESC Table title already exists: "+title);
+   if(sameName.length>1)throw Error("Ambiguous same-title ESC tables: "+title);
+   if(sameName.some(t=>String(t.id)!==id && !/^\d+$/.test(String(t.id))))throw Error("Conflicting named ESC Table: "+title);
  }
  const page=await context.newPage();
  page.on("dialog",async d=>{if(d.type()==="confirm")await d.accept();else await d.dismiss();});
@@ -60,17 +61,28 @@ try{
      log("EXISTING",item);
      continue;
    }
-   await page.goto(WP+"/wp-admin/admin.php?page=tablepress_add",{waitUntil:"domcontentloaded",timeout:45000});
-   const name=page.locator('input[name="table[name]"]');
-   await name.waitFor({state:"visible",timeout:20000});
-   await name.fill(title);
-   await page.locator('input[name="table[rows]"]').fill("2");
-   await page.locator('input[name="table[columns]"]').fill(String(FIELDS.length));
-   await page.getByRole("button",{name:/Add Table/i}).click();
+   const drafts=(await inventory()).filter(t=>String(t.title||t.name||"").trim()===title && /^\d+$/.test(String(t.id)));
+   if(drafts.length>1)throw Error("Multiple unfinalized drafts: "+title);
+   if(drafts.length===1){
+     item.draftId=String(drafts[0].id);
+     item.status="NATIVE_DRAFT_RECOVERY";
+     log("RECOVER_DRAFT",{id, draftId:item.draftId});
+     await page.goto(WP+"/wp-admin/admin.php?page=tablepress&action=edit&table_id="+encodeURIComponent(item.draftId),{waitUntil:"domcontentloaded",timeout:45000});
+   }else{
+     await page.goto(WP+"/wp-admin/admin.php?page=tablepress_add",{waitUntil:"domcontentloaded",timeout:45000});
+     const name=page.locator('input[name="table[name]"]');
+     await name.waitFor({state:"visible",timeout:20000});
+     await name.fill(title);
+     await page.locator('input[name="table[rows]"]').fill("2");
+     await page.locator('input[name="table[columns]"]').fill(String(FIELDS.length));
+     await page.getByRole("button",{name:/Add Table/i}).click();
+     const createdIdField=page.locator("#table-id");
+     await createdIdField.waitFor({state:"visible",timeout:30000});
+     item.draftId=await createdIdField.inputValue();
+     item.status="NATIVE_CREATED";
+   }
    const tableIdField=page.locator("#table-id");
    await tableIdField.waitFor({state:"visible",timeout:30000});
-   item.draftId=await tableIdField.inputValue();
-   item.status="NATIVE_CREATED";
    const draft=await page.evaluate(()=>window.tp?.table?.data||[]);
    if(draft.length!==2 || draft.some(row=>row.length!==FIELDS.length) ||
       draft.some(row=>row.some(x=>String(x||"").trim())))throw Error("Unexpected nonempty draft: "+id);
@@ -86,9 +98,22 @@ try{
      }
    },{fields:FIELDS,labels:LABELS});
    await page.getByRole("button",{name:/Save Changes/i}).first().click();
-   await page.waitForTimeout(1200);
-   const dto=await read(id);
-   if(!dto||dto.id!==id||dto.title!==title)throw Error("REST readback identity mismatch: "+id);
+   let dto=null;
+   for(let attempt=0;attempt<5;attempt++){
+     await page.waitForTimeout(1000);
+     dto=await read(id);
+     if(dto?.id===id && dto?.title===title)break;
+   }
+   if(!dto||dto.id!==id||dto.title!==title){
+     item.restId=String(dto?.id||"");
+     item.finalTableInput=await tableIdField.inputValue();
+     item.editorSaveState=await page.evaluate(()=>({
+       madeChanges:window.tp?.made_changes,
+       currentId:window.tp?.table?.id,
+       errorText:document.querySelector("#tablepress-page .notice-error")?.textContent?.trim()?.slice(0,160)||"",
+     }));
+     throw Error("REST readback identity mismatch: "+id);
+   }
    if(!FIELDS.every((key,i)=>dto.fields?.[i]?.key===key))throw Error("REST field schema mismatch: "+id);
    if(!Array.isArray(dto.items)||dto.items.length!==0)throw Error("Refusing synthetic catalog item: "+id);
    item.status="SCHEMA_SAVED";
