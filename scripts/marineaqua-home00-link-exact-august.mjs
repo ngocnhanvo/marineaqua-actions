@@ -35,9 +35,9 @@ try {
   const urls=approved.map(x=>SOURCE+"/wp-content/uploads/2026/08/"+x.file);
   const before=await read();
   if(!Array.isArray(before.items)||before.items.length!==3)throw Error("Expected exactly three Home_00 rows");
+  const oldFiles=["banner1-1-690x336","slide-pro-reef.jpg","slide-marine-aqua-1.jpg"];
   const already=approved.every((x,i)=>getImage(before.items[i]).includes(urls[i]));
   if(!already){
-    const oldFiles=["banner1-1-690x336","slide-pro-reef.jpg","slide-marine-aqua-1.jpg"];
     if(oldFiles.some((x,i)=>!getImage(before.items[i]).includes(x)))
       throw Error("Home_00 has unexpected content; refusing overwrite");
   }
