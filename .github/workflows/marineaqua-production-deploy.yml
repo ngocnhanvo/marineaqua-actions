@@ -127,47 +127,36 @@ jobs:
           key: marineaqua-prod-dot-cache-v2-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             marineaqua-prod-dot-cache-v2-${{ runner.os }}-
+      - name: Install locked Astro dependencies
+        shell: bash
+        working-directory: source
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          echo "::group::Install from frozen lockfile"
+          pnpm install --frozen-lockfile --prefer-offline
+          echo "::endgroup::"
       - name: Build Astro Production (incremental WordPress data cache)
         shell: bash
         working-directory: source
+        timeout-minutes: 12
         run: |
           set -euo pipefail
-          # Fresh GitHub runners install lftp on every run. Start that install
-          # alongside pnpm/Astro rather than serializing it after packaging.
-          # Deployment remains blocked until install succeeds and lftp exists.
-          ftps_install_pid=""
-          if ! command -v lftp >/dev/null 2>&1; then
-            (
-              # Some ubuntu-latest runners advertise an Azure apt mirror whose DNS
-              # may be unavailable. Use the official signed Ubuntu archive instead.
-              if test -f /etc/apt/apt-mirrors.txt && grep -q 'azure.archive.ubuntu.com' /etc/apt/apt-mirrors.txt; then
-                sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/apt-mirrors.txt
-              fi
-              sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=25 update -qq
-              sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=25 install -y -qq --no-install-recommends lftp
-            ) > "$RUNNER_TEMP/marineaqua-lftp-install.log" 2>&1 &
-            ftps_install_pid=$!
-          fi
-          # Restore verified pnpm store where available; recreate dependencies
-          # from the exact lockfile on every run. Cache miss is still safe.
-          pnpm install --frozen-lockfile --prefer-offline
           printf '%s\n' "$ENV_FILE" > .env
-          # Keep original Astro build settings from ENV_FILE and WordPress.
-          # Unit tests run separately in non-deploy CI, not in every build.
+          echo "::group::Astro build using real WordPress data"
           pnpm run build-git
+          echo "::endgroup::"
+          echo "ASTRO_BUILD_COMPLETE=PASS"
+      - name: Verify generated Astro server and homepage
+        shell: bash
+        working-directory: source
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
           node --check dist/server/entry.mjs
           test -s dist/client/index.html
           test -s dist/server/entry.mjs
-          # Generic SSR entrypoint is mandatory.
-          test -s dist/server/entry.mjs
-          if [[ -n "$ftps_install_pid" ]]; then
-            if ! wait "$ftps_install_pid"; then
-              cat "$RUNNER_TEMP/marineaqua-lftp-install.log"
-              echo "::error::Unable to prepare encrypted FTPS client"
-              exit 1
-            fi
-          fi
-          command -v lftp >/dev/null 2>&1 || { echo "::error::Missing encrypted FTPS client"; exit 1; }
+          echo "ASTRO_OUTPUT_VALIDATION=PASS"
           echo "Build source SHA: $(git rev-parse HEAD) (master)" >> "$GITHUB_STEP_SUMMARY"
       - name: Package only compiled staging output (strictly no .env)
         shell: bash
@@ -294,6 +283,29 @@ jobs:
                   if required not in names:raise RuntimeError('Missing staged bundle file: '+required)
           print('PASS: ZIP contains dev server/client and provenance, no private environment file.')
           PY
+      - name: Prepare encrypted FTPS client (separate bounded step)
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          if command -v lftp >/dev/null 2>&1; then
+            echo "FTPS_CLIENT_READY=PASS already-installed"
+            exit 0
+          fi
+          echo "::group::Ubuntu archive apt configuration"
+          if test -f /etc/apt/apt-mirrors.txt && grep -q 'azure.archive.ubuntu.com' /etc/apt/apt-mirrors.txt; then
+            sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/apt-mirrors.txt
+          fi
+          echo "::endgroup::"
+          echo "::group::Install signed lftp package (maximum 180 seconds)"
+          timeout --signal=TERM --kill-after=10s 180s bash -c '
+            set -euo pipefail
+            sudo apt-get -o Acquire::Retries=0 -o Acquire::http::Timeout=15 update -qq
+            sudo apt-get -o Acquire::Retries=0 -o Acquire::http::Timeout=15 install -y -qq --no-install-recommends lftp
+          '
+          echo "::endgroup::"
+          command -v lftp >/dev/null 2>&1 || { echo "::error::FTPS client unavailable; deployment stopped"; exit 1; }
+          echo "FTPS_CLIENT_READY=PASS"
       - name: Upload compiled staging archive by FTP-TLS
         shell: bash
         run: bash actions-hub/scripts/marineaqua-resumable-ftp.sh
