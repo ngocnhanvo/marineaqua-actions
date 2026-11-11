@@ -97,6 +97,18 @@ try {
       report.admin.tablepressNewLinks=await page.locator("a[href*='page=tablepress_add']").count();
       console.log("CMS_ADMIN_TABLEPRESS_ACCESSIBLE="+(report.admin.tablepressAccessible?"yes":"no")+" add_links="+report.admin.tablepressNewLinks);
       await page.screenshot({path:outDir+"/tablepress-admin.png",fullPage:false});
+      await page.goto(origin+"/wp-admin/admin.php?page=tablepress&action=edit&table_id=home_00",{waitUntil:"domcontentloaded",timeout:45000});
+      await page.waitForTimeout(1300);
+      const bannerEditor=await page.evaluate(()=>({
+        ready:Boolean(window.tp?.editor?.setValueFromCoords),
+        tableData:window.tp?.table?.data?.slice(0,5).map(row=>row.map(cell=>String(cell||"").slice(0,180)))||[],
+        addControls:[...document.querySelectorAll("button,input[type=button],input[type=number]")].filter(el=>/add|insert|thêm|row|hàng/i.test(
+          (el.textContent||"")+" "+(el.title||"")+" "+(el.id||"")+" "+(el.getAttribute("aria-label")||"")
+        )).slice(0,45).map(el=>({tag:el.tagName,id:el.id,title:el.title,aria:el.getAttribute("aria-label"),value:el.value,
+          text:(el.textContent||"").trim().slice(0,60)}))
+      }));
+      console.log("CMS_HOME00_EDITOR="+JSON.stringify(bannerEditor));
+      await page.screenshot({path:outDir+"/home00-editor.png",fullPage:false});
       await page.goto(origin+"/wp-admin/admin.php?page=tablepress_add",{waitUntil:"domcontentloaded",timeout:45000});
       await page.waitForTimeout(1200);
       report.admin.addTableControls=await page.locator("input,button").evaluateAll(els=>els.slice(0,35).map(el=>({
