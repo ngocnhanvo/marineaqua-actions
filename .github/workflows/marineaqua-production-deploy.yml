@@ -297,6 +297,13 @@ jobs:
             sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/apt-mirrors.txt
           fi
           echo "::endgroup::"
+          echo "::group::Verify Ubuntu archive DNS before APT"
+          if ! timeout 20s getent ahostsv4 archive.ubuntu.com >/dev/null; then
+            echo "::error::FTPS preparation blocked: runner cannot resolve archive.ubuntu.com (DNS). Astro build and packaging remain valid; no upload attempted."
+            exit 1
+          fi
+          echo "FTPS_ARCHIVE_DNS=PASS"
+          echo "::endgroup::"
           echo "::group::Install signed lftp package (maximum 180 seconds)"
           timeout --signal=TERM --kill-after=10s 180s bash -c '
             set -euo pipefail
