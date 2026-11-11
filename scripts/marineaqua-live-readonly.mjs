@@ -61,6 +61,26 @@ try {
           escSections: document.querySelectorAll("[data-tablepress-preview]").length,
           categoriesSlider: document.querySelectorAll("[data-marine-category-slider]").length,
           productPrices: document.querySelectorAll("[data-marine-product-price]").length,
+
+          headerV3ColorAudit: (() => {
+            const items = [...document.querySelectorAll("#desktop-menu > ul > li")];
+            return {
+              itemCount: items.length,
+              entries: items.map(li => {
+                const element = li.querySelector(":scope > a, :scope > button, :scope > span");
+                const style = element ? getComputedStyle(element) : null;
+                const text = element?.textContent?.trim() || "";
+                return {
+                  label: text.slice(0, 85),
+                  kind: element?.tagName?.toLowerCase() || "",
+                  color: style?.color || "",
+                  backgroundImage: style?.backgroundImage || "",
+                  backgroundColor: style?.backgroundColor || "",
+                  sale: li.hasAttribute("data-marine-sale")
+                };
+              })
+            };
+          })(),
           navLinks: document.querySelectorAll("header nav a, #desktop-menu a").length,
           headerNavTargets: [...document.querySelectorAll("#desktop-menu > ul > li > a")].slice(0,8).map(a => ({label:(a.textContent||"").trim().slice(0,70),href:a.getAttribute("href")})),
           header: (() => {
@@ -173,4 +193,19 @@ if (!desktop || desktop.httpStatus < 200 || desktop.httpStatus >= 400 ||
 }
 console.log("MARINEAQUA_HOMEPAGE_CONTENT=" +
   ((desktop?.content === "PRESENT" && mobile?.content === "PRESENT") ? "PRESENT" : "MISSING_OR_EMPTY"));
+
+const v3 = desktop?.headerV3ColorAudit;
+const v3Labels = ["trang chủ", "giảm giá khủng", "chính sách và hướng dẫn", "thời gian bán hàng", "liên hệ", "phí ship hàng", "bài viết chia sẻ kinh nghiệm"];
+const normalizeV3 = text => String(text || "").replace(/⚡/g, "").trim().toLocaleLowerCase("vi");
+const itemsV3 = v3?.entries || [];
+const normalColorPass = itemsV3.filter((item,i) => i > 0 && !item.sale).every(item => item.color === "rgb(247, 251, 255)" || item.color === "rgb(255, 255, 255)");
+const saleV3 = itemsV3.find(item => item.sale);
+const salePass = Boolean(saleV3 && saleV3.backgroundImage.includes("linear-gradient") && saleV3.color === "rgb(255, 255, 255)");
+const labelsPass = itemsV3.length === 7 && itemsV3.every((item,i) => normalizeV3(item.label) === v3Labels[i]);
+const v3Pass = labelsPass && normalColorPass && salePass;
+console.log("MARINEAQUA_V3_NAV_COLOR=" + (v3Pass ? "PASS" : "FAIL") +
+  " items=" + itemsV3.length + " normalText=" + normalColorPass + " saleRedGradient=" + salePass +
+  " orderedLabels=" + labelsPass);
+if (!v3Pass) process.exitCode = 1;
+
 console.log("MARINEAQUA_TEST_WRITE_REQUESTS=0 DEPLOY_REQUESTS=0");
