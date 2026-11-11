@@ -45,19 +45,43 @@ try {
     await page.locator("#user_login").fill(u);await page.locator("#user_pass").fill(p);await page.locator("#wp-submit").click();
     if(page.url().includes("wp-login.php"))throw Error("Admin login rejected");
     await page.goto(WP+"/wp-admin/media-new.php",{waitUntil:"domcontentloaded",timeout:45000});
-    const nonce=await page.evaluate(()=>String(window.wpApiSettings?.nonce||""));
-    if(!nonce)throw Error("Native WordPress upload nonce missing");
+    const nonceCandidates=await page.evaluate(()=>({
+      api:window.wpApiSettings?.nonce||"",
+      apiAlt:window.wp?.apiSettings?.nonce||"",
+      uploader:window._wpPluploadSettings?.defaults?.multipart_params?._wpnonce||"",
+      media:window.wp?.media?.view?.settings?.nonce?.sendToEditor||"",
+      fileInputs:[...document.querySelectorAll('input[type="file"]')].map(x=>({id:x.id,name:x.name})),
+    }));
+    record("MEDIA_UPLOAD_CONTROLS",{api:!!nonceCandidates.api,apiAlt:!!nonceCandidates.apiAlt,
+       uploader:!!nonceCandidates.uploader,media:!!nonceCandidates.media,inputs:nonceCandidates.fileInputs});
+    const nonce=String(nonceCandidates.api||nonceCandidates.apiAlt||"");
     const existing=await api("/wp-json/wp/v2/media?per_page=100&_fields=id,slug,source_url");
     const ids=[];
     for(const asset of assets) {
       let media=existing.find(x=>String(x.source_url||"").split("/").pop()===asset.filename);
       if(!media) {
-        const res=await context.request.post(WP+"/wp-json/wp/v2/media",{
-          headers:{"X-WP-Nonce":nonce,"Content-Type":"image/jpeg",
-           "Content-Disposition":'attachment; filename="'+asset.filename+'"'},
-          data:asset.bytes,timeout:60000,failOnStatusCode:false});
-        if(!res.ok())throw Error("Media upload rejected "+asset.filename+" http="+res.status());
-        media=await res.json();record("MEDIA_UPLOADED",{name:asset.filename,id:media.id});
+        if(nonce) {
+          const res=await context.request.post(WP+"/wp-json/wp/v2/media",{
+            headers:{"X-WP-Nonce":nonce,"Content-Type":"image/jpeg",
+             "Content-Disposition":'attachment; filename="'+asset.filename+'"'},
+            data:asset.bytes,timeout:60000,failOnStatusCode:false});
+          if(!res.ok())throw Error("Media upload rejected "+asset.filename+" http="+res.status());
+          media=await res.json();
+        } else {
+          const fileInput=page.locator('input[type="file"]').first();
+          if(!await fileInput.count())throw Error("No native WordPress media uploader or REST nonce");
+          await fileInput.setInputFiles({name:asset.filename,mimeType:"image/jpeg",buffer:asset.bytes});
+          const submit=page.locator('#html-upload, input[name="html-upload"], input[type="submit"][value*="Upload"]').first();
+          if(await submit.count()) await submit.click();
+          for(let attempt=0;attempt<10;attempt++){
+            await page.waitForTimeout(1200);
+            const list=await api("/wp-json/wp/v2/media?per_page=100&_fields=id,slug,source_url");
+            media=list.find(x=>String(x.source_url||"").split("/").pop()===asset.filename);
+            if(media)break;
+          }
+          if(!media)throw Error("Native Media Library upload missing after readback: "+asset.filename);
+        }
+        record("MEDIA_UPLOADED",{name:asset.filename,id:media.id});
       } else record("MEDIA_REUSED",{name:asset.filename,id:media.id});
       if(!Number.isInteger(media.id)||media.id<1)throw Error("Invalid WordPress media ID");
       ids.push(media.id);
