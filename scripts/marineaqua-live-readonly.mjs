@@ -285,7 +285,7 @@ try {
       const pass=width<1440
         ? !initial.navVisible && initial.compactVisible && initial.toggleVisible &&
           menuOpened && menuText.includes("Trang chủ") &&
-          menuText.includes("Kiến thức") && menuText.includes("Hỗ trợ") &&
+          menuText.includes("Chính sách và hướng dẫn") && menuText.includes("Liên hệ") &&
           initial.documentWidth<=width+1
         : initial.navVisible && !initial.compactVisible && initial.documentWidth<=width+1;
       summary.navResponsive.push({width,pass,...initial,menuOpened});
@@ -349,7 +349,7 @@ try {
         menuWorks=menuWorks&&!(await page.locator("#header-product-catalog-panel").isVisible());
       }
       const pass=!before.overflow&&!after.overflow&&after.scrollY>=600&&
-        after.backgroundColor===(after.desktop ? "rgb(243, 249, 255)" : "rgb(255, 255, 255)")&&
+        after.backgroundColor===(after.desktop ? "rgb(243, 249, 255)" : "rgba(255, 255, 255, 0.97)")&&
         after.fixedClass&&after.position==="fixed"&&after.aboveContent&&
         after.spacerVisible&&menuWorks;
       summary.headerFloating.push({width,pass,menuWorks,...after});
@@ -633,12 +633,12 @@ console.log("MARINEAQUA_HEADER_ACCOUNT_CART=" + (headerActionPass ? "PASS":"FAIL
  " cart=" + Boolean(cartAction));
 if (!headerActionPass) process.exitCode=1;
 // The clean header intentionally removes the legacy navy background, paired
-// pills and glowing bolt. Validate the new CMS-owned five-item hierarchy.
+// pills and glowing bolt. Validate the current WordPress-owned six-item hierarchy.
 const clean = desktop?.headerV3ColorAudit;
-const cleanExpectedLabels=["trang chủ","khuyến mãi","kiến thức","hỗ trợ","liên hệ"];
+const cleanExpectedLabels=["trang chủ","khuyến mãi","chính sách và hướng dẫn","thời gian bán hàng","chia sẻ","liên hệ"];
 const normalizeClean = value=>String(value||"").replace(/⚡/g,"").trim().toLocaleLowerCase("vi");
 const cleanEntries=clean?.entries||[];
-const cleanLabelsPass=cleanEntries.length===5&&cleanEntries.every((item,i)=>
+const cleanLabelsPass=cleanEntries.length===cleanExpectedLabels.length&&cleanEntries.every((item,i)=>
   normalizeClean(item.label)===cleanExpectedLabels[i]);
 const cleanSale=cleanEntries.find(item=>item.sale);
 const cleanSalePass=Boolean(cleanSale &&
