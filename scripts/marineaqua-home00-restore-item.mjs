@@ -1,0 +1,123 @@
+import { chromium } from "playwright";
+import { mkdir, writeFile } from "node:fs/promises";
+
+// Restore a single, existing, WordPress-owned banner that had accidentally been
+// stored as an ESC Table field label instead of an item. No remote hotlinks.
+const WP = "https://admin.marine-aqua.io.vn";
+const TABLE = "home_00";
+const MEDIA_ID = 82458;
+const FIELD_KEYS = ["title", "image", "link", "mobile"];
+const FIELD_LABELS = ["Tên banner", "Ảnh banner", "Liên kết", "Thiết bị"];
+const dir = "home00-item-evidence";
+await mkdir(dir, {recursive:true});
+const report = {table:TABLE, mediaId:MEDIA_ID, writeAttempted:false, saved:false, verified:false};
+const browser=await chromium.launch({headless:true});
+try {
+  const context=await browser.newContext({viewport:{width:1440,height:950}});
+  const readTable=async()=>{
+    const response=await context.request.get(WP+"/wp-json/tablepress/v1/table/"+TABLE,{timeout:30000});
+    if (!response.ok()) throw Error("ESC Table REST HTTP "+response.status());
+    const table=await response.json();
+    if(table.id!==TABLE || table.title!=="Banner trang chủ" ||
+       FIELD_KEYS.some((key,i)=>table.fields?.[i]?.key!==key))
+      throw Error("Unexpected Home_00 identity or field schema");
+    return table;
+  };
+  const mediaResponse=await context.request.get(WP+"/wp-json/wp/v2/media/"+MEDIA_ID+"?_fields=id,mime_type,source_url,media_details",{timeout:30000});
+  if(!mediaResponse.ok())throw Error("Original WordPress media is unavailable");
+  const media=await mediaResponse.json();
+  const mediaUrl=new URL(media.source_url || "");
+  if(media.id!==MEDIA_ID || media.mime_type!=="image/jpeg" ||
+     mediaUrl.origin!==WP || !mediaUrl.pathname.startsWith("/wp-content/uploads/") ||
+     !/^banner1-1-690x336(-1)?\.jpg$/i.test(mediaUrl.pathname.split("/").pop()))
+    throw Error("Unexpected original WordPress banner asset");
+  report.media={src:mediaUrl.pathname,width:media.media_details?.width,height:media.media_details?.height};
+  const before=await readTable();
+  report.beforeItems=before.items?.length;
+  if(before.items?.length===1) {
+    const slide=before.items[0];
+    if(String(slide.title)!=="Banner Marine Aqua" ||
+       !String(slide.image?.src||"").includes("banner1-1-690x336"))
+      throw Error("Existing banner differs from approved media, refuse replace");
+    report.verified=true;
+    console.log("HOME00_BANNER=ALREADY_PRESENT");
+  } else {
+    if(!Array.isArray(before.items)||before.items.length!==0)
+      throw Error("Home_00 already has independent items: refuse overwrite");
+    const u=process.env.WP_ADMIN_USERNAME,p=process.env.WP_ADMIN_PASSWORD;
+    if(!u||!p)throw Error("WordPress admin credentials unavailable");
+    const page=await context.newPage();
+    await page.goto(WP+"/wp-login.php",{waitUntil:"domcontentloaded",timeout:45000});
+    await page.locator("#user_login").fill(u);
+    await page.locator("#user_pass").fill(p);
+    await page.locator("#wp-submit").click();
+    await page.goto(WP+"/wp-admin/admin.php?page=tablepress&action=edit&table_id="+TABLE,{waitUntil:"domcontentloaded",timeout:45000});
+    if(page.url().includes("wp-login.php"))throw Error("Native ESC Table editor unavailable");
+    await page.waitForFunction(()=>Boolean(window.tp?.editor?.setValueFromCoords&&window.tp?.table?.data),null,{timeout:25000});
+    const existing=await page.evaluate(()=>window.tp.table.data);
+    if(existing.length!==2 || existing.some(row=>!Array.isArray(row)||row.length!==4) ||
+       FIELD_KEYS.some((key,i)=>String(existing[0][i]).trim()!==key))
+      throw Error("Unexpected native Home_00 editor rows; no write");
+    const title=String(existing[1][0]||"").trim();
+    const imageHtml=String(existing[1][1]||"");
+    const link=String(existing[1][2]||"").trim();
+    const mobile=String(existing[1][3]||"").trim();
+    if(title!=="Banner Marine Aqua" || !imageHtml.includes("<img") ||
+       !imageHtml.includes("wp-image-"+MEDIA_ID) ||
+       !imageHtml.includes(mediaUrl.pathname) || link!=="" || mobile!=="0")
+      throw Error("Existing misplaced banner row differs from verified original");
+    report.beforeRows=existing.length;
+    await page.locator("#rows-append-number").fill("1");
+    const addRowButton=page.locator("#rows-append-number").locator('xpath=following::button[normalize-space(.)="Add"][1]');
+    if(await addRowButton.count()!==1)throw Error("Native Add Row button unavailable");
+    report.stage="add_native_row";
+    report.writeAttempted=true;
+    await addRowButton.click();
+    await page.waitForFunction(()=>window.tp?.table?.data?.length===3,null,{timeout:18000});
+    const rowAfterAdd=await page.evaluate(()=>window.tp.table.data[2]);
+    if(!Array.isArray(rowAfterAdd)||rowAfterAdd.length!==4||
+       rowAfterAdd.some(cell=>String(cell||"").trim()))
+      throw Error("Native Add Row created unexpected nonblank data");
+    report.stage="restore_media_to_item";
+    // Reuse the exact HTML previously generated by WordPress Media Library,
+    // moving it out of the field-label row. No constructed image URL.
+    await page.evaluate(({labels,title,imageHtml})=>{
+      for(let i=0;i<4;i++)window.tp.editor.setValueFromCoords(i,1,labels[i]);
+      window.tp.editor.setValueFromCoords(0,2,title);
+      window.tp.editor.setValueFromCoords(1,2,imageHtml);
+      window.tp.editor.setValueFromCoords(2,2,"");
+      window.tp.editor.setValueFromCoords(3,2,""); // both desktop and mobile
+    },{labels:FIELD_LABELS,title,imageHtml});
+    const state=await page.evaluate(()=>window.tp.table.data);
+    if(state.length!==3 || state[2][1]!==imageHtml || state[2][0]!==title ||
+       FIELD_LABELS.some((label,i)=>state[1][i]!==label))
+      throw Error("Native editor state was not updated correctly");
+    // Race guard before committing WordPress DB.
+    const latest=await readTable();
+    if(latest.items.length!==0)throw Error("Home_00 changed concurrently; refuse save");
+    report.stage="save_native_table";
+    await page.getByRole("button",{name:/Save Changes/i}).first().click();
+    await page.waitForTimeout(1600);
+    report.saved=true;
+    await page.screenshot({path:dir+"/banner-item-after.png",fullPage:false});
+    await page.close();
+  }
+  const after=await readTable();
+  const items=after.items||[];
+  report.afterCount=items.length;
+  report.fields=after.fields?.map(f=>({key:f.key,label:f.label}));
+  report.itemKeys=items[0] ? Object.keys(items[0]) : [];
+  report.imageSrc=String(items[0]?.image?.src||"").slice(0,230);
+  report.verified=items.length===1 && items[0].title==="Banner Marine Aqua"
+    && String(items[0].image?.src||"").includes("banner1-1-690x336");
+  if(!report.verified)throw Error("Native save did not produce the verified WordPress banner item");
+  console.log("HOME00_BANNER_REST=PASS items=1 source=wordpress locale=vi");
+  await context.close();
+} catch(error) {
+  report.error=String(error.message||error).slice(0,400);
+  console.error("HOME00_BANNER=FAIL stage="+String(report.stage||"preflight")+" reason="+report.error);
+  process.exitCode=1;
+} finally {
+  await writeFile(dir+"/result.json",JSON.stringify(report,null,2)+"\n");
+  await browser.close();
+}
