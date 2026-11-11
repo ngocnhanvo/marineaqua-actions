@@ -88,6 +88,29 @@ class PythonFTPSTest(unittest.TestCase):
                 uploader.transfer(self.config, self.zip, self.stage, self.zip.stat().st_size)
         self.assertEqual(state["marineaqua-astro.zip"], b"old-good-zip")
 
+    def test_explicit_ftps_rejects_unauthenticated_data(self):
+        class SecureFake:
+            def __init__(self):
+                self.actions = []
+            def connect(self, host, port, timeout):
+                self.actions.append("connect")
+            def login(self, username, password):
+                self.actions.append("login")
+            def prot_p(self):
+                self.actions.append("protect-data")
+            def set_pasv(self, value):
+                self.actions.append("passive")
+            def cwd(self, target):
+                self.actions.append("cwd")
+            def voidcmd(self, command):
+                self.actions.append("binary")
+        fake = SecureFake()
+        with patch.object(uploader.ftplib, "FTP_TLS", return_value=fake) as tls, patch.object(uploader.ssl, "create_default_context") as context:
+            uploader.connect(self.config)
+        self.assertEqual(fake.actions, ["connect", "login", "protect-data", "passive", "cwd", "binary"])
+        self.assertEqual(context.return_value.minimum_version, uploader.ssl.TLSVersion.TLSv1_2)
+        self.assertTrue(tls.called)
+
     def test_invalid_ftp_destination_rejected(self):
         env = dict(self.config, ZIP_PATH=str(self.zip))
         env["ASTRO_FTP_TARGET"] = "/domains/other-site.com/public_html/"
