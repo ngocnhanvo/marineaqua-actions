@@ -1,33 +1,38 @@
 # Marine Aqua — latest response
-- Thời điểm: 2026-11-11 (Asia/Ho_Chi_Minh)
-- Project: marine-aqua.vn; frontend `https://marine-aqua.io.vn`, backend `https://admin.marine-aqua.io.vn`
-- Logging repo: `ngocnhanvo/marineaqua-actions`, branch `main`
-- Astro master: `2b4b4b2ee0c24f4e5e59115aafdd7cf61d6af1a3`
-- PHP master: `54574851f0eaea9e40341b36c5a7215573bc436e`
-- Trạng thái: PARTIAL — đích website có thể truy cập từ phía user, runtime công cụ bị giới hạn outbound network
+- Time: 2026-11-11 09:32+07:00 (Asia/Ho_Chi_Minh)
+- Project: marine-aqua.vn
+- Logging repository: ngocnhanvo/marineaqua-actions, branch main
+- Astro: ngocnhanvo/marineaqua-astro master 2b4b4b2ee0c24f4e5e59115aafdd7cf61d6af1a3
+- PHP: ngocnhanvo/marineaqua-php master 54574851f0eaea9e40341b36c5a7215573bc436e
+- Test result: PASS for connectivity and runner execution; FAIL for actual homepage content; overall PARTIAL.
 
-## Kiểm tra DNS và HTTPS (11/11/2026)
+## Verified Actions evidence
+- First read-only run #42946298007 confirmed network/content but test cleanup raised `context.dispose is not a function`. Fixed to `context.close()` and re-triggered.
+- [Final read-only GitHub Actions run #42946452054](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42946452054): SUCCESS; artifact `marine-aqua-live-readonly-diagnostics` (desktop/mobile PNG and summary.json).
+- GitHub hosted runner DNS: both `marine-aqua.io.vn` and `admin.marine-aqua.io.vn` -> `103.45.229.10`.
+- Chromium HTTPS frontend: HTTP 200 at 1917px and 390px; `<main>` has only 9 characters and 1 child, `escSections=0`, `categoriesSlider=0`, `productPrices=0`, `navLinks=0`, `pageErrors=0`, `brokenImages=0`.
+- WP REST `/wp-json/esc-api/v1/menus`: HTTP 200, Header locale items: none (`headerLocales={}`).
+- WP REST `/wp-json/wp/v2/pages?status=publish&per_page=5&_fields=id,slug`: HTTP 200, response contains 1 published page sample.
+- Read-only diagnostics script `scripts/marineaqua-live-readonly.mjs` and push-triggered job `live-readonly-diagnostics` added to existing `.github/workflows/marineaqua-shared-playwright.yml`. No WordPress write, no production deploy, no Astro/PHP edits.
+- Workflow run #42946452054 completed SUCCESS, but `MARINEAQUA_HOMEPAGE_CONTENT=MISSING_OR_EMPTY`; test success indicates reachability and diagnostic completion, **not homepage QA success**.
+- Next: diagnose WordPress home Page action/key/ESC Table source, homepage shortcode, product datasets, publish state and deployed source SHA. Approved new Astro design has not been verified as deployed. No DNS change required.
+- Beware: current read-only diagnostics job is triggered by push to script/workflow; avoid unrelated modifications to these paths. For further tests use workflow conditions appropriately and do not create a new production pipeline.
 
-- User gửi ảnh ping từ công cụ trực tuyến: `marine-aqua.io.vn` được resolve thành `103.45.229.10`, 4 phản hồi ICMP `216–225 ms`; ảnh Chrome trước đó có HTTPS lock và header/footer của site. Đây là chứng cứ từ phía user, không phải DNS query độc lập phía agent.
-- Đã chạy kiểm tra thực tế trong runtime: `getent ahostsv4` không phân giải **cả** `marine-aqua.io.vn`, `admin.marine-aqua.io.vn`, `example.com`, `github.com`. `curl -IL` với domain frontend và `example.com` đều báo `curl: (6) Could not resolve host`. Đây là sự cố/giới hạn DNS của môi trường runtime tổng quát, không phải bằng chứng DNS website sai.
-- Thử `curl --resolve marine-aqua.io.vn:443:103.45.229.10` cũng không kết nối trực tiếp tới port 443 (ngay tức thì), phù hợp với network sandbox hạn chế outbound; không kết luận hosting chặn 443 từ Internet.
-- Web fetch frontend trả `Cache miss`; WordPress REST không accessible từ browser tool. Không có independent HTTPS status/TLS verification hiện thời.
-- Khuyến nghị: không sửa DNS khi chưa có bằng chứng lỗi DNS thực. Vùng content homepage trắng trong ảnh user cần kiểm tra WordPress Page/ESC Table/data và release SHA; approved Astro source chưa được deployment tương ứng theo known latest workflow.
-- Không tạo commit vào Astro/PHP, không trigger build/deploy vì user chỉ yêu cầu re-check domain.
+## Final response (intended verbatim)
 
-## Phản hồi dự định gửi nguyên văn
+Được ông. Mình đã kích hoạt GitHub Actions và kiểm tra bằng Chromium trên runner độc lập, không phụ thuộc mạng của ChatGPT.
 
-Ảnh ping ông gửi xác nhận một điều quan trọng: **`marine-aqua.io.vn` đã phân giải được IP và máy chủ có phản hồi.**
+**Run hoàn chỉnh:** https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/42946452054 — SUCCESS. Có artifact `marine-aqua-live-readonly-diagnostics`.
 
-IP trong ảnh ping: `103.45.229.10`. Độ trễ ICMP: `216–225 ms`.
+Kết quả:
+- Cả frontend và WordPress đều phân giải về **103.45.229.10**.
+- Trang chủ HTTPS trả **HTTP 200** ở desktop 1917px và mobile 390px.
+- **Nội dung trang chủ thực sự trống**: vùng `main` chỉ 9 ký tự, 0 ESC sections, 0 slider danh mục, 0 giá sản phẩm.
+- WordPress REST hoạt động (HTTP 200), nhưng Header menu chưa có item cho locale nào trong response được kiểm tra.
+- Một endpoint WordPress trả 1 Page đã xuất bản; chưa có đủ bằng chứng để kết luận đúng cấu hình Home Page.
+- Không thấy lỗi JavaScript hay ảnh vỡ trong phép kiểm tra này.
 
-Như vậy, không thể kết luận tên miền bị lỗi DNS toàn cục. Mình đã kiểm tra độc lập bản ghi DNS, kết nối HTTPS và WordPress để phân biệt lỗi hosting với lỗi kết nối của công cụ.
-
-**Kết quả kiểm tra lại:** hệ thống DNS của môi trường mình đang dùng không phân giải được cả `marine-aqua.io.vn`, `admin.marine-aqua.io.vn`, **lẫn `example.com` và `github.com`**. Khi thử kết nối trực tiếp tới IP `103.45.229.10`, môi trường này cũng không cho thiết lập kết nối cổng 443. Do đó lỗi nằm ở khả năng kết nối từ môi trường kiểm tra, **không có căn cứ để khẳng định DNS/hosting của ông hỏng**.
-
-Ảnh trình duyệt trước đó còn chứng minh frontend đã trả được Header và Footer qua HTTPS từ phía ông. Tuy nhiên mình chưa tự xác minh được HTTP status/TLS và dữ liệu WordPress hiện tại từ công cụ này.
-
-**Không cần thay DNS chỉ vì kết quả kiểm tra của mình.** Vấn đề thực sự cần xử lý tiếp là **vùng nội dung trang chủ đang trắng** và bản thiết kế mới chưa có chứng cứ đã deploy lên production.
+**Kết luận:** ông đúng, lỗi DNS nằm ở môi trường ChatGPT, không phải website. Vấn đề cần xử lý tiếp là cấu hình/nội dung Home Page từ WordPress và xác minh phiên bản frontend đang chạy. Script và workflow chẩn đoán đã được lưu trong `marineaqua-actions/main`; không có build/deploy production nào được kích hoạt.
 
 Chế độ code: auto-build
 Cổng ghi source: bypass
