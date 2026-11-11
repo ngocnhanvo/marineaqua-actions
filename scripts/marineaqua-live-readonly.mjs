@@ -492,7 +492,13 @@ try {
           childBackground:cs.backgroundColor,
           parentBottomRadius:ps.borderBottomLeftRadius,
           childTopRadius:cs.borderTopLeftRadius,
-          childVisible:el.getBoundingClientRect().height>0
+          childVisible:el.getBoundingClientRect().height>0,
+          parentTag:parent?.tagName,
+          parentClass:parent?.className,
+          itemClass:el.parentElement?.className,
+          parentHasExpanded:el.parentElement?.classList.contains("is-expanded"),
+          triggerExpanded:el.parentElement?.querySelector("[data-marine-category-trigger]")?.getAttribute("aria-expanded"),
+          headerCssLoaded:Boolean([...document.styleSheets].some(sheet=>{try{return [...sheet.cssRules].some(rule=>rule.cssText.includes("marine-product-sidebar-item.is-expanded"))}catch{return false}}))
         };
       });
       const pass=!headerBefore.hotlineExists && (
