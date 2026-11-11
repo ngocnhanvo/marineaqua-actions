@@ -1074,16 +1074,16 @@ if (!headerActionPass) process.exitCode=1;
 // pills and glowing bolt. Validate the current WordPress-owned six-item hierarchy.
 const clean = desktop?.headerV3ColorAudit;
 const cleanExpectedLabels=["trang chủ","khuyến mãi","chính sách và hướng dẫn","thời gian bán hàng","chia sẻ","liên hệ"];
-const normalizeClean = value=>String(value||"").replace(/⚡/g,"").trim().toLocaleLowerCase("vi");
+const normalizeClean = value=>String(value||"").replace(/[⚡✦]/g,"").trim().toLocaleLowerCase("vi");
 const cleanEntries=clean?.entries||[];
 const cleanLabelsPass=cleanEntries.length===cleanExpectedLabels.length&&cleanEntries.every((item,i)=>
   normalizeClean(item.label)===cleanExpectedLabels[i]);
 const cleanSale=cleanEntries.find(item=>item.sale);
 const cleanSalePass=Boolean(cleanSale &&
-  cleanSale.color==="rgb(216, 46, 74)" &&
-  cleanSale.backgroundColor==="rgb(255, 241, 243)" &&
+  cleanSale.color==="rgb(214, 51, 75)" &&
+  cleanSale.backgroundColor==="rgba(0, 0, 0, 0)" &&
   !cleanSale.backgroundImage.includes("gradient") &&
-  cleanSale.boltAnimation==="none");
+  !cleanSale.boltSvg);
 const cleanNormalPass=cleanEntries.filter(entry=>!entry.sale).every(entry=>
   ["rgb(36, 67, 92)","rgb(6, 119, 181)"].includes(entry.color));
 const cleanHeaderPass=cleanLabelsPass&&cleanSalePass&&cleanNormalPass;
