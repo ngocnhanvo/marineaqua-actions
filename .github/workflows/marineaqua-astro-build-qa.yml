@@ -146,6 +146,11 @@ jobs:
               raise SystemExit(f'HOME_CATALOG=FAIL expected 20 CMS prices, found {count}')
           if 'continuum-aquatics-bacter-clean-m' not in html:
               raise SystemExit('HOME_CATALOG=FAIL missing original Continuum products')
+          if html.count('>Hết hàng</span>') != 2:
+              raise SystemExit('HOME_CATALOG=FAIL expected 2 stock badges')
+          for brand in ('tropic-marin','prodibio','prodac','red-sea','continuum-aquatics'):
+              if f'href="/san-pham/{brand}"' not in html:
+                  raise SystemExit('HOME_CATALOG=FAIL category route for ' + brand)
           print(f'HOME_CATALOG=PASS brands=5 prices={count} source=wordpress')
           PY
       - name: Verify compiled Header comes only from WordPress (empty allowed)

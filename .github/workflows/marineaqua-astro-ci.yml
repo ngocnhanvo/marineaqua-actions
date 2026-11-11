@@ -50,6 +50,21 @@ jobs:
           cache: pnpm
       - name: Install exact locked dependencies (no production build)
         run: pnpm install --frozen-lockfile --prefer-offline
+      - name: Verify home product category URLs and stock source
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const component=readFileSync('src/astro/components/Home/BrandProductSection.astro','utf8');
+          const mapper=readFileSync('src/lib/wordpress/products/getData.ts','utf8');
+          assert.match(component,/const moreHref = listingSlug && categorySlug/);
+          assert.match(component,/availability === "outofstock"/);
+          assert.match(mapper,/item\.class_list\.includes\("outofstock"\)/);
+          assert.match(mapper,/stockStatus: initI18n\(stockStatus\)/);
+          console.log('HOME_PRODUCT_LINK_AND_STOCK_SOURCE=PASS');
+          NODE
       - name: Run Astro unit tests
         run: pnpm run test:run
       # Validate approved Marine Aqua design integration with local Quicksand, CMS-only menu and prices.
