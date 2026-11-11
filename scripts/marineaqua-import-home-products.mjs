@@ -26,6 +26,7 @@ try{
  });
  valid(/^[a-zA-Z0-9]+$/.test(nonce),"WordPress authenticated nonce unavailable");
  const headers={"X-WP-Nonce":nonce};
+ const isOwnedMedia=(v)=>{try{const u=new URL(v,WP);return Boolean(v)&&u.origin===WP&&u.pathname.startsWith("/wp-content/uploads/")}catch{return false}};
  async function decoded(response,step){
    if(!response.ok())throw Error(step+" HTTP "+response.status()+" "+(await response.text()).slice(0,240));
    return response.json();
@@ -62,7 +63,7 @@ try{
   originalSources.set(filename,src.href);
   const reused=mediaByFilename.get(filename);
   if(reused){
-   valid(new URL(reused.source_url,WP).origin===WP,"Media origin mismatch");
+   valid(isOwnedMedia(reused.source_url),"Media origin mismatch");
    result.mediaReused.push({filename,id:reused.id});return reused.id;
   }
   let bytes=null;
@@ -143,7 +144,7 @@ try{
    const found=products.get(slug);
    if(found){
     valid(found.name===product.title&&Number(found.regular_price||found.price)===price&&found.stock_status===stock,"Existing product differs "+slug);
-    valid(found.categories?.some(c=>c.id===cat.id)&&found.images?.some(m=>new URL(m.src).origin===WP),"Existing product media/category differs "+slug);
+    valid(found.categories?.some(c=>c.id===cat.id)&&found.images?.some(m=>isOwnedMedia(m.src)),"Existing product media/category differs "+slug);
     result.reused.push({id:found.id,slug,brand});continue;
    }
    const mediaId=await ensureMedia(product.images[0],product.title);
@@ -160,7 +161,7 @@ try{
    valid(created.id&&created.slug===slug,"WC product create failed "+slug);
    const check=await api("GET","/wp-json/wc/v3/products/"+created.id);
    valid(check.name===product.title&&check.slug===slug&&Number(check.regular_price)===price&&check.stock_status===stock,"WC product readback failed "+slug);
-   valid(check.images?.[0]?.id===mediaId&&new URL(check.images[0].src).origin===WP&&check.categories?.some(c=>c.id===cat.id),"WC product image/category mismatch "+slug);
+   valid(check.images?.[0]?.id===mediaId&&isOwnedMedia(check.images[0].src)&&check.categories?.some(c=>c.id===cat.id),"WC product image/category mismatch "+slug);
    products.set(slug,check);
    result.created.push({id:created.id,slug,brand,price,stock,mediaId});
    console.log("CATALOG_PRODUCT_VERIFIED="+JSON.stringify(result.created.at(-1)));
@@ -180,5 +181,5 @@ try{
  result.status="PASS";
  console.log("CATALOG_IMPORT=PASS verified=20 created="+result.created.length+" reused="+result.reused.length);
  await page.close();await context.close();
-}catch(e){result.errors.push(String(e.message||e).slice(0,500));result.status="FAIL";process.exitCode=1;console.error("CATALOG_IMPORT=FAIL "+result.errors.at(-1))}
+}catch(e){result.errors.push(String(e.stack||e.message||e).slice(0,1500));result.status="FAIL";process.exitCode=1;console.error("CATALOG_IMPORT=FAIL "+result.errors.at(-1))}
 finally{await writeFile(DIR+"/result.json",JSON.stringify(result,null,2)+"\n");await browser.close()}
