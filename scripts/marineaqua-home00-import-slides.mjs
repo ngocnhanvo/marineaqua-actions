@@ -83,18 +83,17 @@ try {
     const beforeWrite=await read();
     if(beforeWrite.items.length!==1)throw Error("Concurrent table modification");
     record("WRITE_START",{oldRows:grid.length,newItems:2});
-    const added=await page.evaluate(()=>{
-      const input=document.querySelector("#rows-append-number");
-      if(!input)throw Error("Missing native Add Rows input");
-      input.value="2";
-      input.dispatchEvent(new Event("input",{bubbles:true}));
-      const button=document.evaluate('following::button[normalize-space(.)="Add"][1]',input,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
-      if(!(button instanceof HTMLButtonElement))throw Error("Missing native Add Rows button");
-      button.click();
-      return true;
-    });
-    if(!added)throw Error("Add Row operation not accepted");
-    await page.waitForFunction(()=>window.tp?.table?.data?.length===5,null,{timeout:20000});
+    for(let i=0;i<2;i++){
+      const expectedRows=4+i;
+      await page.evaluate(()=>{
+        const input=document.querySelector("#rows-append-number");
+        if(!input || input.value!=="1")throw Error("Native Add Row count differs");
+        const button=document.evaluate('following::button[normalize-space(.)="Add"][1]',input,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+        if(!(button instanceof HTMLButtonElement))throw Error("Missing native Add Rows button");
+        button.click();
+      });
+      await page.waitForFunction(n=>window.tp?.table?.data?.length===n,expectedRows,{timeout:20000});
+    }
     const rows=await page.evaluate(({assets,imageMarkup})=>{
       for(let i=0;i<2;i++){
         window.tp.editor.setValueFromCoords(0,3+i,assets[i].title);
