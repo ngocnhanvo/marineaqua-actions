@@ -60,6 +60,24 @@ try {
           }).length,
           escSections: document.querySelectorAll("[data-tablepress-preview]").length,
           categoriesSlider: document.querySelectorAll("[data-marine-category-slider]").length,
+          bannerAudit: (() => {
+            const sections = [...document.querySelectorAll('[data-tablepress-preview="home_00"], [data-home-slider]')];
+            return sections.map(el => {
+              const rect=el.getBoundingClientRect(), style=getComputedStyle(el);
+              return {
+                tag:el.tagName,marker:el.getAttribute("data-tablepress-preview")||el.getAttribute("data-home-slider"),
+                visible:Boolean(rect.width&&rect.height&&style.display!=="none"),
+                rect:{x:Math.round(rect.x),y:Math.round(rect.y),w:Math.round(rect.width),h:Math.round(rect.height)},
+                slideCount:el.querySelectorAll("[data-home-slide]").length,
+                srcs:[...el.querySelectorAll("[data-home-slide] img")].map(img=>({
+                  src:(img.currentSrc||img.src||"").slice(0,180), loaded:img.complete&&img.naturalWidth>0,
+                  naturalW:img.naturalWidth,naturalH:img.naturalHeight,
+                  clientW:Math.round(img.getBoundingClientRect().width),clientH:Math.round(img.getBoundingClientRect().height)
+                })).slice(0,8)
+              };
+            }).slice(0,6);
+          })(),
+
           productPrices: document.querySelectorAll("[data-marine-product-price]").length,
 
           headerActionsAudit: (() => {
@@ -154,6 +172,7 @@ try {
       summary.views.push({ width, ...result });
       await page.screenshot({ path: dir + "/frontend-" + width + ".png", fullPage: false });
       console.log("FRONTEND_" + width + "=" + JSON.stringify(result));
+      console.log("BANNER_AUDIT_" + width + "=" + JSON.stringify(result.bannerAudit));
     } catch (error) {
       summary.views.push({ width, error: String(error.message || error).slice(0, 180) });
       console.log("FRONTEND_" + width + "=FAIL error=" + String(error.name || "request_error"));
@@ -166,6 +185,7 @@ try {
   for (const [label, path] of [
     ["menus", "/wp-json/esc-api/v1/menus"],
     ["pages", "/wp-json/wp/v2/pages?status=publish&per_page=5&_fields=id,slug"],
+    ["home00", "/wp-json/tablepress/v1/table/home_00"],
   ]) {
     try {
       const response = await context.request.get(wordpress.origin + path, {
@@ -175,7 +195,13 @@ try {
       const result = { status: response.status(), contentType: response.headers()["content-type"]?.split(";")[0] || "" };
       if (response.ok() && result.contentType.includes("json")) {
         const payload = await response.json();
-        if (label === "menus") {
+        if (label === "home00") {
+          const table=payload?.table || payload?.data || payload;
+          const items=table?.items || table?.data?.items || [];
+          result.keys=Object.keys(payload||{}).slice(0,20);
+          result.itemCount=Array.isArray(items)?items.length:null;
+          result.rows=Array.isArray(items)?items.slice(0,8).map(row=>({keys:Object.keys(row||{}),title:String(row?.title||"").slice(0,65),image:row?.image?{src:String(row.image?.src||"").slice(0,180),width:row.image?.width,height:row.image?.height}:null,mobile:row?.mobile})):[];
+        } else if (label === "menus") {
           const header = payload?.success === true ? payload?.menus?.Header : null;
           result.headerLocales = header && typeof header === "object"
             ? Object.fromEntries(Object.entries(header).map(([lang, value]) => [
