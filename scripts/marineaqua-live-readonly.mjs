@@ -76,12 +76,21 @@ try {
                   const copy=slide?.querySelector(".marine-hero-copy");
                   const media=slide?.querySelector(".marine-hero-media");
                   const c=copy?.getBoundingClientRect(),m=media?.getBoundingClientRect();
+                  const img=media?.querySelector("img");
+                  const imageStyle=img?getComputedStyle(img):null;
+                  const overlayStyle=slide?getComputedStyle(slide,"::before"):null;
                   return {layout:slide?getComputedStyle(slide).display:"",
                     text:(copy?.innerText||"").slice(0,180),
                     copyWidth:Math.round(c?.width||0),
                     mediaWidth:Math.round(m?.width||0),
                     copyLeft:Math.round(c?.left||0),mediaLeft:Math.round(m?.left||0),
-                    copyTop:Math.round(c?.top||0),mediaTop:Math.round(m?.top||0)};
+                    copyTop:Math.round(c?.top||0),mediaTop:Math.round(m?.top||0),
+                    imageFit:imageStyle?.objectFit||"",
+                    imagePosition:imageStyle?.objectPosition||"",
+                    overlay:overlayStyle?.backgroundImage||"",
+                    activeImageWidth:Math.round(img?.getBoundingClientRect().width||0),
+                    activeImageHeight:Math.round(img?.getBoundingClientRect().height||0)};
+
                 })(),
                 srcs:[...el.querySelectorAll("[data-home-slide] img")].map(img=>({
                   src:(img.currentSrc||img.src||"").slice(0,180), loaded:img.complete&&img.naturalWidth>0,
@@ -329,8 +338,13 @@ const bannerChecks = [1917,1440,768,390].map(width=>{
   const splitPass=Boolean(hero && hero.slideCount===3 && hero.dotCount===3
     && hero.split?.copyWidth>150 && hero.split?.mediaWidth>150
     && hero.split?.text.includes("Chạm gần hơn")
+    && hero.split?.imageFit==="contain"
     && (width<640 ? hero.split.copyTop>hero.split.mediaTop
-       : hero.split.copyLeft<hero.split.mediaLeft));
+       : hero.split.layout==="block"
+          && hero.split.copyLeft===hero.split.mediaLeft
+          && hero.split.mediaWidth>=hero.rect.w-3
+          && hero.split.copyWidth<hero.rect.w*.5
+          && hero.split.overlay.includes("linear-gradient")));
   return {width,passed:widthPass&&mediaPass&&radiusPass&&splitPass&&!view?.horizontalOverflow,
     carouselCount:carousels.length,loadedMedia:mediaPass,frameWidth:hero?.rect.w||0,
     frameHeight:hero?.rect.h||0,borderRadius:hero?.borderRadius||"",radiusPass,splitPass,slideCount:hero?.slideCount||0,split:hero?.split||null};
