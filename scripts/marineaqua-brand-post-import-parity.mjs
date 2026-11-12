@@ -97,7 +97,18 @@ try{
   if(item.seoDescription&&normalizeText(originalMeta)!==normalizeText(item.seoDescription))
    result.seoReview.push({slug,reason:"SEO_META_DESCRIPTION_DIFF"});
   if(!originMeta)result.metadataReview.push({slug,reason:"SOURCE_URL_METADATA_ABSENT"});
+  const yoastTitle=String(metas.find(m=>m.key==="_yoast_wpseo_title")?.value||"").trim();
+  const yoastDescription=String(metas.find(m=>m.key==="_yoast_wpseo_metadesc")?.value||"").trim();
+  if(item.seoTitle&&yoastTitle!==item.seoTitle)
+   result.seoReview.push({slug,field:"title",expected:item.seoTitle,actual:yoastTitle});
+  if(item.seoDescription&&yoastDescription!==item.seoDescription)
+   result.seoReview.push({slug,field:"description",expected:item.seoDescription,actual:yoastDescription});
   if(!item.seoDescription)result.sourceMissingSeo.push(slug);
+  const normalize=s=>String(s||"").replace(/<[^>]*>/g," ").replace(/&[a-z]+;|&#\\d+;/gi," ")
+   .replace(/\\s+/g," ").trim().normalize("NFC");
+  if(normalize(item.description)&&!normalize(target.description).includes(normalize(item.description).slice(0,120)))
+   result.descriptionReview.push({slug,field:"description",sourceChars:item.description.length,
+    targetChars:String(target.description||"").length});
  }
  result.status=(
   result.missing.length||result.duplicates.length||result.wrongCategories.length||
