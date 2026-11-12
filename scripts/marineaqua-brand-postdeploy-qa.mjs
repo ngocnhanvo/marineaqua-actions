@@ -33,7 +33,8 @@ try {
     firstProduct:cards[0]?.querySelector("a[href]")?.getAttribute("href")||"",
     images:cards.slice(0,4).map(card=>{
      const img=card.querySelector("img");
-     return {src:img?.currentSrc||img?.src||"",ok:Boolean(img?.complete&&img.naturalWidth>0)};
+     const src=img?.currentSrc||img?.src||"";
+     return {src,ok:Boolean(img?.complete&&img.naturalWidth>0&&!src.includes("/placeholders/product.webp"))};
     }),
     totalText:[...document.querySelectorAll("main p")].map(p=>p.textContent.trim()).find(t=>t.includes("sản phẩm)"))||"",
    };
