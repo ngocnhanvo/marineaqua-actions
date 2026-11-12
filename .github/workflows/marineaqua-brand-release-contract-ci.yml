@@ -1,0 +1,33 @@
+name: Marine Aqua brand migration and release source validation
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-brand-gallery-import.mjs'
+      - 'scripts/marineaqua-brand-seo-repair.mjs'
+      - 'scripts/marineaqua-brand-gallery-parity.mjs'
+      - 'scripts/marineaqua-brand-post-import-parity.mjs'
+      - 'scripts/marineaqua-brand-release-trigger.mjs'
+      - 'scripts/marineaqua-brand-postdeploy-qa.mjs'
+      - '.github/workflows/marineaqua-brand-release-contract-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate code syntax without secrets, writes, or deploy
+        run: |
+          node --check scripts/marineaqua-brand-gallery-import.mjs
+          node --check scripts/marineaqua-brand-seo-repair.mjs
+          node --check scripts/marineaqua-brand-gallery-parity.mjs
+          node --check scripts/marineaqua-brand-post-import-parity.mjs
+          node --check scripts/marineaqua-brand-release-trigger.mjs
+          node --check scripts/marineaqua-brand-postdeploy-qa.mjs
+          echo "MARINEAQUA_BRAND_RELEASE_SOURCE=PASS"
