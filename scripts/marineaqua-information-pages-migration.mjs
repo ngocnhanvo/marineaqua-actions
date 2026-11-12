@@ -36,7 +36,7 @@ try {
       method, headers:{'X-WP-Nonce':nonce,...(body?{'Content-Type':'application/json'}:{})},
       data:body?JSON.stringify(body):undefined, failOnStatusCode:false,timeout:45000
    });
-   assert(r.ok(), 'WordPress API '+path+' returned '+r.status()+' '+(await r.text()).slice(0,130));
+   if(!r.ok())throw Error('WordPress API '+path+' returned '+r.status()+' '+(await r.text()).slice(0,130));
    return r.json();
  }
  let records = [];
