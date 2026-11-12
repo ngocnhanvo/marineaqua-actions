@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "39cfb7cf5e246be76ee9b71276d95c5968a4f387",
+  "reason": "Publish related product cards matching category product grid",
+  "request_id": "20261112T214000Z-related-product-category-cards",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
