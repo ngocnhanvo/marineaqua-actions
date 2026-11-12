@@ -1,4 +1,5 @@
 name: Marine Aqua read-only production deployment status probe
+# Read-only verification checkpoint after first informational page production release
 on:
   push:
     branches: [main]
