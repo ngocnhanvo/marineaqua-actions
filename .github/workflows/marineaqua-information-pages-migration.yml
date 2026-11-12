@@ -6,7 +6,7 @@ on:
       - 'scripts/marineaqua-information-pages-migration.mjs'
       - '.github/workflows/marineaqua-information-pages-migration.yml'
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: marineaqua-information-pages-migration
   cancel-in-progress: false
@@ -29,6 +29,20 @@ jobs:
           WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
           WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
         run: node scripts/marineaqua-information-pages-migration.mjs
+      - name: Trigger the existing canonical Astro production pipeline after verified CMS updates
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --retry 2 --retry-delay 2 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d '{"event_type":"wp_trigger_build","client_payload":{"site_domain":"marine-aqua.io.vn"}}' \
+            https://api.github.com/repos/ngocnhanvo/marineaqua-actions/dispatches
+          echo "CANONICAL_ASTRO_DISPATCH=REQUESTED_AFTER_CMS_PASS"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
