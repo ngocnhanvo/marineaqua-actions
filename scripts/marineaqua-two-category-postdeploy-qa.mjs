@@ -87,6 +87,16 @@ try{
   assert("mobile_"+root.slug,response?.status()===200&&mobile.scrollWidth<=mobile.width+2&&
    mobile.cards>0,JSON.stringify(mobile));
   output.routes.push({path:path+" mobile",http:response?.status(),...mobile});
+  const dropdown=page.locator("#dropdown-trigger");
+  if(await dropdown.count()){
+   await dropdown.click();
+   const menu=page.locator("#dropdown-menu");
+   const hrefs=await menu.locator("a[href]").evaluateAll(items=>items.map(a=>a.getAttribute("href")));
+   const expectedChildren=root.children.map(slug=>"/san-pham/"+slug);
+   const available=await menu.isVisible()&&expectedChildren.every(child=>
+     hrefs.some(h=>h&&h.replace(/\\/$/,"")===child));
+   assert("category_navigation_"+root.slug,available,JSON.stringify({hrefs,expectedChildren}));
+  }else assert("category_navigation_"+root.slug,false,"Missing category dropdown");
   await page.screenshot({path:DIR+"/mobile-"+root.slug+".png",fullPage:false});
   await page.setViewportSize({width:1440,height:900});
   await page.goto(ORIGIN+path,{waitUntil:"domcontentloaded",timeout:45000});
