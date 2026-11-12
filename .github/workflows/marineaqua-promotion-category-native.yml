@@ -1,0 +1,37 @@
+name: Marine Aqua create promotional WooCommerce category
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-promotion-category-native.mjs'
+      - '.github/workflows/marineaqua-promotion-category-native.yml'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-promotion-category-native
+  cancel-in-progress: false
+jobs:
+  bind-promotions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-promotion-category-native.mjs
+      - name: Reuse or create category and bind verified eight products
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-promotion-category-native.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-promotion-category-evidence
+          path: promotion-category-evidence/
+          retention-days: 7
