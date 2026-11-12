@@ -1,9 +1,98 @@
 {
-  "status": "NO_EVIDENCE",
-  "results": [],
-  "errors": [],
-  "run_id": "43312696148",
+  "scope": [
+    {
+      "title": "Chính sách đổi trả hàng",
+      "source": "/chinh-sach-doi-tra-hang/",
+      "slug": "chinh-sach-doi-tra-hang"
+    },
+    {
+      "title": "Phí ship hàng",
+      "source": "/thong-bao/",
+      "slug": "thong-bao"
+    },
+    {
+      "title": "Hướng dẫn mua hàng ở xa",
+      "source": "/huong-dan-mua-hang-o-xa/",
+      "slug": "huong-dan-mua-hang-o-xa"
+    },
+    {
+      "title": "Hướng dẫn mua hàng tại nhà",
+      "source": "/huong-dan-mua-hang-tai-nha/",
+      "slug": "huong-dan-mua-hang-tai-nha"
+    },
+    {
+      "title": "Thời gian bán hàng",
+      "source": "/thoi-gian-ban-hang/",
+      "slug": "thoi-gian-ban-hang"
+    }
+  ],
+  "results": [
+    {
+      "slug": "chinh-sach-doi-tra-hang",
+      "source": "https://marine-aqua.vn/chinh-sach-doi-tra-hang/",
+      "status": "BLOCKED",
+      "error": "Source missing page heading; refuse unrelated document"
+    },
+    {
+      "slug": "thong-bao",
+      "source": "https://marine-aqua.vn/thong-bao/",
+      "status": "BLOCKED",
+      "error": "Source missing page heading; refuse unrelated document"
+    },
+    {
+      "slug": "huong-dan-mua-hang-o-xa",
+      "source": "https://marine-aqua.vn/huong-dan-mua-hang-o-xa/",
+      "status": "BLOCKED",
+      "error": "Source missing page heading; refuse unrelated document"
+    },
+    {
+      "slug": "huong-dan-mua-hang-tai-nha",
+      "source": "https://marine-aqua.vn/huong-dan-mua-hang-tai-nha/",
+      "status": "BLOCKED",
+      "error": "Source missing page heading; refuse unrelated document"
+    },
+    {
+      "slug": "thoi-gian-ban-hang",
+      "source": "https://marine-aqua.vn/thoi-gian-ban-hang/",
+      "status": "BLOCKED",
+      "error": "Source missing page heading; refuse unrelated document"
+    }
+  ],
+  "errors": [
+    {
+      "slug": "chinh-sach-doi-tra-hang",
+      "source": "https://marine-aqua.vn/chinh-sach-doi-tra-hang/",
+      "status": "BLOCKED",
+      "error": "Source missing page heading; refuse unrelated document"
+    },
+    {
+      "slug": "thong-bao",
+      "source": "https://marine-aqua.vn/thong-bao/",
+      "status": "BLOCKED",
+      "error": "Source missing page heading; refuse unrelated document"
+    },
+    {
+      "slug": "huong-dan-mua-hang-o-xa",
+      "source": "https://marine-aqua.vn/huong-dan-mua-hang-o-xa/",
+      "status": "BLOCKED",
+      "error": "Source missing page heading; refuse unrelated document"
+    },
+    {
+      "slug": "huong-dan-mua-hang-tai-nha",
+      "source": "https://marine-aqua.vn/huong-dan-mua-hang-tai-nha/",
+      "status": "BLOCKED",
+      "error": "Source missing page heading; refuse unrelated document"
+    },
+    {
+      "slug": "thoi-gian-ban-hang",
+      "source": "https://marine-aqua.vn/thoi-gian-ban-hang/",
+      "status": "BLOCKED",
+      "error": "Source missing page heading; refuse unrelated document"
+    }
+  ],
+  "status": "PARTIAL",
+  "run_id": "43312901536",
   "run_attempt": "1",
-  "job_outcome": "skipped",
+  "job_outcome": "failure",
   "source": "marineaqua-information-pages-migration.yml"
 }\n
