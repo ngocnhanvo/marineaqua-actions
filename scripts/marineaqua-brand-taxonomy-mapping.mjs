@@ -46,6 +46,24 @@ try {
     console.log("BRAND_CATEGORY=" + category.slug + " pages=" + seen.size +
       " products=" + products.size);
   }
+  // Some products appear only in the parent archive, not in any brand-child
+  // archive. Read the actual primary product's WooCommerce taxonomy classes,
+  // rather than guessing a brand from its name or related-product cards.
+  result.parentOnly = [];
+  for (const productUrl of [...expected].filter(url => !result.assignments[url]?.length)) {
+    const response = await page.goto(productUrl, { waitUntil: "domcontentloaded", timeout: 45000 });
+    if (!response?.ok()) throw Error("Unassigned detail HTTP " + response?.status() + " " + productUrl);
+    const classes = await page.evaluate(() => {
+      const element = document.querySelector(".product.type-product");
+      return [...(element?.classList || [])].filter(x => x.startsWith("product_cat-"))
+        .map(x => x.slice("product_cat-".length));
+    });
+    const matched = manifest.target.categories.filter(c => classes.includes(c.slug));
+    if (!classes.length || !matched.length)
+      throw Error("Missing authoritative taxonomy for " + productUrl + " classes=" + classes.join(","));
+    result.assignments[productUrl] = matched.map(c => ({ id: c.id, slug: c.slug }));
+    result.parentOnly.push({ url: productUrl, sourceClasses: classes, mapped: result.assignments[productUrl] });
+  }
   result.unassigned = [...expected].filter(url => !result.assignments[url]?.length);
   result.unexpected = Object.keys(result.assignments).filter(url => !expected.has(url));
   console.log("BRAND_MAPPING=PASS source=" + expected.size +
