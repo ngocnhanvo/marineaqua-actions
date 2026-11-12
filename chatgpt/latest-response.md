@@ -46,31 +46,34 @@ Migrate every product under original `https://marine-aqua.vn/danh-muc/thuong-hie
 ## Follow-up policy
 This task is DONE. Do not rerun import, gallery, SEO repair or production deploy without a **new** user request. Use this checkpoint, commit and evidence when user opens a fresh chat. If a separate task asks for future operational diagnostics, note Apache's optional public staging marker 404 but do not confuse this with deployed version/QA (signed provenance and 15/15 live category acceptance independently PASS).
 
-## CURRENT NEW USER REQUEST — supplements/probiotics/medicines + fish/coral foods (2026-11-12)
-Status: PARTIAL (the previous BRAND 246 migration remains DONE; DO NOT rerun it).
-User requests all original products and category listings for two menu roots:
-- `/danh-muc/hoa-chat-bo-sung-va-thuoc-dac-tri/` and children `giai-quyet-van-de`, `hoa-chat-giup-tang-mau-cho-san-ho`, `vi-sinh-va-thuc-an-vi-sinh`.
-- `/danh-muc/thuc-an-cho-ca-va-san-ho/` and children `thuc-an-cho-ca`, `thuc-an-cho-san-ho`.
-Original browse run #43188424042 SUCCESS, artifact 13929359331:
-- Chemical root 122; children 50,48,20.
-- Food root 32; children 8,24.
-- 142 unique products across both roots (12 belong to both), all 142 detail pages read without errors.
-- Target WooCommerce 246 products initially, 136 of these 142 were already present from prior brand migration, only 6 new product records required.
-Taxonomy mapping #43190056717 SUCCESS, artifact 13931210653, 142/142 assigned to seven existing target product_cat terms.
-Original gallery inventory #43190056695 SUCCESS, artifact 13929634487, 26/26 multi-image products checked.
+## Second category migration FINAL checkpoint — 2026-11-12
+Status: DONE — original products and menu categories migrated, data verified, Astro production deployed, browser QA passed.
 
-Repository Actions scripts/workflows prepared:
-- `scripts/marineaqua-two-category-inventory.mjs`, `.github/workflows/marineaqua-two-category-inventory.yml`.
-- `scripts/marineaqua-two-category-mapping.mjs`, `.github/workflows/marineaqua-two-category-mapping.yml`.
-- `scripts/marineaqua-two-category-import.mjs`, `.github/workflows/marineaqua-two-category-import.yml`. Existing 136 products are NOT duplicated; append only missing taxonomy to their existing terms, preserve existing prices/media/SEO. Import only 6 genuinely missing products via native WordPress media with readback.
-- `scripts/marineaqua-two-category-gallery-source.mjs`, source workflow.
-- `scripts/marineaqua-two-category-gallery-import.mjs`, workflow gates on successful importer and restores original multi-image galleries only for NEW products.
-- `scripts/marineaqua-two-category-parity.mjs`, `scripts/marineaqua-two-category-gallery-parity.mjs`, `scripts/marineaqua-two-category-postdeploy-qa.mjs`, `scripts/marineaqua-two-category-release-trigger.mjs`, `.github/workflows/marineaqua-two-category-release.yml` prepared (release is workflow_dispatch-only, NOT triggered until import/gallery pass).
+Two source menu trees:
+1. `/danh-muc/hoa-chat-bo-sung-va-thuoc-dac-tri/` (122 products), descendants:
+   - `giai-quyet-van-de` 50
+   - `hoa-chat-giup-tang-mau-cho-san-ho` 48
+   - `vi-sinh-va-thuc-an-vi-sinh` 20
+2. `/danh-muc/thuc-an-cho-ca-va-san-ho/` (32 products), descendants:
+   - `thuc-an-cho-ca` 8
+   - `thuc-an-cho-san-ho` 24
 
-First importer #43190095337 failed only fetching artifact via Python urllib redirected signed asset (401), BEFORE any CMS writes. Fixed to pinned approved curl+zipfile artifact retrieval; NEW importer run #43190333150 is currently in_progress as of latest check, code executing actual Woo updates.
-Gallery workflow `marineaqua-two-category-gallery-import.yml` is armed via workflow_run importer SUCCESS; currently source gallery manifest pinned.
-Next: wait importer #43190333150 to conclude; inspect result/log/artifact for created6, existing taxonomy updates136, errors0. Repair any errors safely, no duplicate products. Wait new gallery importer workflow and inspect result. After data parity PASS, enable push trigger on `.github/workflows/marineaqua-two-category-release.yml` (workflow_dispatch only now) and run canonical Astro production dispatch via its guarded source script, verify signed SHA and live category counts, Playwright QA on all seven routes/pagination/mobile. Update this checkpoint as DONE only after production QA PASS.
-Production Astro source remains `ngocnhanvo/marineaqua-astro@master` commit `4a3f0df...` and generic `ProductsSSRPage.astro` already handles product-category SSR routes; no separate card markup needed. Only canonical Actions production deploy workflow `marineaqua-production-deploy.yml` permitted.
+There are **142 unique original products** across both roots (12 in both), and 7 category archive routes. Read-only source inventory #43188424042 PASS 142/142 details, artifact 13929359331; original taxonomy mapping #43190056717 PASS, artifact 13931210653; original gallery inventory #43190056695 PASS 26/26 multi-image source products, artifact 13929634487.
+
+WooCommerce importer #43190333150 PASS: 136 existing brand-migrated products retained; appended only missing verified category terms, without duplicate creation or unrelated mutations. Six missing genuine products created and read back ID 83065, 83067, 83069, 83071, 83073, 83075. Importer errors=0 and deferred media=0; artifact 13931032760.
+Original new product galleries #43192517112 PASS: 3 gallery updates, zero errors/deferred.
+An initial parity check correctly detected source detail-page pricing ambiguity; independent **source archive card price oracle** #43193282489 PASS for all 142 products across 28 pages, no conflicts/missing, artifact 13932255797. Scoped price/stock repair #43193881201 PASS, checked 142, updated 38, unchanged 104, errors=0, backup snapshots artifact 13932311847.
+Final strict independent WooCommerce parity #43196539609 PASS 142/142 (0 missing, 0 incorrect category, price, stock, media, archive counts, SEO review).
+Strict new-gallery image identity/order parity #43196767915 PASS 3/3, zero failures.
+Script source checks #43196721265 PASS.
+Canonical signed production Astro deploy run **#43197389986 SUCCESS**; used existing pipeline `.github/workflows/marineaqua-production-deploy.yml` via `repository_dispatch wp_trigger_build`; source `ngocnhanvo/marineaqua-astro@master`, signed deployed SHA `4a3f0dfbe75d5632dd1a3f28d728e6eeb7ba31f3`; FTPS and signed activate succeeded. Astro code did not need a separate page component: dynamic ProductsSSRPage already handles category routes.
+Final release + live Playwright run **#43197072498 SUCCESS**: parity repeated PASS 142/142 and gallery PASS 3/3; signed provenance and both new root archive visible-count readiness PASS; production browser QA **PASS 17 route/check records, zero errors**, tested all 7 source-count listing routes, last pages, red price text, image loaded, product detail links, mobile dropdown and overflow plus existing brand regression (246 root / 88 Korallen-Zucht).
+Artifact final run: 13933658202, name `marine-aqua-two-category-release-verification`.
+Live category routes are `https://marine-aqua.io.vn/san-pham/<category-slug>/` for all seven slugs above. No need to rerun import, price repair, gallery, build or deploy for this task.
+Public `/marineaqua-staging-build.json` returns 404 under Apache; the signed deployed SHA/log and both live root route counts are the approved reliable fallback, verified PASS.
+- Production: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43197389986
+- Final acceptance: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43197072498
+
 Chế độ code: auto-build
 Cổng ghi source: bypass
-Trạng thái: PARTIAL — chưa hoàn tất
+Trạng thái: DONE — hoàn tất
