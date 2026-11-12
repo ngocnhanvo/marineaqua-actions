@@ -5,7 +5,7 @@ const DIR="brand-seo-repair-evidence";
 await mkdir(DIR,{recursive:true});
 const original=JSON.parse(await readFile("brand-catalog-evidence/manifest.json","utf8"));
 const mapping=JSON.parse(await readFile("brand-taxonomy-mapping-evidence/mapping.json","utf8"));
-const result={checked:0,updated:[],reused:[],backups:[],errors:[],status:"STARTED"};
+const result={checked:0,updated:[],reused:[],backups:[],priceBackups:[],priceUpdated:[],errors:[],status:"STARTED"};
 const browser=await chromium.launch({headless:true});
 try{
  if(original.details?.length!==246||mapping.unassigned?.length)
@@ -54,13 +54,39 @@ try{
   throw Error("Some source products are not yet imported, no SEO writes allowed");
  for(const item of original.details){
   const slug=new URL(item.url).pathname.split("/").filter(Boolean).at(-1);
-  const current=bySlug.get(slug);
+  let current=bySlug.get(slug);
   try{
    result.checked++;
    if(!current?.id)throw Error("Missing WooCommerce target product");
    const allowedCats=mapping.assignments?.[item.url]||[];
    if(allowedCats.some(cat=>!current.categories?.some(c=>c.id===cat.id)))
     throw Error("Product category mismatch, refusing SEO update");
+   // Original source prices are authoritative; repair legacy 20-product
+   // homepage records only when their current regular/sale prices differ.
+   const amounts=[...new Set([...String(item.priceText||"").matchAll(/([\d.,]+)₫/g)]
+     .map(x=>Number(x[1].replace(/[.,]/g,""))).filter(n=>Number.isFinite(n)&&n>0))];
+   let regular="",sale="";
+   if(amounts.length===1)regular=String(amounts[0]);
+   else if(amounts.length===2&&amounts[0]>amounts[1]){
+    regular=String(amounts[0]);sale=String(amounts[1]);
+   }else if(String(item.priceText||"").trim()!=="Liên hệ"){
+    throw Error("Ambiguous original source price");
+   }
+   if(String(current.regular_price||"")!==regular||String(current.sale_price||"")!==sale){
+    result.priceBackups.push({slug,id:current.id,
+     previous:{regular_price:current.regular_price,sale_price:current.sale_price}});
+    await writeFile(DIR+"/result.json",JSON.stringify(result,null,2)+"\n");
+    const updatedPrice=await api("PUT","/wp-json/wc/v3/products/"+current.id,
+     {regular_price:regular,sale_price:sale});
+    if(updatedPrice?.id!==current.id)throw Error("Price PUT identity mismatch");
+    const confirmedPrice=await api("GET","/wp-json/wc/v3/products/"+current.id);
+    if(String(confirmedPrice.regular_price||"")!==regular||
+       String(confirmedPrice.sale_price||"")!==sale)
+      throw Error("Original source price readback mismatch");
+    current=confirmedPrice;
+    result.priceUpdated.push({slug,id:current.id,regular_price:regular,sale_price:sale});
+    console.log("BRAND_ORIGINAL_PRICE_VERIFIED="+slug);
+   }
    const meta=Array.isArray(current.meta_data)?current.meta_data:[];
    const sourceUrl=meta.find(x=>x.key==="_marine_source_url")?.value;
    if(sourceUrl&&sourceUrl!==item.url)throw Error("Canonical source identity mismatch");
