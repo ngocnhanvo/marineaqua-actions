@@ -20,7 +20,7 @@ try {
   result.routes.push({path:alias.from,final:page.url(),http:response?.status(),redirect:redirected?.status()});
   record("redirect_"+alias.from,ok,JSON.stringify(result.routes.at(-1)));
  }
- for(const path of ["/san-pham/thuong-hieu/","/san-pham/korallen-zucht/","/san-pham/korallen-zucht/2/"]){
+ for(const path of ["/san-pham/thuong-hieu/","/san-pham/thuong-hieu/16/","/san-pham/korallen-zucht/","/san-pham/korallen-zucht/2/","/san-pham/korallen-zucht/6/"]){
   const response=await page.goto(origin+path,{waitUntil:"domcontentloaded",timeout:40000});
   const info=await page.evaluate(()=>{
    const cards=[...document.querySelectorAll("article.group")];
@@ -39,6 +39,9 @@ try {
    };
   });
   result.routes.push({path,http:response?.status(),...info});
+  const expectedLastPage={"/san-pham/thuong-hieu/16/":6,"/san-pham/korallen-zucht/6/":8};
+  record("pagination_"+path,!expectedLastPage[path]||info.cards===expectedLastPage[path],
+    "expectedFinalPageCards="+expectedLastPage[path]+" actual="+info.cards);
   record("listing_"+path,response?.status()===200&&info.cards>0&&info.h1.length===1,
     "HTTP="+response?.status()+" cards="+info.cards+" h1="+info.h1.length);
   record("price_"+path,info.priceStyles.length===info.cards&&info.priceStyles.every(s=>s.includes("217, 38, 46")),
