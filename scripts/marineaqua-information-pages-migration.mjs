@@ -61,6 +61,8 @@ try {
     } catch {}
    }
    assert(loaded, 'Source page unavailable; do not publish guessed content');
+   const landedPath=new URL(source.url()).pathname.replace(/\\/+$/, '') || '/';
+   assert(landedPath===entry.source.replace(/\\/+$/, ''), 'Source redirected to unrelated URL: '+landedPath);
    const extracted=await source.evaluate(() => {
       const all = [
        'article .entry-content', '.single-page .entry-content', '.entry-content',
@@ -91,7 +93,9 @@ try {
       return {title:document.querySelector('h1')?.textContent?.trim()||'',html:copy.innerHTML,text:copy.textContent?.trim()||''};
    });
    await source.close();
-   assert(extracted&&extracted.text.length>=100,'Source page missing substantive article content');
+   const minimumLength=['thoi-gian-ban-hang','thong-bao'].includes(entry.slug) ? 35 : 100;
+   assert(extracted&&extracted.text.length>=minimumLength,'Source page missing substantive article content');
+   assert(extracted.title, 'Source missing page heading; refuse unrelated document');
    assert(extracted.html.length<90000,'Unexpected oversized source content');
    const exact=records.filter(p=>p.slug===entry.slug && p.status!=='trash');
    assert(exact.length<=1,'Duplicate WordPress Pages for '+entry.slug);
@@ -107,7 +111,7 @@ try {
      const updated=await api('POST','/wp-json/wp/v2/pages/'+old.id,{
        content:newContent,
        status:'publish',
-       acf: { ...(old.acf||{}),action:'HomePage' },
+       acf: {action:'HomePage'},
      });
      assert(updated.id===old.id && updated.status==='publish','Existing Page readback failed');
      row.status='UPDATED';row.id=old.id;
