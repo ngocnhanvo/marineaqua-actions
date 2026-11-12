@@ -1,4 +1,5 @@
 import { chromium } from "playwright";
+import { createHash } from "node:crypto";
 import { readFile,writeFile,mkdir } from "node:fs/promises";
 const ROOT="brand-gallery-parity-evidence";
 const WP="https://admin.marine-aqua.io.vn";
@@ -48,9 +49,33 @@ try{
   const expected=[...new Map(sourceProduct.fullImages.map(i=>[i.url,i])).values()].map(i=>filename(i.url));
   const actual=(target?.images||[]).map(i=>filename(i.src||""));
   result.checked++;
-  if(expected.length!==actual.length||expected.some((name,i)=>name!==actual[i])){
-   result.failures.push({slug,expected,actual});
-  }else result.passed++;
+  let match=expected.length===actual.length;
+  if(match){
+   for(let i=0;i<expected.length;i++){
+    if(expected[i]===actual[i])continue;
+    // WordPress normalizes the legacy double-dot filename. The source hash
+    // is the only permitted alias, and the uploaded bytes must match it.
+    if(!/\\.\\.(?=[^.]+$)/.test(expected[i]) ||
+       !/^marine-aqua-original-[a-f0-9]{20}\\.(png|jpe?g|webp)$/i.test(actual[i])){
+     match=false;break;
+    }
+    const original=sourceProduct.fullImages[i].url;
+    const current=target.images[i]?.src;
+    if(!current){match=false;break}
+    try{
+     const [src,dst]=await Promise.all([
+      context.request.get(original,{timeout:45000,failOnStatusCode:false}),
+      context.request.get(new URL(current,WP).href,{timeout:45000,failOnStatusCode:false}),
+     ]);
+     if(!src.ok()||!dst.ok()){match=false;break}
+     const a=createHash("sha256").update(await src.body()).digest("hex");
+     const b=createHash("sha256").update(await dst.body()).digest("hex");
+     if(a!==b||!actual[i].includes(a.slice(0,20))){match=false;break}
+    }catch{match=false;break}
+   }
+  }
+  if(!match)result.failures.push({slug,expected,actual});
+  else result.passed++;
  }
  result.status=result.failures.length?"FAIL":"PASS";
  console.log("BRAND_GALLERY_PARITY="+result.status+" matched="+result.passed+
