@@ -1,0 +1,29 @@
+name: GitHub Actions Dispatcher MCP tests (NO DEPLOY)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/github-actions-dispatcher-ci.yml'
+      - 'tools/github-actions-dispatcher/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: github-actions-dispatcher-ci
+  cancel-in-progress: false
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: |
+          node --check tools/github-actions-dispatcher/dispatcher.mjs
+          node --check tools/github-actions-dispatcher/server.mjs
+          node --check tools/github-actions-dispatcher/dispatcher.test.mjs
+      - name: Offline mock GitHub and MCP contract tests
+        run: node --test tools/github-actions-dispatcher/dispatcher.test.mjs
