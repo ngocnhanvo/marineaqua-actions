@@ -27,11 +27,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -eu
-          mkdir -p two-category-catalog-evidence two-category-mapping-evidence
+          mkdir -p two-category-catalog-evidence two-category-mapping-evidence two-category-price-oracle-evidence
           curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13929359331/zip" -o /tmp/source.zip
           python3 -m zipfile -e /tmp/source.zip two-category-catalog-evidence
           curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13931210653/zip" -o /tmp/mapping.zip
           python3 -m zipfile -e /tmp/mapping.zip two-category-mapping-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13932255797/zip" -o /tmp/prices.zip
+          python3 -m zipfile -e /tmp/prices.zip two-category-price-oracle-evidence
+          test -s two-category-price-oracle-evidence/oracle.json
       - name: Strict source WooCommerce product and category count parity
         env:
           WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
