@@ -62,6 +62,19 @@ try{
    console.log("TWO_CATEGORY_PRODUCTION_ROUTE="+JSON.stringify(output.routes.at(-1)));
   }
  }
+ // Regression guard: this migration must not alter the already accepted brand catalog.
+ for(const [slug,expected] of [["thuong-hieu",246],["korallen-zucht",88]]){
+  const path="/san-pham/"+slug+"/";
+  const response=await page.goto(ORIGIN+path,{waitUntil:"domcontentloaded",timeout:45000});
+  const record=await page.evaluate(()=>{
+   const text=document.querySelector("main")?.textContent||"";
+   const match=text.match(/Tổng\\s*(\\d+)\\s*sản phẩm/i);
+   return {count:match?Number(match[1]):-1,cards:document.querySelectorAll("article.group").length};
+  });
+  assert("regression_"+slug,response?.status()===200&&record.count===expected&&record.cards===16,
+   JSON.stringify(record));
+  output.routes.push({path,http:response?.status(),...record,expected,regression:true});
+ }
  // Confirm navigation links under both menu groups and no mobile overflow.
  for(const root of source.categoryRoots){
   await page.setViewportSize({width:390,height:844});
