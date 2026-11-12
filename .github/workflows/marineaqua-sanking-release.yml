@@ -1,0 +1,69 @@
+name: Marine Aqua Sanking verified production release
+on:
+  workflow_run:
+    workflows: ["Marine Aqua import verified Sanking galleries"]
+    types: [completed]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: marine-aqua-sanking-production-release
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Validate release scripts
+        run: |
+          node --check scripts/marineaqua-sanking-parity.mjs
+          node --check scripts/marineaqua-sanking-gallery-parity.mjs
+          node --check scripts/marineaqua-sanking-release-trigger.mjs
+          node --check scripts/marineaqua-sanking-postdeploy-qa.mjs
+      - name: Recover immutable Sanking source evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          for pair in "13940113224 sanking-catalog-evidence" "13940688222 sanking-mapping-evidence" "13940758307 sanking-price-oracle-evidence" "13939864153 sanking-gallery-source-evidence"; do
+            set -- $pair
+            mkdir -p "$2"
+            curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/$1/zip" -o "/tmp/$1.zip"
+            python3 -m zipfile -e "/tmp/$1.zip" "$2"
+          done
+      - name: Gate 96 Sanking source products and one category against WooCommerce
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-sanking-parity.mjs
+      - name: Gate original gallery image identity and order
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-sanking-gallery-parity.mjs
+      - name: Dispatch canonical Astro production build and await signed activation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REPO_PAT: ${{ secrets.SOURCE_REPO_PAT }}
+        run: node scripts/marineaqua-sanking-release-trigger.mjs
+      - name: Verify Sanking live listing and responsive product grid
+        run: node scripts/marineaqua-sanking-postdeploy-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-sanking-release-verification
+          path: |
+            sanking-parity-evidence/
+            sanking-gallery-parity-evidence/
+            sanking-release-evidence/
+            sanking-production-qa-evidence/
+          retention-days: 14
