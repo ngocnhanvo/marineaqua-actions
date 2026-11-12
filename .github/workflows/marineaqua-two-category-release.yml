@@ -1,0 +1,70 @@
+name: Marine Aqua final two category verified production release
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: marine-aqua-two-category-production-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Verify source script syntax
+        run: |
+          node --check scripts/marineaqua-two-category-parity.mjs
+          node --check scripts/marineaqua-two-category-gallery-parity.mjs
+          node --check scripts/marineaqua-two-category-release-trigger.mjs
+          node --check scripts/marineaqua-two-category-postdeploy-qa.mjs
+      - name: Restore immutable original source and taxonomy evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          mkdir -p two-category-catalog-evidence two-category-mapping-evidence two-category-gallery-source-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13929359331/zip" -o /tmp/source.zip
+          python3 -m zipfile -e /tmp/source.zip two-category-catalog-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13931210653/zip" -o /tmp/mapping.zip
+          python3 -m zipfile -e /tmp/mapping.zip two-category-mapping-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13929634487/zip" -o /tmp/gallery.zip
+          python3 -m zipfile -e /tmp/gallery.zip two-category-gallery-source-evidence
+          test -s two-category-catalog-evidence/manifest.json
+          test -s two-category-mapping-evidence/mapping.json
+          test -s two-category-gallery-source-evidence/manifest.json
+      - name: Gate 142 source products and seven categories against WooCommerce
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-two-category-parity.mjs
+      - name: Gate high-resolution original gallery parity
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-two-category-gallery-parity.mjs
+      - name: Dispatch canonical production Astro build and await activation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REPO_PAT: ${{ secrets.SOURCE_REPO_PAT }}
+        run: node scripts/marineaqua-two-category-release-trigger.mjs
+      - name: Verify seven live category routes and responsive product grid
+        run: node scripts/marineaqua-two-category-postdeploy-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-two-category-release-verification
+          path: |
+            two-category-parity-evidence/
+            two-category-gallery-parity-evidence/
+            two-category-release-evidence/
+            two-category-production-qa-evidence/
+          retention-days: 14
