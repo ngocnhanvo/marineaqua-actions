@@ -31,6 +31,7 @@ jobs:
           WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
         run: node scripts/marineaqua-information-pages-migration.mjs
       - name: Trigger the existing canonical Astro production pipeline after verified CMS updates
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
