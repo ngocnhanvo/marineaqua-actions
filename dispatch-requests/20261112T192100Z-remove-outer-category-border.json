@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "05cd05b635198f9d7ecdae683ccdee308ba35b0b",
+  "reason": "Deploy borderless product category accordion on desktop and mobile",
+  "request_id": "20261112T192100Z-remove-outer-category-border",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
