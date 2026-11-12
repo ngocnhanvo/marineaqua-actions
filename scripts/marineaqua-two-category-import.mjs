@@ -84,7 +84,7 @@ try {
    valid(oldHash===newHash,"Different legacy media content under same filename "+filename);
   }
   if(!priorSource)originalSources.set(filename,src.href);
-  const reused=mediaByFilename.get(filename);
+  const reused=/^download\.(jpe?g|png|webp)$/i.test(filename)?null:mediaByFilename.get(filename);
   if(reused){
    valid(isOwnedMedia(reused.source_url),"Media origin mismatch");
    const [sourceResponse,targetResponse]=await Promise.all([
@@ -110,7 +110,7 @@ try {
   // WordPress reserves image-size suffixes and sanitizes Unicode punctuation.
   // Use a stable, collision-resistant media name only for the known unsafe
   // filename patterns; keep source filename and exact bytes in metadata.
-  const riskyFilename=/woocommerce-placeholder|[\u2018\u2019]|-\d+x\d+\.[^.]+$|\.\.[^.]+$/i.test(filename);
+  const riskyFilename=/woocommerce-placeholder|[\u2018\u2019]|-\d+x\d+\.[^.]+$|\.\.[^.]+$|^download\.(jpe?g|png|webp)$/i.test(filename);
   const originalHash=createHash("sha256").update(bytes).digest("hex");
   const safeFilename=riskyFilename
     ? "marine-aqua-original-"+originalHash.slice(0,20)+"."+filename.split(".").at(-1).toLowerCase()
