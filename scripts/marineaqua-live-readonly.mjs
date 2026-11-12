@@ -388,7 +388,7 @@ try {
         const sale=document.querySelector("#desktop-menu > ul > li[data-marine-sale] > a, #desktop-menu > ul > li[data-marine-sale] > button, #desktop-menu > ul > li[data-marine-sale] > span");
         const css=sale?getComputedStyle(sale):null;
         const rgb=css?.color||"";
-        const okColor=rgb==="rgb(214, 51, 75)";
+        const okColor=rgb==="rgb(193, 42, 67)";
         return {
           sizes, uniform:sizes.length>=5&&new Set(sizes).size===1,
           saleBackground:css?.backgroundColor||"",
@@ -1139,7 +1139,7 @@ const cleanLabelsPass=cleanEntries.length===cleanExpectedLabels.length&&cleanEnt
   normalizeClean(item.label)===cleanExpectedLabels[i]);
 const cleanSale=cleanEntries.find(item=>item.sale);
 const cleanSalePass=Boolean(cleanSale &&
-  cleanSale.color==="rgb(214, 51, 75)" &&
+  cleanSale.color==="rgb(193, 42, 67)" &&
   cleanSale.backgroundColor==="rgba(0, 0, 0, 0)" &&
   !cleanSale.backgroundImage.includes("gradient") &&
   !cleanSale.boltSvg);
