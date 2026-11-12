@@ -26,7 +26,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           SOURCE_REPO_PAT: ${{ secrets.SOURCE_REPO_PAT }}
         run: |
-          set -euo pipefail
+          set -eu
           mkdir -p brand-final-acceptance-evidence
           curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/runs/43182976954" -o /tmp/release-run.json
           curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/runs/43182976954/jobs" -o /tmp/release-jobs.json
