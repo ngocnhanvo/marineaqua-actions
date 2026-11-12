@@ -1,10 +1,8 @@
 name: Marine Aqua restore full verified galleries
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/marineaqua-brand-gallery-import.mjs'
-      - '.github/workflows/marineaqua-brand-gallery-import.yml'
+  workflow_run:
+    workflows: ["Marine Aqua import verified brand products batch"]
+    types: [completed]
   workflow_dispatch:
 permissions:
   contents: read
@@ -14,6 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   gallery:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     container:
