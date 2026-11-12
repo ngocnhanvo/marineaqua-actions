@@ -1,4 +1,5 @@
 name: Marine Aqua Astro source checks (NO DEPLOY)
+# Recheck live product-category route and red price listing changes on Astro master.
 on:
   push:
     branches: [main]
