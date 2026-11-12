@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "90bce1958558e49805cb90fa0706adaab95801df",
+  "reason": "Deploy consistent desktop and mobile product category accordion",
+  "request_id": "20261112T190500Z-product-category-accordion",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
