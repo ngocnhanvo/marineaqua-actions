@@ -61,8 +61,8 @@ try {
     } catch {}
    }
    assert(loaded, 'Source page unavailable; do not publish guessed content');
-   const landedPath=new URL(source.url()).pathname.replace(/\\/+$/, '') || '/';
-   assert(landedPath===entry.source.replace(/\\/+$/, ''), 'Source redirected to unrelated URL: '+landedPath);
+   const landedPath=new URL(source.url()).pathname.replace(/\/+$/, '') || '/';
+   assert(landedPath===entry.source.replace(/\/+$/, ''), 'Source redirected to unrelated URL: '+landedPath);
    const extracted=await source.evaluate(() => {
       const all = [
        'article .entry-content', '.single-page .entry-content', '.entry-content',
