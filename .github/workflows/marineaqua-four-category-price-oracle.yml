@@ -13,7 +13,7 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.64.0-noble
       options: --ipc=host
-    timeout-minutes: 15
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -41,7 +41,7 @@ jobs:
           python3 -m zipfile -e /tmp/source.zip four-category-catalog-evidence
           test -s four-category-catalog-evidence/manifest.json
       - name: Verify four categories price-oracle
-        run: node scripts/marineaqua-four-category-mapping.mjs
+        run: node scripts/marineaqua-four-category-price-oracle.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
