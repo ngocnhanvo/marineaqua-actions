@@ -9,7 +9,7 @@ permissions:
   actions: read
 jobs:
   gallery:
-    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.id == 43170661626 && github.event.workflow_run.conclusion == 'success')
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.id == 43176146719 && github.event.workflow_run.conclusion == 'success')
     concurrency:
       group: marine-aqua-woocommerce-brand-import
       cancel-in-progress: false
