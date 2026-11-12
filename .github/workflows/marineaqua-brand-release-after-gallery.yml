@@ -1,0 +1,71 @@
+name: Marine Aqua brand release after verified galleries
+on:
+  workflow_run:
+    workflows: ["Marine Aqua restore full verified galleries"]
+    types: [completed]
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: marine-aqua-brand-production-release
+  cancel-in-progress: false
+jobs:
+  verified-release:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Validate release and QA scripts
+        run: |
+          node --check scripts/marineaqua-brand-post-import-parity.mjs
+          node --check scripts/marineaqua-brand-gallery-parity.mjs
+          node --check scripts/marineaqua-brand-release-trigger.mjs
+          node --check scripts/marineaqua-brand-postdeploy-qa.mjs
+      - name: Download verified original product, taxonomy and gallery snapshots
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p brand-catalog-evidence brand-taxonomy-mapping-evidence brand-gallery-source-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13917609900/zip" --output /tmp/products.zip
+          python3 -m zipfile -e /tmp/products.zip brand-catalog-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13918288250/zip" --output /tmp/mapping.zip
+          python3 -m zipfile -e /tmp/mapping.zip brand-taxonomy-mapping-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13920814186/zip" --output /tmp/gallery.zip
+          python3 -m zipfile -e /tmp/gallery.zip brand-gallery-source-evidence
+          test -s brand-catalog-evidence/manifest.json
+          test -s brand-taxonomy-mapping-evidence/mapping.json
+          test -s brand-gallery-source-evidence/manifest.json
+      - name: Gate original product parity against live WooCommerce
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-brand-post-import-parity.mjs
+      - name: Gate original full-resolution gallery identity and order
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-brand-gallery-parity.mjs
+      - name: Dispatch and monitor canonical production Astro pipeline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/marineaqua-brand-release-trigger.mjs
+      - name: Verify live production category UX in browser
+        run: node scripts/marineaqua-brand-postdeploy-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-brand-release-verification
+          path: |
+            brand-post-import-parity-evidence/
+            brand-gallery-parity-evidence/
+            brand-release-evidence/
+            brand-postdeploy-qa-evidence/
+          retention-days: 14
