@@ -23,6 +23,7 @@ try{
   priceText:document.querySelector(".summary .price")?.textContent?.trim()||"",
   sku:document.querySelector(".sku")?.textContent?.trim()||""
  }));
+ console.log("PROMOTION_SOURCE_DIAGNOSTIC="+JSON.stringify({url:original.url(),documentTitle:await original.title(),detail,images:await original.locator('img').evaluateAll(xs=>xs.slice(0,14).map(x=>({alt:x.alt,src:x.getAttribute('src'),dataSrc:x.getAttribute('data-src')})))}).slice(0,5200));
  valid(detail.title&&detail.image,"Source title / main media missing");
  const sourceImage=new URL(detail.image,SOURCE);
  valid(sourceImage.origin===SOURCE&&sourceImage.pathname.startsWith("/wp-content/uploads/"),"Source image is not legacy-owned WP media");
