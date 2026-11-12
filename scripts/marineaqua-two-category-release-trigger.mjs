@@ -145,5 +145,5 @@ try{
  console.error("MARINEAQUA_TWO_CATEGORY_BRAND_RELEASE_FAIL="+report.error);
  process.exitCode=1;
 }finally{
- await writeFile("brand-release-evidence/result.json",JSON.stringify(report,null,2)+"\n");
+ await writeFile("two-category-release-evidence/result.json",JSON.stringify(report,null,2)+"\n");
 }
