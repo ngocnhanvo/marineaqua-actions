@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "0c8be85f74f61727ed64bd601f26d0a31549048e",
+  "reason": "Publish final product detail redesign including consultation CTA",
+  "request_id": "20261112T212000Z-product-details-final",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
