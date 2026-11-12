@@ -76,7 +76,7 @@ try{
   valid(/^[^\/\\\x00-\x1f]{1,170}\.(png|jpe?g|webp)$/i.test(filename),"Image filename invalid");
   valid(!originalSources.has(filename)||originalSources.get(filename)===src.href,"Filename collision "+filename);
   originalSources.set(filename,src.href);
-  const riskyFilename=/\.\.(?=[^.]+$)|woocommerce-placeholder|[\u2018\u2019]|-\d+x\d+\.[^.]+$/i.test(filename);
+  const riskyFilename=/\.\.(?=[^.]+$)|woocommerce-placeholder|[\u2018\u2019]|-\d+x\d+\.[^.]+$|^download\.(jpe?g|png|webp)$/i.test(filename);
   const originalResponse=await (async()=>{
    for(let attempt=1;attempt<=4;attempt++){
     try{
