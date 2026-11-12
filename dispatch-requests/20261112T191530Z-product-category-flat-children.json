@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "485906a26360c67bfb517ea9e354a0c1a04e2472",
+  "reason": "Deploy flat product category child rows and neutral parent states",
+  "request_id": "20261112T191530Z-product-category-flat-children",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
