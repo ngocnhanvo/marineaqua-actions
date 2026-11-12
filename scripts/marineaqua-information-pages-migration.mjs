@@ -70,7 +70,7 @@ try {
        'article', '#content .content-area'
       ];
       const candidates=all.flatMap(selector=>[...document.querySelectorAll(selector)]);
-      const element=candidates.find(node=>(node.textContent||'').trim().length>100);
+      const element=candidates.find(node=>(node.textContent||'').trim().length>25);
       if(!element)return null;
       const copy=element.cloneNode(true);
       copy.querySelectorAll('script,style,iframe,form,button,nav,aside,footer,.sidebar,.widget,.breadcrumbs,.related-posts,.share-buttons').forEach(n=>n.remove());
@@ -104,6 +104,17 @@ try {
    const newContent=extracted.html.trim();
    if(old && current.trim().length>=100){
      // Preserve already-authored material, never overwrite silently.
+     if(old.acf?.action !== 'HomePage') {
+       const fixed = await api('POST','/wp-json/wp/v2/pages/'+old.id,{
+         acf:{action:'HomePage'},
+       });
+       assert(fixed.id===old.id, 'Existing Page action update failed');
+       row.actionFixed=true;
+     }
+     if(old.status!=='publish'){
+       const published=await api('POST','/wp-json/wp/v2/pages/'+old.id,{status:'publish'});
+       assert(published.status==='publish','Existing Page publish failed');
+     }
      row.status='EXISTING_CONTENT_PRESERVED';
      row.id=old.id;
      row.compare={sourceTextLength:extracted.text.length,existingHtmlLength:current.length};
