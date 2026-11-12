@@ -84,7 +84,7 @@ jobs:
           assert.match(css,/#footer-contact > \.marine-footer__content/);
           console.log('MARINEAQUA_FOOTER_SOURCE=PASS');
           NODE
-      - name: Run Astro unit tests
+      - name: Run Astro unit tests including paginated product logs
         run: pnpm run test:run
       # Validate approved Marine Aqua design integration with local Quicksand, CMS-only menu and prices.
       - name: Run Astro code checks
