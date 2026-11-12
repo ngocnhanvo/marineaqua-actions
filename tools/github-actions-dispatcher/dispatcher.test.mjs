@@ -118,6 +118,34 @@ test("MCP server rejects unauthorized requests and offers exactly three tools", 
     assert.equal(list.result.tools[2].annotations.readOnlyHint, true);
     const init = await (await send("initialize", 3, bearerToken)).json();
     assert.equal(init.result.serverInfo.name, "github-actions-dispatcher");
+    const call = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + bearerToken
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 4, method: "tools/call",
+        params: { name: "get_workflow_run", arguments: { repo, run_id: 12345 } }
+      })
+    });
+    const result = await call.json();
+    assert.equal(result.result.structuredContent.stage,
+      "RUN_COMPLETED_NOT_LIVE_QA_PASS");
+    const invalid = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + bearerToken
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 5, method: "tools/call",
+        params: { name: "workflow_dispatch", arguments: {
+          repo: "ngocnhanvo/unapproved", workflow_id: "nope.yml", ref: "main"
+        } }
+      })
+    });
+    assert.equal((await invalid.json()).result.isError, true);
   } finally {
     await new Promise(resolve => server.close(resolve));
   }
