@@ -1,28 +1,69 @@
 # Marine Aqua — latest response
 
-- Checkpoint: 2026-11-12, remove outdated fixed bottom contact bar from mobile/desktop.
-- Astro production: ngocnhanvo/marineaqua-astro@master **c8eec1c10d1f1b72de45ccdd1c5d4f385366394e**.
-- Actions main prior checkpoint: **94d4ef223afe4b7323b4b9474ef68a1331177c78**.
-- Knowledge/main and WordPress/PHP/master unchanged.
-- User saw the old turquoise sticky bottom contact bar (phone, Zalo, quote) at mobile viewport even though the new floating Tư vấn consultation panel already replaced it. Request DONE.
+- Checkpoint: 2026-11-12 12:14+07, resume brand-category product migration.
+- Astro master: c8eec1c10d1f1b72de45ccdd1c5d4f385366394e (unchanged).
+- PHP master: 54574851f0eaea9e40341b36c5a7215573bc436e (unchanged).
+- Knowledge main: 945d1dc265ee.
+- Actions main: 7920362019bb14970e0643932f0217562632a662 (before this checkpoint).
+- Previous sticky-bottom removal was verified DONE, do not repeat.
 
-## Changes
-- Astro `src/astro/components/Layout/Layout.astro`, commit `02fadda8`: remove BottomContactBar import and rendering, remove now-unused hotline/zalo/contactHref builder and `linkNavigation` import, remove `html.header-sticky-active` positioning rules that used to push the consultation and back-to-top buttons away from the bottom bar.
-- Existing `ContactWidget` remains, with real WordPress phone/Messenger/Zalo data and AI chat; footer contacts remain.
-- Astro `src/tests/contact-config.test.ts` commit `c8eec1c`: regression guard against rendering retired bottom contact bar.
-- Actions `scripts/marineaqua-live-readonly.mjs` commit `94d4ef22`: post-deploy Playwright asserts `#bottom-contact-bar` absent and sticky-active class not attached while scrolled.
+## Current owner task
 
-## Verified
-- Astro source CI https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43124177120 latest attempt SUCCESS, 216/216 unit tests PASS and astro check 0 errors/0 warnings on c8eec1c.
-- Production deploy https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43136036466 attempt 11 SUCCESS, deployed c8eec1c; ASTRO_BUILD_COMPLETE=PASS, FTPS_UPLOAD=PASS, SIGNED_UNZIP_SUCCESS.
-- Post-deploy browser https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43156243787: targeted `MARINEAQUA_CONSULTATION_PANEL=PASS` at 390px and 1440px; `retiredStickyBarAbsent=true`; consultation panel, click toggle, Escape, AI, links and floating-button 31px gap all PASS.
-- Overall read-only QA still FAILED on unrelated pre-existing `MARINEAQUA_CATEGORY_SCROLL_ANCHOR` scroll resetting to zero and `MARINEAQUA_HOME00_BANNER` media/navigation.
+Transfer ALL original products belonging to original `BRAND - HÃNG SẢN XUẤT` at
+`https://marine-aqua.vn/danh-muc/thuong-hieu/` and descendants to target
+WooCommerce `https://admin.marine-aqua.io.vn` and complete corresponding
+`https://marine-aqua.io.vn` category product-list pages. This is NOT yet done.
 
-## Remaining known backlog (not current request)
-- Category scroll-anchor.
-- Home_00 banner media and mobile navigation.
-- Lighthouse Best Practices CSP assessment.
+## New verified evidence
+
+- New read-only workflow: `.github/workflows/marineaqua-brand-catalog-inventory.yml`.
+- New source script: `scripts/marineaqua-brand-catalog-inventory.mjs`.
+- Successful inventory workflow run:
+  https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43159747154
+- Logs: `BRAND_SOURCE_INVENTORY=PASS listingPages=21 uniqueProducts=246 categoryLinks=144`;
+  `BRAND_TARGET_CATEGORY_HTTP=200`.
+- Saved artifact `marine-aqua-brand-catalog-inventory`, ID 13916664620,
+  manifest.json with 246 unique source product links and source list pages.
+- 144 category links are URLs extracted across page sidebars; NOT 144
+  verified brand descendants. Normalize/validate subtree before import.
+- First workflow run #43159622768 failed on JS regex syntax; corrected in
+  commit 7920362; subsequent workflow #43159747154 completed SUCCESS.
+- No WooCommerce records were changed; no new Astro deploy performed.
+
+## Previously completed — preserve
+
+- 20 real products for five homepage brands were already imported and bound
+  to ESC Tables home_04–home_08 (see docs/homepage-esc-section-checkpoint.md).
+- Real products/categories must be reused by source slug/source URL/source ID,
+  never blindly duplicated.
+- Existing published Product listing Page `san-pham` and SSR route are present
+  in repository; verify live behavior against source before changing.
+
+## Exact next steps
+
+1. Retrieve inventory artifact and crawl all 246 source product URLs for
+   source ID, title, slug, price, stock, SKU, taxonomy membership, own media
+   filenames, SEO title/meta description, and pagination/source snapshot.
+2. Read ALL target WooCommerce products and product_cat terms with pagination,
+   compare source and target by canonical source URL/source ID/slug, document
+   missing records and category mapping, and back up scoped records.
+3. Adapt existing native WordPress importer from `scripts/marineaqua-import-home-products.mjs`
+   for bounded, resumable product batches and owned media uploads. Enforce
+   idempotency, asset deferrals (initial + max 3 retries), original filenames,
+   SEO readback and strict write scope.
+4. Execute/import only verified missing records; preserve existing 20 and
+   existing category hierarchy. Record created/reused/failed with IDs.
+5. QA actual brand and child category listing routes, responsive UI,
+   pagination, item counts and all navigation; fix SSR/frontend as needed.
+6. Run source CI, production no-deploy build, sanctioned production workflow,
+   await result and post-deploy Playwright/parity evidence.
+
+## Status
+
+SOURCE_LISTING_INVENTORY_PASS; PRODUCT_DETAIL_INVENTORY_NOT_DONE;
+DATA_PARITY_NOT_DONE; IMPORT_NOT_STARTED_FOR_REMAINING_PRODUCTS;
+VISUAL_QA_NOT_DONE; PRODUCTION_RELEASE_NOT_DONE.
 
 Chế độ code: auto-build
 Cổng ghi source: bypass
-Trạng thái: DONE — hoàn tất
+Trạng thái: PARTIAL — chưa hoàn tất
