@@ -24,6 +24,7 @@ FILES = (
     "wp-content/mu-plugins/esc-github-trigger-config.php",
     "wp-content/mu-plugins/esc-seo-files.php",
     "wp-content/plugins/github-trigger/vcs-build-trigger.php",
+    "wp-content/plugins/github-trigger/products/endpoint.php",
     "wp-content/plugins/github-trigger/vcs-build-trigger.js",
 )
 raw = os.environ.get("FTP_SERVER", "").strip()
