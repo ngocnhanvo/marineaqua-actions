@@ -7,12 +7,12 @@ on:
 permissions:
   contents: read
   actions: read
-concurrency:
-  group: marine-aqua-woocommerce-brand-import
-  cancel-in-progress: false
 jobs:
   seo-repair:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    concurrency:
+      group: marine-aqua-woocommerce-brand-import
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 40
     container:
