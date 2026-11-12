@@ -1058,6 +1058,54 @@ try {
     }finally{await page.close();}
   }
 
+  // Regression for the three audited Lighthouse accessibility failures.
+  // Read-only: the published DOM is inspected without changing any user data.
+  {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    try {
+      await page.goto(frontend.origin + "/", { waitUntil: "domcontentloaded", timeout: 45000 });
+      await page.waitForTimeout(900);
+      const audit = await page.evaluate(() => {
+        const actions = [...document.querySelectorAll("#header-contacts > span[data-header-action]")];
+        const rolesValid = actions.length === 2 && actions.every(el =>
+          el.getAttribute("role") === "img" && Boolean(el.getAttribute("aria-label")));
+        const inactiveSlides = [...document.querySelectorAll('figure[data-home-slide][aria-hidden="true"]')];
+        const slidesInert = inactiveSlides.length > 0 && inactiveSlides.every(el => el.hasAttribute("inert"));
+        const caption = document.querySelector("#desktop-menu [data-marine-sale] .marine-sale-caption");
+        const sourceColor = caption ? getComputedStyle(caption).color : "";
+        const backgroundColor = document.querySelector("#header-navrow") ?
+          getComputedStyle(document.querySelector("#header-navrow")).backgroundColor : "";
+        const channels = color => {
+          const values = color.match(/\\d+(?:\\.\\d+)?/g)?.slice(0, 3).map(Number) || [];
+          return values.length === 3 ? values.map(v => {
+            const c = v / 255;
+            return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+          }) : null;
+        };
+        const luminance = color => {
+          const rgb = channels(color);
+          return rgb ? rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722 : null;
+        };
+        const fg = luminance(sourceColor), bg = luminance(backgroundColor);
+        const contrast = fg === null || bg === null ? 0 :
+          (Math.max(fg, bg) + .05) / (Math.min(fg, bg) + .05);
+        return { rolesValid, slidesInert, inactiveSlides: inactiveSlides.length,
+          sourceColor, backgroundColor, contrast: Number(contrast.toFixed(2)),
+          pass: rolesValid && slidesInert && contrast >= 4.5 };
+      });
+      summary.lighthouseAccessibility = audit;
+      console.log("MARINEAQUA_LIGHTHOUSE_ACCESSIBILITY=" + (audit.pass ? "PASS" : "FAIL") +
+        " " + JSON.stringify(audit));
+      if (!audit.pass) process.exitCode = 1;
+    } catch (error) {
+      summary.lighthouseAccessibility = { pass: false, error: String(error.message || error).slice(0, 240) };
+      console.log("MARINEAQUA_LIGHTHOUSE_ACCESSIBILITY=FAIL " + JSON.stringify(summary.lighthouseAccessibility));
+      process.exitCode = 1;
+    } finally {
+      await page.close();
+    }
+  }
+
   const context = await browser.newContext();
   for (const [label, path] of [
     ["menus", "/wp-json/esc-api/v1/menus"],
