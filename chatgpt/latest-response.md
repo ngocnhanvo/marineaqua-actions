@@ -1,44 +1,37 @@
 # Marine Aqua — latest response
 
-- Checkpoint: 2026-11-12 10:00+07:00, Accessibility / Best Practices Lighthouse follow-up.
-- Scope: marine-aqua.vn; frontend https://marine-aqua.io.vn; WordPress https://admin.marine-aqua.io.vn.
-- Knowledge: ngocnhanvo/knowledge@main, CORE-01..09 / relevant Astro/WordPress and Playwright stacks.
-- Astro: ngocnhanvo/marineaqua-astro@master eafca07427539473c5ad7377d1c904b7df186dd9.
-- PHP: ngocnhanvo/marineaqua-php@master 54574851 (unchanged).
-- Actions: ngocnhanvo/marineaqua-actions@main 8106d4f84a57fbe77deb83c045d3fdac55d60356 (QA source before checkpoint).
-- Prior CLS fix c518083c, last production comparison CLS 0 at desktop: DONE; do not repeat.
-- Prior keyboard/focus fix to hidden slide anchors 0c5ccc4: DONE; do not repeat.
-- Lighthouse source report: Accessibility 89/100; Best Practices 96/100. Accessibility failures: aria-hidden-focus, aria-prohibited-attr, color-contrast (promo contrast 4.46 vs 4.5). Best Practices failure: inspector-issues => Content security policy, no affected URLs in report.
+- Checkpoint: 2026-11-12 10:35+07:00, contact consultation widget UI replacement.
+- Project: marine-aqua.vn, frontend https://marine-aqua.io.vn, WordPress https://admin.marine-aqua.io.vn.
+- Astro: ngocnhanvo/marineaqua-astro@master ea98d90e5d2d1ae372ea93c57707b6cc9d5d3d2b.
+- Actions: ngocnhanvo/marineaqua-actions@main edb8dc60d2d988343bc76c6a214113316e622dd8 prior to checkpoint.
+- PHP: ngocnhanvo/marineaqua-php@master 54574851f0eaea9e40341b36c5a7215573bc436e unchanged.
+- User asked to replace "Chat với AI Agent" floating launcher with the consultation popup from supplied image, but adapt real Marine Aqua contact details; **this request DONE**.
 
-## Implemented
+## Changes implemented
 
-- Astro 72dd730: role=img on two non-interactive header icons with aria-label.
-- Astro eafca074: promo red #d6334b -> #c12a43 in final CSS, 5.38:1 contrast on #f3f9ff.
-- Actions 20514b1: update existing visual-QA color assertions.
-- Actions c9691ed + 9ad204b: add corrected read-only regression for icon semantics, inert slides, promo contrast.
-- Actions 8106d4f: inspect CSP on clean Playwright Chromium using CDP Audits.
+- src/astro/components/Tool/ContactWidget.astro: compact circular "Tư vấn" button opens a responsive contact panel with phone, Messenger/Facebook, Zalo and Chat with AI assistant; maintains existing AI backend, conversation history and draggable launcher; Escape/outside-click/close work; accessible aria and inert for hidden panels.
+- src/astro/components/Layout/Layout.astro: passes current WordPress WPInfo and locale into widget.
+- src/tests/contact-config.test.ts: WordPress source and widget behavior contract checks.
+- All actual contact links are generated from current-locale WordPress fields; missing channels suppressed (no hardcoded sample phone). On production QA verified 0931 37 36 36, https://m.me/FISHLOVERSHOP and https://zalo.me/0931373636.
+- Astro commits: 1e96b268, 967b203b, 8317d618, 6f37f086, 7075e80a; final fix ea98d90 (AI opens immediately, parser/history async).
 
-## Verified run evidence
+## Evidence
 
-- CI source check: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43124177120 attempt 2 SUCCESS; checked Astro commit eafca074, 209/209 unit tests PASS, astro check 0 errors/0 warnings.
-- Production release: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43136036466 attempt 3 SUCCESS, deploying Astro eafca074; FTPS_UPLOAD=PASS, SIGNED_UNZIP_SUCCESS.
-- Post-deploy read-only Playwright: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43144280281 (overall FAILED; targeted MARINEAQUA_LIGHTHOUSE_ACCESSIBILITY=PASS; rolesValid=true, slidesInert=true, inactiveSlides=2, contrast=5.38).
-- CSP browser verification: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43144791043 (overall FAILED due unrelated existing failures; targeted CSP audit pageCspPresent=true, scriptUnsafeInline=true, scriptStrictDynamic=false, issues=[]; accessibility PASS again).
-- Remaining unrelated full-suite failures: MARINEAQUA_CATEGORY_SCROLL_ANCHOR (scroll reset to 0 on toggle), MARINEAQUA_HOME00_BANNER (media not loaded and mobile slide navigation fail).
-- No fresh Lighthouse scoring after release. Browser CSP check alone does not prove old Chrome DevTools issue resolved in user's audit environment.
+- CI run https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43124177120 attempt 4: 212/212 tests PASS, astro check 0 errors / 0 warnings, exact source ea98d90.
+- Production release https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43136036466 attempt 5: completed/success with MARINEAQUA_DEPLOY_COMMIT=ea98d90, ASTRO_BUILD_COMPLETE=PASS, FTPS_UPLOAD=PASS, SIGNED_UNZIP_SUCCESS.
+- After-deploy read-only Playwright https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43147634583 attempt 2: targeted MARINEAQUA_CONSULTATION_PANEL=PASS at 390px and 1440px; panel opens and stays in viewport, links valid, Escape/outside close, AI opens and closes.
+- Full read-only Playwright workflow remains failure because unrelated previously-known tests MARINEAQUA_CATEGORY_SCROLL_ANCHOR and MARINEAQUA_HOME00_BANNER fail. Do not conflate with widget acceptance.
 
-## Next precise steps
+## Still open from earlier checkpoint, not part of this widget task
 
-1. Re-run real Lighthouse clean browser on current production to determine whether Best Practices inspector-issues persists and identify original CSP issue source. If improvement requires nonce/hash/strict-dynamic changes to security architecture, provide impact, compatibility/rollback and seek explicit owner approval; never weaken CSP to raise score.
-2. Diagnose and fix two separate existing UI QA failures (category scroll anchor, Home_00 banner media and mobile nav) from current source/WordPress, only after source-specific confirmation; do not use arbitrary placeholders or alter CMS without relevant rights.
-3. Distinguish targeted Accessibility PASS and production deploy PASS from full Playwright FAIL, Lighthouse not re-scored.
+- Full suite's category scroll-anchor and Home_00 banner-media/mobile navigation failures.
+- Best Practices Lighthouse CSP audit needs separate clean rerun and assessment; do not relax CSP without approval.
+- Prior desktop CLS and Accessibility targeted fixes were already completed/deployed and should not be repeated.
 
-## Intended full final response
+## Intended final response
 
-Đã đọc lại Knowledge và checkpoint mới nhất, không lặp lại phần CLS/footer đã hoàn tất. Đã sửa ba lỗi Accessibility từ Lighthouse, commit Astro `eafca074`, chạy CI 209/209 PASS và deploy thành công qua production run #43136036466 attempt 3. Playwright trên production xác nhận ARIA và slide ẩn đúng, màu “Khuyến mãi” đạt 5,38:1.
-
-Best Practices chưa thể chốt: Chrome sạch ghi nhận 0 CSP issue trong phiên, nhưng site vẫn sử dụng `'unsafe-inline'` và chưa có phép đo Lighthouse mới. Bộ Playwright tổng vẫn FAIL vì lỗi cuộn danh mục và banner đã tồn tại trước đó, không phải do sửa Accessibility. Đã cập nhật bài kiểm thử và lưu checkpoint, bước tiếp theo là khoanh vùng CSP và xử lý hai lỗi UI riêng.
+Đã thay nút Chat với Agent bằng nút Tư vấn và bảng liên hệ bốn kênh ngay trong source Astro. Thông tin liên hệ được lấy trực tiếp từ WordPress; AI vẫn hoạt động. Source CI PASS, production deploy thành công và Playwright kiểm chứng mobile/desktop PASS. Bộ kiểm thử toàn trang vẫn có lỗi danh mục/banner tồn tại trước đó.
 
 Chế độ code: auto-build
 Cổng ghi source: bypass
-Trạng thái: PARTIAL — chưa hoàn tất
+Trạng thái: DONE — hoàn tất
