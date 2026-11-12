@@ -1,7 +1,7 @@
-name: Marine Aqua brand release after verified galleries
+name: Marine Aqua brand release after verified SEO and galleries
 on:
   workflow_run:
-    workflows: ["Marine Aqua restore full verified galleries"]
+    workflows: ["Marine Aqua repair verified Yoast SEO metadata"]
     types: [completed]
 permissions:
   actions: read
