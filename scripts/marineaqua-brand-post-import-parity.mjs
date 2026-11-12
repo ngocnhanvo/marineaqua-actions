@@ -5,7 +5,7 @@ const dir="brand-post-import-parity-evidence";
 await mkdir(dir,{recursive:true});
 const result={checkedAt:new Date().toISOString(),checked:0,matched:0,
  missing:[],duplicates:[],wrongCategories:[],wrongPrice:[],wrongStock:[],
- wrongMedia:[],sourceMissingSeo:[],galleryReview:[],metadataReview:[],errors:[]};
+ wrongMedia:[],sourceMissingSeo:[],galleryReview:[],metadataReview:[],titleReview:[],skuReview:[],seoReview:[],descriptionReview:[],mediaFilenameReview:[],errors:[]};
 const source=JSON.parse(await readFile("brand-catalog-evidence/manifest.json","utf8"));
 const mapping=JSON.parse(await readFile("brand-taxonomy-mapping-evidence/mapping.json","utf8"));
 const valid=(cond,msg)=>{if(!cond)throw Error(msg)};
@@ -79,6 +79,24 @@ try{
   const metas=Array.isArray(target.meta_data)?target.meta_data:[];
   const originMeta=metas.find(m=>m.key==="_marine_source_url")?.value;
   if(originMeta&&originMeta!==url)result.metadataReview.push({slug,reason:"SOURCE_URL_MISMATCH"});
+  const normalizeText=value=>String(value||"").replace(/<[^>]*>/g," ").replace(/&nbsp;|&#160;/gi," ").replace(/&amp;/gi,"&").replace(/&#8211;|&#8212;/g,"-").normalize("NFC").replace(/\\s+/g," ").trim();
+  if(normalizeText(target.name)!==normalizeText(item.title))
+   result.titleReview.push({slug,expected:item.title,target:target.name});
+  if(item.sku&&target.sku!==item.sku)
+   result.skuReview.push({slug,expected:item.sku,target:target.sku});
+  const expectedFilename=decodeURIComponent(new URL(item.images[0].src).pathname.split("/").at(-1));
+  if(media){
+   const targetFilename=decodeURIComponent(new URL(media,WP).pathname.split("/").at(-1));
+   if(targetFilename!==expectedFilename)
+    result.mediaFilenameReview.push({slug,expectedFilename,targetFilename});
+  }
+  const descriptionText=normalizeText(target.description);
+  if(item.description&&descriptionText.slice(0,100)!==normalizeText(item.description).slice(0,100))
+   result.descriptionReview.push({slug,reason:"DESCRIPTION_TEXT_REVIEW"});
+  const originalMeta=metas.find(m=>m.key==="_yoast_wpseo_metadesc")?.value;
+  if(item.seoDescription&&normalizeText(originalMeta)!==normalizeText(item.seoDescription))
+   result.seoReview.push({slug,reason:"SEO_META_DESCRIPTION_DIFF"});
+  if(!originMeta)result.metadataReview.push({slug,reason:"SOURCE_URL_METADATA_ABSENT"});
   if(!item.seoDescription)result.sourceMissingSeo.push(slug);
  }
  result.status=(
@@ -90,7 +108,9 @@ try{
   " missing="+result.missing.length+" categoryErrors="+result.wrongCategories.length+
   " priceErrors="+result.wrongPrice.length+" stockErrors="+result.wrongStock.length+
   " mediaErrors="+result.wrongMedia.length+" galleryReview="+result.galleryReview.length+
-  " sourceMissingSeo="+result.sourceMissingSeo.length);
+  " sourceMissingSeo="+result.sourceMissingSeo.length+" titleReview="+result.titleReview.length+
+  " skuReview="+result.skuReview.length+" seoReview="+result.seoReview.length+
+  " descriptionReview="+result.descriptionReview.length);
  if(result.status==="FAIL")process.exitCode=1;
  await ctx.close();
 }catch(e){
