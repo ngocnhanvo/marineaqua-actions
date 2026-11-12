@@ -60,3 +60,5 @@ jobs:
             next-category-release-evidence/
             next-category-production-qa-evidence/
           retention-days: 14
+
+# Re-run after verified source gallery repair 43231633217
