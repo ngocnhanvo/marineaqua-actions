@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "b224e6e5a8588754e92248b7b769b76ccaa59f29",
+  "reason": "Deploy promotional WooCommerce category listing and hide it in product category menu",
+  "request_id": "20261112T201500Z-promotion-category",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
