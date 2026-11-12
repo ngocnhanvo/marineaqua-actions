@@ -4,7 +4,8 @@ const ASTRO="ngocnhanvo/marineaqua-astro";
 const GH="https://api.github.com";
 const WORKFLOW="marineaqua-production-deploy.yml";
 const token=process.env.GH_TOKEN;
-if(!token)throw Error("Missing GitHub workflow credential");
+const sourceToken=process.env.SOURCE_REPO_PAT;
+if(!token||!sourceToken)throw Error("Missing GitHub workflow or Astro source credential");
 const report={triggeredAt:new Date().toISOString(),events:[],status:"STARTED"};
 await mkdir("brand-release-evidence",{recursive:true});
 const headers={
@@ -15,7 +16,10 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function safe(method,path,body){
  for(let n=1;n<=4;n++){
   try{
-   const response=await fetch(GH+path,{method,headers,
+   const requestHeaders=path.startsWith("/repos/"+ASTRO+"/")
+    ? {...headers,Authorization:"Bearer "+sourceToken}
+    : headers;
+   const response=await fetch(GH+path,{method,headers:requestHeaders,
     body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(20000)});
    if([429,502,503,504].includes(response.status)&&n<4){
     await sleep(n*1000);continue;
