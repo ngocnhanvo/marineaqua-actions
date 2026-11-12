@@ -58,6 +58,7 @@ try{
     };
   });
   report.views.push({name,width,status:response?.status()||0,...measured,errors:errs});
+  console.log("FOOTER_GEOMETRY="+JSON.stringify({name,width,box:measured.box,overflow:measured.horizontalOverflow,visualViewport:await page.evaluate(()=>({innerWidth,scrollX,documentWidth:document.documentElement.scrollWidth}))}));
   if(response?.status()!==200)fail(name+" homepage status "+response?.status());
   if(measured.horizontalOverflow)fail(name+" horizontal overflow");
   if(measured.box.right>width+2||measured.box.left<-2)fail(name+" footer outside viewport");
