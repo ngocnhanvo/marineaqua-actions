@@ -72,8 +72,7 @@ try {
 }finally{
  result.status=result.failures.length?"FAIL":"PASS";
  console.log("BRAND_POSTDEPLOY_QA="+result.status+" routes="+result.routes.length+" failures="+result.failures.length);
- await writeFile(dir+"/report.json",JSON.stringify(result,null,2)+"
-");
+ await writeFile(dir+"/report.json",JSON.stringify(result,null,2)+"\n");
  await browser.close();
  if(result.status!=="PASS")process.exitCode=1;
 }
