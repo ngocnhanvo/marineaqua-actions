@@ -1,34 +1,26 @@
-# Marine Aqua — Tiếp tục phân trang product logs (2026-11-13 00:21, Asia/Ho_Chi_Minh)
+# Marine Aqua — Audit đường kích hoạt workflow dự phòng (2026-11-13, Asia/Ho_Chi_Minh)
 
 Project: marine-aqua.vn
-Repository: ngocnhanvo/marineaqua-actions@main
-Ứng dụng: ngocnhanvo/marineaqua-astro@master / ngocnhanvo/marineaqua-php@master
+Repo: ngocnhanvo/marineaqua-actions@main
 
-## Bằng chứng mới nhất
-- Astro HEAD `479f79e4356660387d8271bfdca4b76bef461026` — pagination/snapshot/cache; Astro CI #43267666534 `success`, 226/226 unit tests PASS, `astro check --js-only` PASS.
-- PHP HEAD `d4013371fbfaa072ad2508a0dfe6d5163a578052` — `get-product-logs?limit=25&cursor=...&snapshot=...`, backward-compatible legacy array; PHP CI #43267657238 `success`.
-- Actions HEAD trước lượt ghi này `8602ebcb4afd89aa378605aa4e9dd7a658eae960` — PHP allowlist includes `wp-content/plugins/github-trigger/products/endpoint.php`.
-- Canonical production run gần nhất #43244690678 attempt 2 `failure` tại `Build Astro Production`, upload/unpack đều `skipped`; production success trước đó #43242841647, trước bản vá.
-- GET Actions latest runs: không có `queued` hay `in_progress`; chưa có run PHP production sau bản vá.
-- HTTP live `admin.marine-aqua.io.vn/wp-json/astro/v1/get-product-logs?limit=25` và frontend provenance: từ môi trường hiện tại không truy cập được (web tool inaccessible; container DNS unavailable). Không khẳng định LIVE_PASS.
-- Xóa/ack logs sau deploy đã xử lý ở chat trước: **không sửa lại**.
+## Phát hiện quan trọng
+- Knowledge `core/07-execution-and-checkpoints.md` có runbook A-D: (A) POST dispatch có quyền, (B) WordPress Build Website qua UI đã đăng nhập, (C) workflow cầu nối đã tồn tại, (D) rerun chỉ khi tương đương SHA/payload. KHÔNG được dừng chỉ vì connector thiếu dispatch.
+- Chế độ `auto-build` và cổng `bypass` cho phép deploy trong phạm vi được duyệt, **không phải nguyên nhân gây BLOCKED**.
+- **Cầu nối có thật:** `.github/workflows/marineaqua-shared-playwright.yml` job `trigger-production-build-after-header` phát `repository_dispatch wp_trigger_build` tới workflow production. Job ID `130370217689` của run `42974470922` từng SUCCESS; job ID `130368597841` của run `42973955210` từng SUCCESS. Job chỉ kích khi push main chứa file trong paths trigger và HEAD commit message là `build: deploy approved WordPress Header menu` hoặc `build: deploy restored Home_00 banner`. Không được tạo commit giả/đổi trigger để chạy.
+- **Rerun job cũ là một công cụ có thật**, cần xác minh tính tương đương ref/SHA/payload và guard trước khi dùng. Cầu nối Astro này KHÔNG thay thế PHP release cần làm trước. Không tuyên bố tất cả con đường C/D không tồn tại.
+- **PHP production vẫn chưa triển khai endpoint phân trang.** Workflow PHP hiện tại `.github/workflows/marineaqua-php-release.yml` chỉ `workflow_dispatch` với `confirm=DEPLOY_PHP`. Run PHP thành công cũ `42641150259` ngày 2026-11-09 là event push tại Actions SHA `f784357b...`. Script `scripts/marineaqua-php-live-release.py` tại SHA đó **chưa có** `wp-content/plugins/github-trigger/products/endpoint.php` trong FILES, nên rerun job cũ không phát hành được bản vá hiện hành. Script HEAD mới có endpoint.
+- GitHub connector: GET, fetch, update, rerun job; không có POST workflow_dispatch/repository_dispatch. Container không có gh CLI/credentials. WP browser/session chưa được kết nối. Không có queued/in_progress run tại lượt kiểm tra.
+- Phần code/CI đã PASS: PHP HEAD `d401337`, Astro HEAD `479f79e`; run #43267657238 và #43267666534. Last production Astro run #43244690678 failed trước deploy.
 
-## Đường triển khai đã kiểm
-- PHP workflow `.github/workflows/marineaqua-php-release.yml` chỉ `workflow_dispatch` yêu cầu `confirm=DEPLOY_PHP`; checkout PHP `master` tại execution, dùng Actions script mới để upload via verified FTPS.
-- Astro canonical `.github/workflows/marineaqua-production-deploy.yml` chỉ `repository_dispatch` `wp_trigger_build` và guard domain `WC_URL_CLIENT` (marine-aqua.io.vn), checkout Astro `master`; QA NO DEPLOY không được thay thế.
-- GitHub connector hiện tại: GET run/jobs/log, git write và rerun job; **không có POST workflow_dispatch/repository_dispatch hoặc browser WordPress authenticated**.
-- Rerun cũ không tương đương: production run cũ sẽ dùng PHP production chưa cập nhật; PHP manual run cũ nếu có không có Actions script allowlist mới. Không rerun mù, không tạo commit giả, không đổi trigger để bypass.
-- WordPress app connector chưa được cài; không có CMS session/tool đã xác thực trong lượt này.
+## Đánh giá đúng nguyên nhân
+- Phương án A: thiếu tool POST/token, không đồng nghĩa thiếu GitHub write.
+- B: không có UI authenticated trong phiên.
+- C: có bridge limited to specific legitimate CMS header/banner changes, không phù hợp trực tiếp cho PHP pagination; cấm commit no-op để kích hoạt.
+- D: PHP run cũ dùng code Actions không upload endpoint. Astro bridge rerun chỉ đánh giá sau khi PHP mới lên live, không dùng để vượt qua bước PHP.
+- Hạn chế thật: **chưa có đường hợp lệ trong công cụ phiên hiện tại để chạy PHP workflow hiện hữu với Actions script mới**. Cần công cụ có quyền `workflow_dispatch` trên `marineaqua-actions` hoặc phiên WordPress/runner phù hợp để triển khai PHP, rồi mới kích hoạt Astro production và QA.
 
-## Công việc tiếp theo
-1. Kích hoạt PHP production workflow trên Actions/main bằng quyền dispatch `confirm=DEPLOY_PHP`, đợi `success`, kiểm tra REST `limit=25` thực sự trả object metadata.
-2. Kích hoạt chính production Astro `repository_dispatch wp_trigger_build`, `client_payload.site_domain=marine-aqua.io.vn` hoặc WordPress Build Website có session hợp lệ; theo dõi đúng run ID, source SHA, upload/unpack.
-3. Sau khi có `BUILD_SUCCESS` + `DEPLOY_READY`, chạy HTTP/browser QA, đo paginated response time & so với giới hạn 30s, check cache, category parity.
-4. Không chạy lại unit tests đã PASS khi source không đổi.
-
-## Phản hồi gửi người dùng
-Đã đọc quy tắc Knowledge và kiểm tra HEAD, checkpoint, source, Actions runs/jobs. Bản vá PHP/Astro và 226 unit tests PASS. Chưa có PHP live release và production Astro build mới; build trước thất bại #43244690678. Không có run đang chạy/chờ, công cụ hiện tại thiếu POST dispatch và browser WP authenticated nên chưa thể kích đúng 2 workflow hiện hữu. Không thay workflow hoặc rerun sai SHA/payload. Bước kế: deploy PHP trước, xác minh REST paginated, rồi production Astro và live QA. Không làm lại phần xóa logs.
-
+## Trạng thái
+Không thực hiện deploy/rerun; chỉ kiểm tra Knowledge, workflow source, lịch sử run/job và script tại historic SHA.
 Chế độ code: auto-build
 Cổng ghi source: bypass
 Trạng thái: PARTIAL — chưa hoàn tất
