@@ -40,6 +40,7 @@ jobs:
           php -l source-php/wp-content/plugins/github-trigger/vcs-build-trigger.php
           php -l source-php/wp-content/mu-plugins/esc-github-trigger-config.php
           php -l source-php/wp-content/mu-plugins/esc-seo-files.php
+          php -l source-php/wp-content/mu-plugins/marineaqua-product-sale-rest.php
           ! grep -Eqi 'nghiencuukhoahoc|EduResearch Hub' source-php/wp-content/mu-plugins/esc-seo-files.php
           php -l source-php/wp-content/plugins/github-trigger/tests/build-status-regression.php
           php source-php/wp-content/plugins/github-trigger/tests/build-status-regression.php
