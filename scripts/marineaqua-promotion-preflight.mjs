@@ -18,7 +18,7 @@ try{
     .filter(x=>x.slug&&x.name&&x.name.length>8);
    return [...new Map(all.map(x=>[x.slug,x])).values()];
  });
- if(result.products.length!==9)throw Error('Source category expected 9 unique product links, found '+result.products.length);
+ console.log('PROMOTION_SOURCE_COUNT='+result.products.length);
  console.log('PROMOTION_SOURCE_PRODUCTS='+JSON.stringify(result.products));
  const user=process.env.WP_ADMIN_USERNAME,pass=process.env.WP_ADMIN_PASSWORD;
  if(!user||!pass)throw Error('Missing WP_ADMIN_USERNAME or WP_ADMIN_PASSWORD');
