@@ -119,7 +119,7 @@ try {
    }
    const minimumLength=['thoi-gian-ban-hang','thong-bao'].includes(entry.slug) ? 35 : 100;
    assert(extracted&&extracted.text.length>=minimumLength,'Source page missing substantive article content');
-   const normalizeTitle=(value)=>String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+   const normalizeTitle=(value)=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
    const sourceTitle=normalizeTitle(extracted.title||extracted.documentTitle||'');
    const expectedTitle=normalizeTitle(entry.title);
    const titleAlternatives=entry.slug==='thong-bao'?['phi ship hang','thong bao']: [expectedTitle];
