@@ -1,5 +1,9 @@
 name: Marine Aqua final two category verified production release
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-two-category-release.yml'
   workflow_dispatch:
 permissions:
   contents: write
