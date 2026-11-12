@@ -1,0 +1,26 @@
+name: Marine Aqua two category source script validation (NO DEPLOY)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-two-category-*.mjs'
+      - '.github/workflows/marineaqua-two-category-validation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check every category source, importer, parity, gallery and deployment QA script
+        run: |
+          set -eu
+          for file in scripts/marineaqua-two-category-*.mjs; do
+            node --check "$file"
+            printf 'TWO_CATEGORY_SCRIPT_CHECK=PASS %s\n' "$file"
+          done
