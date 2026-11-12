@@ -13,21 +13,40 @@ try {
   try {
    const resp=await page.goto(product.url,{waitUntil:"domcontentloaded",timeout:45000});
    if(!resp?.ok())throw Error("HTTP "+resp?.status());
-   const images=await page.evaluate(()=>{
-    const gallery=document.querySelector(".woocommerce-product-gallery");
-    const anchors=[...(gallery?.querySelectorAll(".woocommerce-product-gallery__image a[href]")||[])];
-    const candidates=anchors.map(a=>({
-     url:new URL(a.href,location.href).href,
-     alt:a.querySelector("img")?.alt||"",
-     thumbnail:a.querySelector("img")?.src||"",
+   const galleryImages=await page.evaluate(()=>{
+    const imgs=[...document.querySelectorAll(".woocommerce-product-gallery img")];
+    const candidates=imgs.map(img=>({
+     src:img.getAttribute("data-zoom-image")||img.getAttribute("data-large_image")||
+       img.getAttribute("data-src")||img.getAttribute("src")||"",
+     alt:img.getAttribute("alt")||"",
     }));
     return [...new Map(candidates.filter(x=>{
-     const u=new URL(x.url);
-     return u.origin===location.origin&&u.pathname.startsWith("/wp-content/uploads/")&&
-      /\.(png|jpe?g|webp)$/i.test(u.pathname);
-    }).map(x=>[x.url,x])).values()];
+     try{
+      const u=new URL(x.src,location.href);
+      return u.origin===location.origin&&u.pathname.startsWith("/wp-content/uploads/")&&
+       /\.(png|jpe?g|webp)$/i.test(u.pathname);
+     }catch{return false}
+    }).map(x=>[new URL(x.src,location.href).href,{
+     url:new URL(x.src,location.href).href,alt:x.alt
+    }])).values()];
    });
-   if(images.length<product.images.length)throw Error("Gallery missing full original links "+images.length+"/"+product.images.length);
+   if(galleryImages.length!==product.images.length)
+    throw Error("Gallery image count mismatch "+galleryImages.length+"/"+product.images.length);
+   const images=[];
+   for(const img of galleryImages){
+    const expected=new URL(img.url);
+    const candidate=new URL(img.url);
+    candidate.pathname=candidate.pathname.replace(/-100x100(?=\.(?:png|jpe?g|webp)$)/i,"");
+    let url=img.url,fullResolutionCandidate=false;
+    if(candidate.href!==expected.href){
+     const response=await page.request.head(candidate.href,{timeout:12000,failOnStatusCode:false});
+     if(response.ok()&&/image\/(jpeg|png|webp)/i.test(response.headers()["content-type"]||"")){
+      url=candidate.href;
+      fullResolutionCandidate=true;
+     }
+    }
+    images.push({url,alt:img.alt,thumbnail:img.url,fullResolutionCandidate});
+   }
    const row={url:product.url,originalCaptured:product.images.length,fullImages:images};
    output.products.push(row);
    console.log("BRAND_GALLERY_ORIGINAL="+new URL(product.url).pathname+" fullImages="+images.length);
