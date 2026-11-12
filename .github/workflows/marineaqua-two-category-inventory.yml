@@ -1,0 +1,35 @@
+name: Marine Aqua two category source inventory
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-two-category-inventory.mjs'
+      - '.github/workflows/marineaqua-two-category-inventory.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-two-category-inventory.mjs
+      - name: Inventory original categories products and destination
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-two-category-inventory.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-two-category-inventory
+          path: two-category-catalog-evidence/
+          retention-days: 14
