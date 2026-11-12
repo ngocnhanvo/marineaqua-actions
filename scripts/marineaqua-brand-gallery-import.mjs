@@ -4,7 +4,7 @@ import { readFile, mkdir, writeFile } from "node:fs/promises";
 const SOURCE="https://marine-aqua.vn",WP="https://admin.marine-aqua.io.vn",DIR="brand-gallery-import-evidence";
 const RESULT_LIMIT=64;
 await mkdir(DIR,{recursive:true});
-const result={createdMedia:[],reusedMedia:[],updated:[],skipped:[],deferred:[],errors:[],status:"STARTED"};
+const result={createdMedia:[],reusedMedia:[],updated:[],skipped:[],backups:[],deferred:[],errors:[],status:"STARTED"};
 const browser=await chromium.launch({headless:true});
 const valid=(condition,message)=>{if(!condition)throw Error(message)};
 try{
@@ -182,6 +182,8 @@ try{
    const imagePayload=sourceImages.map((img,i)=>({id:mediaIds[i],alt:img.alt||item.name}));
    // Keep first image if legacy/gallery extraction put thumbnails before main.
    valid(mediaIds[0]===existingImages[0].id,"Product first image mismatch "+slug);
+   result.backups.push({slug,id:item.id,images:existingImages.map(i=>({id:i.id,alt:i.alt||""}))});
+   await writeFile(DIR+"/result.json",JSON.stringify(result,null,2)+"\n");
    const updated=await api("PUT","/wp-json/wc/v3/products/"+item.id,{images:imagePayload});
    valid(updated?.id===item.id,"Gallery update failed "+slug);
    const verified=await api("GET","/wp-json/wc/v3/products/"+item.id);
