@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 import { mkdir,writeFile } from "node:fs/promises";
 
 const WP="https://admin.marine-aqua.io.vn";
-const TABLE="145",PAGE_SLUG="khuyen-mai",PAGE_KEY="promotions",DIR="promotion-page-table-evidence";
+const TABLE="khuyen_mai_01",PAGE_SLUG="khuyen-mai",PAGE_KEY="promotions",DIR="promotion-page-table-evidence";
 const SLUGS=[
  "muoi-bien-tropic-marin-pro-reef-25-kg-xo-nhua",
  "korallen-zucht-zeofood-plus-500ml-thuc-an-cho-san-ho",
@@ -61,15 +61,15 @@ try{
   return r.json();
  }
  const initial=await readTable(TABLE);
- const alt=await readTable("khuyen_mai_01");
- console.log("PROMOTION_TABLE_CURRENT="+JSON.stringify({table145:initial&&{id:initial.id,title:initial.title,source:initial.meta?.api,fields:initial.fields,rows:initial.items?.length},renamed:alt&&{id:alt.id,title:alt.title,source:alt.meta?.api,rows:alt.items?.length}}));
+ const alt=await readTable("145");
+ console.log("PROMOTION_TABLE_CURRENT="+JSON.stringify({tableNamed:initial&&{id:initial.id,title:initial.title,source:initial.meta?.api,fields:initial.fields,rows:initial.items?.length},oldNumeric:alt&&{id:alt.id,title:alt.title,source:alt.meta?.api,rows:alt.items?.length}}));
  if(initial?.meta?.api==="Product"){
   valid(initial.fields?.length===COLS.length&&COLS.every((c,j)=>initial.fields[j]?.key===c),"Existing table field conflict");
   valid(initial.items?.length===8,"Existing table has unexpected item count");
   valid(initial.items.every((item,i)=>String(item.key)===String(products[i].id)),"Existing table product order conflict");
   result.steps.push("existing_table_verified");
  }else{
-  valid(initial?.id===TABLE && initial?.title==="Khuyến mãi","Expected previously created native table 145; refusing overwrite");
+  valid(initial?.id===TABLE && initial?.title==="Khuyến mãi","Expected previously created native promotion table; refusing overwrite");
   await page.goto(WP+"/wp-admin/admin.php?page=tablepress&action=edit&table_id="+TABLE,{waitUntil:"domcontentloaded",timeout:45000});
   await page.waitForFunction(()=>Boolean(window.tp?.editor?.setValueFromCoords&&window.tp?.table?.data),null,{timeout:30000});
   const initialGrid=await page.evaluate(()=>window.tp.table.data);
@@ -114,7 +114,7 @@ try{
  const codeBefore=String(before.content?.raw||"");
  const desired="[table id="+TABLE+" /]";
  const already=codeBefore.includes(desired);
- valid(!already||[...codeBefore.matchAll(/\[table id=145\s*\/\]/g)].length===1,"Duplicate shortcode in existing page");
+ valid(!already||[...codeBefore.matchAll(/\[table id=khuyen_mai_01\s*\/\]/g)].length===1,"Duplicate shortcode in existing page");
  if(!already){
   valid(!codeBefore.trim(),"Existing authored Page content conflict: refuse overwrite");
   await page.goto(WP+"/wp-admin/post.php?post="+result.pageId+"&action=edit",{waitUntil:"domcontentloaded",timeout:45000});
@@ -159,7 +159,7 @@ try{
  }
  const verify=await api("GET","/wp-json/wp/v2/pages/"+result.pageId+"?context=edit");
  valid(String(verify.content?.raw||"").includes(desired),"Page native shortcode not persisted");
- const count=[...String(verify.content?.raw||"").matchAll(/\[table id=145\s*\/\]/g)].length;
+ const count=[...String(verify.content?.raw||"").matchAll(/\[table id=khuyen_mai_01\s*\/\]/g)].length;
  valid(count===1,"Page shortcode count not exactly one");
  if(verify.status!=="publish"){
   await api("POST","/wp-json/wp/v2/pages/"+result.pageId,{status:"publish"});
