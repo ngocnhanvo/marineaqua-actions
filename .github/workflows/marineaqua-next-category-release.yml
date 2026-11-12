@@ -62,3 +62,5 @@ jobs:
           retention-days: 14
 
 # Re-run after verified source gallery repair 43231633217
+
+# Deploy Astro category listing four-column layout 0e1be17cdbf05833a781e39057441594bb5c59a8
