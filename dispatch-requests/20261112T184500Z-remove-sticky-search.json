@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "08832a4ba0f2a62853123b766b7bb3985f98d266",
+  "reason": "Deploy non-sticky product search toolbar on Astro master",
+  "request_id": "20261112T184500Z-remove-sticky-search",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
