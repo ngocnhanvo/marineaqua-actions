@@ -1076,7 +1076,7 @@ try {
         const backgroundColor = document.querySelector("#header-navrow") ?
           getComputedStyle(document.querySelector("#header-navrow")).backgroundColor : "";
         const channels = color => {
-          const values = color.match(/\\d+(?:\\.\\d+)?/g)?.slice(0, 3).map(Number) || [];
+          const values = color.match(/[0-9]+(?:[.][0-9]+)?/g)?.slice(0, 3).map(Number) || [];
           return values.length === 3 ? values.map(v => {
             const c = v / 255;
             return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
