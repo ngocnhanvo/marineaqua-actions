@@ -1123,6 +1123,65 @@ try {
     }
   }
 
+  // Targeted post-deploy consultation panel QA. Read-only on public pages.
+  summary.consultationPanel = [];
+  for (const width of [390, 1440]) {
+    const page = await browser.newPage({ viewport: { width, height: 844 }, deviceScaleFactor: 1 });
+    try {
+      await page.goto(frontend.origin + "/", { waitUntil: "domcontentloaded", timeout: 45000 });
+      const launcher = page.locator("#ai-agent-btn");
+      await launcher.click({ timeout: 15000 });
+      const opened = await page.evaluate(() => {
+        const panel = document.querySelector("#marine-consult-panel");
+        const btn = document.querySelector("#ai-agent-btn");
+        const rect = panel?.getBoundingClientRect();
+        const links = [...(panel?.querySelectorAll("a") || [])].map(a => ({
+          label: (a.textContent || "").trim(), href: a.getAttribute("href") || ""
+        }));
+        return {
+          open: Boolean(panel && !panel.hidden && !panel.inert),
+          expanded: btn?.getAttribute("aria-expanded") === "true",
+          title: panel?.querySelector("#marine-consult-title")?.textContent?.trim(),
+          inViewport: Boolean(rect && rect.left >= 0 && rect.right <= innerWidth + 1
+            && rect.top >= 0 && rect.bottom <= innerHeight + 1),
+          links,
+          aiOption: Boolean(panel?.querySelector("#marine-consult-ai")),
+          horizontalOverflow: document.documentElement.scrollWidth > innerWidth + 2
+        };
+      });
+      await page.screenshot({path:dir+"/consultation-open-"+width+".png",fullPage:false});
+      await page.keyboard.press("Escape");
+      const closedByEscape = await page.locator("#marine-consult-panel").evaluate(el => el.hidden && el.inert);
+      await launcher.click();
+      await page.locator("#marine-consult-ai").click();
+      const aiOpened = await page.locator("#ai-chat-box").evaluate(el =>
+        !el.inert && el.getAttribute("aria-hidden") === "false");
+      await page.locator("#close-chat-btn").click();
+      const aiClosed = await page.locator("#ai-chat-box").evaluate(el =>
+        el.inert && el.getAttribute("aria-hidden") === "true");
+      await launcher.click();
+      await page.mouse.click(3,3);
+      const closedOutside = await page.locator("#marine-consult-panel").evaluate(el => el.hidden);
+      const linkTypesValid = opened.links.every(link =>
+        (link.href.startsWith("tel:") && /^tel:\+?\d{9,15}$/.test(link.href)) ||
+        /^https:\/\/(?:www\.)?(?:facebook\.com|m\.facebook\.com|fb\.com|m\.me|zalo\.me|oa\.zalo\.me)\//.test(link.href));
+      const result = {width, ...opened, closedByEscape, aiOpened, aiClosed,
+        closedOutside, linkTypesValid};
+      result.pass = opened.open && opened.expanded && opened.title === "Kênh tư vấn"
+        && opened.inViewport && opened.aiOption && !opened.horizontalOverflow
+        && closedByEscape && aiOpened && aiClosed && closedOutside && linkTypesValid;
+      summary.consultationPanel.push(result);
+    } catch (error) {
+      summary.consultationPanel.push({width, pass:false, error:String(error.message || error).slice(0,350)});
+    } finally {
+      await page.close();
+    }
+  }
+  const consultationPass = summary.consultationPanel.every(item => item.pass);
+  console.log("MARINEAQUA_CONSULTATION_PANEL=" + (consultationPass ? "PASS" : "FAIL")
+    + " " + JSON.stringify(summary.consultationPanel));
+  if (!consultationPass) process.exitCode=1;
+
   const context = await browser.newContext();
   for (const [label, path] of [
     ["menus", "/wp-json/esc-api/v1/menus"],
