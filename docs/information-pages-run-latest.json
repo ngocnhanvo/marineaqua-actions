@@ -30,68 +30,81 @@
     {
       "slug": "chinh-sach-doi-tra-hang",
       "source": "https://marine-aqua.vn/chinh-sach-doi-tra-hang/",
-      "status": "BLOCKED",
-      "error": "Source missing page heading; refuse unrelated document"
+      "status": "EXISTING_CONTENT_PRESERVED",
+      "actionFixed": true,
+      "id": 83272,
+      "compare": {
+        "sourceTextLength": 553,
+        "existingHtmlLength": 660
+      },
+      "sourceLength": 553,
+      "sourceTitle": ""
     },
     {
       "slug": "thong-bao",
       "source": "https://marine-aqua.vn/thong-bao/",
       "status": "BLOCKED",
-      "error": "Source missing page heading; refuse unrelated document"
+      "sourceDiagnostic": {
+        "title": "",
+        "documentTitle": "THÔNG BÁO PHÍ SHIP HÀNG - Marine Aqua",
+        "textSample": "Chúng tôi hỗ trợ phí ship đến 30k cho những đơn hàng có giá trị trên 500k (Không áp dụng với hàng khuyến mại, giảm giá)."
+      },
+      "error": "Source title mismatch; refuse unrelated document"
     },
     {
       "slug": "huong-dan-mua-hang-o-xa",
       "source": "https://marine-aqua.vn/huong-dan-mua-hang-o-xa/",
-      "status": "BLOCKED",
-      "error": "Source missing page heading; refuse unrelated document"
+      "status": "EXISTING_CONTENT_PRESERVED",
+      "actionFixed": true,
+      "id": 83274,
+      "compare": {
+        "sourceTextLength": 1292,
+        "existingHtmlLength": 1389
+      },
+      "sourceLength": 1292,
+      "sourceTitle": ""
     },
     {
       "slug": "huong-dan-mua-hang-tai-nha",
       "source": "https://marine-aqua.vn/huong-dan-mua-hang-tai-nha/",
-      "status": "BLOCKED",
-      "error": "Source missing page heading; refuse unrelated document"
+      "status": "EXISTING_CONTENT_PRESERVED",
+      "actionFixed": true,
+      "id": 83275,
+      "compare": {
+        "sourceTextLength": 712,
+        "existingHtmlLength": 759
+      },
+      "sourceLength": 712,
+      "sourceTitle": ""
     },
     {
       "slug": "thoi-gian-ban-hang",
       "source": "https://marine-aqua.vn/thoi-gian-ban-hang/",
       "status": "BLOCKED",
-      "error": "Source missing page heading; refuse unrelated document"
+      "error": "apiRequestContext.fetch: socket hang up (ECONNRESET)\nCall log:\n  - → POST https://admin.marine-aqua.io.vn/wp-json/wp/v2/pages\n    - user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36\n    - accept: */*\n    - accept-encoding: gzip,deflate,br\n    - X-WP-Nonce: 454c7e0f60\n    - C"
     }
   ],
   "errors": [
     {
-      "slug": "chinh-sach-doi-tra-hang",
-      "source": "https://marine-aqua.vn/chinh-sach-doi-tra-hang/",
-      "status": "BLOCKED",
-      "error": "Source missing page heading; refuse unrelated document"
-    },
-    {
       "slug": "thong-bao",
       "source": "https://marine-aqua.vn/thong-bao/",
       "status": "BLOCKED",
-      "error": "Source missing page heading; refuse unrelated document"
-    },
-    {
-      "slug": "huong-dan-mua-hang-o-xa",
-      "source": "https://marine-aqua.vn/huong-dan-mua-hang-o-xa/",
-      "status": "BLOCKED",
-      "error": "Source missing page heading; refuse unrelated document"
-    },
-    {
-      "slug": "huong-dan-mua-hang-tai-nha",
-      "source": "https://marine-aqua.vn/huong-dan-mua-hang-tai-nha/",
-      "status": "BLOCKED",
-      "error": "Source missing page heading; refuse unrelated document"
+      "sourceDiagnostic": {
+        "title": "",
+        "documentTitle": "THÔNG BÁO PHÍ SHIP HÀNG - Marine Aqua",
+        "textSample": "Chúng tôi hỗ trợ phí ship đến 30k cho những đơn hàng có giá trị trên 500k (Không áp dụng với hàng khuyến mại, giảm giá)."
+      },
+      "error": "Source title mismatch; refuse unrelated document"
     },
     {
       "slug": "thoi-gian-ban-hang",
       "source": "https://marine-aqua.vn/thoi-gian-ban-hang/",
       "status": "BLOCKED",
-      "error": "Source missing page heading; refuse unrelated document"
+      "error": "apiRequestContext.fetch: socket hang up (ECONNRESET)\nCall log:\n  - → POST https://admin.marine-aqua.io.vn/wp-json/wp/v2/pages\n    - user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36\n    - accept: */*\n    - accept-encoding: gzip,deflate,br\n    - X-WP-Nonce: 454c7e0f60\n    - C"
     }
   ],
   "status": "PARTIAL",
-  "run_id": "43312988716",
+  "run_id": "43313218236",
   "run_attempt": "1",
   "job_outcome": "failure",
   "source": "marineaqua-information-pages-migration.yml"
