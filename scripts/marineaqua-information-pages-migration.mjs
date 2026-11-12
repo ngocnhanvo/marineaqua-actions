@@ -94,7 +94,13 @@ try {
       return {title:document.querySelector('h1,.entry-title,article h2')?.textContent?.trim()||'',documentTitle:document.title||'',html:copy.innerHTML,text:copy.textContent?.trim()||''};
    }) : null;
    await source.close();
-   if(!extracted) {
+   const titleFits=(page)=>{
+     const norm=(value)=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+     const actual=norm(page?.title||page?.documentTitle);
+     const targets=entry.slug==='thong-bao'?['phi ship hang','thong bao']:[norm(entry.title)];
+     return targets.some(target=>actual.includes(target));
+   };
+   if(!extracted || !titleFits(extracted)) {
      // Public source WordPress REST is a read-only fallback when the browser
      // cannot obtain an article. Require one published page with exact slug.
      try {
