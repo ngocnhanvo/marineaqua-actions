@@ -1,63 +1,58 @@
-# Marine Aqua — latest response
+# Marine Aqua — latest response checkpoint (2026-11-12)
 
-- Checkpoint: 2026-11-12 12:14+07, resume brand-category product migration.
-- Astro master: c8eec1c10d1f1b72de45ccdd1c5d4f385366394e (unchanged).
-- PHP master: 54574851f0eaea9e40341b36c5a7215573bc436e (unchanged).
-- Knowledge main: 945d1dc265ee.
-- Actions main: f38c12bbc2b523887d5dbb6906ff991b9d0e1fc8 (before this checkpoint).
-- Previous sticky-bottom removal was verified DONE, do not repeat.
+## Branch and repository contract
 
-## Current owner task
+- Knowledge `ngocnhanvo/knowledge@main`: `945d1dc265ee`.
+- Astro production source `ngocnhanvo/marineaqua-astro@master`: `448aebfaccc62859e870edf3c182138802d96da9`.
+- WordPress `ngocnhanvo/marineaqua-php@master`: `54574851f0ea` (not edited).
+- Actions `ngocnhanvo/marineaqua-actions@main`: checkpoint new commit following `1399e16cd7b5ad79b059601fc954234e4649abd9`.
+- Code mode `auto-build`; source gate `bypass`; production builds exclusively via WordPress Build Website -> `repository_dispatch` in Actions.
+- Prior mobile sticky-bottom removal and 20 homepage product imports already DONE. Do not redo.
 
-Transfer ALL original products belonging to original `BRAND - HÃNG SẢN XUẤT` at
-`https://marine-aqua.vn/danh-muc/thuong-hieu/` and descendants to target
-WooCommerce `https://admin.marine-aqua.io.vn` and complete corresponding
-`https://marine-aqua.io.vn` category product-list pages. This is NOT yet done.
+## Current task — Original BRAND - HÃNG SẢN XUẤT catalog
 
-## New verified evidence
+Transfer all products of `https://marine-aqua.vn/danh-muc/thuong-hieu/` and child category archives into target WooCommerce, then finish real product-list pages for corresponding category links.
 
-- Source listing inventory: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43159747154 SUCCESS, 21 pages and 246 unique product URLs.
-- Full source product details + target WC comparison: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43160118825 SUCCESS.
-- Full artifact ID 13917609900. 246/246 source products with details read, 0 errors.
-- Target WooCommerce: 20 existing products; matched 20 source slugs; **226 source products absent**.
-- Target taxonomy endpoint HTTP 200, 39 categories in artifact.
-- Source metadata: 197 of 246 do not expose a meta description and must be marked SEO_SOURCE_MISSING (do not fabricate).
-- IMPORTANT: the old `.posted_in` selectors found zero product categories on source detail pages. Must extract Woo product_cat CSS classes / source category listing membership or other verified taxonomy before importing.
-- Source products contain special prices (sale price/original price) and one `Liên hệ` case. Do not parse all price strings as one integer.
-- Source category mapping run #43163059058 SUCCESS: 246/246 products assigned, zero unassigned, zero unexpected; root-only 14 verified from actual product taxonomy classes. Artifact `marine-aqua-brand-category-mapping` ID 13918288250.
-- No import of remaining 226 has been attempted, no additional production deploy.
-- New scripts and workflow in actions/main use WordPress credentials only for read-only product GET.
+- Original inventory PASS: 21 category listing pages, 246 unique source URLs.
+  Workflow https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43159747154; artifact 13916664620.
+- Full detail inventory PASS 246/246 with 0 errors. Target initially had 20 valid matching products; 226 missing.
+  Workflow https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43160118825; manifest artifact 13917609900.
+- All 246 source products mapped to correct target taxonomy: 232 via 14 brand archives, 14 parent-only via actual source product class taxonomy. 0 unassigned, 0 unexpected.
+  Workflow https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43163059058; mapping artifact 13918288250.
+- 197 source product pages genuinely lack SEO meta description. Preserve absent status, do not fabricate. Some products have sale prices and one has "Liên hệ".
+- Source media must remain under /wp-content/uploads/ with original filename, and reused media must pass SHA256; do not blindly reuse by filename.
 
-## Previously completed — preserve
+## Real WooCommerce import (verified)
 
-- 20 real products for five homepage brands were already imported and bound
-  to ESC Tables home_04–home_08 (see docs/homepage-esc-section-checkpoint.md).
-- Real products/categories must be reused by source slug/source URL/source ID,
-  never blindly duplicated.
-- Existing published Product listing Page `san-pham` and SSR route are present
-  in repository; verify live behavior against source before changing.
+- First bounded run #43163417568: 11 successfully created/readback products (one relative URL media reuse failure), run overall FAIL; artifact 13919575375.
+- Second bounded run #43164157488: seven additional successful created/readback products, 5 transient GET socket resets, overall FAIL.
+- Third bounded run #43164685512: PASS, 12 created/readback products, no errors or deferrals. Transient GET errors now retried with limit, never automatically retry a POST.
+- Last fully confirmed count: **30 NEW** products + 20 pre-existing = 50 target matches, 196 source products still missing.
+- Full remaining import `scripts/marineaqua-import-brand-batch.mjs` BATCH_LIMIT 250, timeout 240min, running:
+  https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43165656463
+  **Do NOT start a duplicate importer while this run is in progress.**
+  Strictly wait for its final completion, inspect `marine-aqua-brand-import-batch` artifact and logs, reconcile any new IDs/errors, then audit actual WooCommerce state. It may already create products while in progress.
+- Current importer imports original MAIN image only, not full galleries; descriptions use source text converted to paragraphs. Complete fidelity/parity assessment is still outstanding; do not claim perfect copy.
 
-## Exact next steps
+## Astro category listing route work (source-only)
 
-1. Consume verified source product detail manifest artifact 13917609900 and category mapping artifact 13918288250; distinguish sale/contact/variable prices, validate SEO_SOURCE_MISSING on source absence.
-2. Revalidate 226 missing matches by canonical URL and slug, mapping to 39 target taxonomy records; back up scoped records.
-3. Adapt existing native WordPress importer from `scripts/marineaqua-import-home-products.mjs`
-   for bounded, resumable product batches and owned media uploads. Enforce
-   idempotency, asset deferrals (initial + max 3 retries), original filenames,
-   SEO readback and strict write scope.
-4. Execute/import only verified missing records; preserve existing 20 and
-   existing category hierarchy. Record created/reused/failed with IDs.
-5. QA actual brand and child category listing routes, responsive UI,
-   pagination, item counts and all navigation; fix SSR/frontend as needed.
-6. Run source CI, production no-deploy build, sanctioned production workflow,
-   await result and post-deploy Playwright/parity evidence.
+- Before code change, production route audit #43165890354 established `/thuong-hieu/` and `/thuong-hieu/korallen-zucht/` 404, while `/san-pham/`, `/san-pham/thuong-hieu/`, `/san-pham/korallen-zucht/` 200. Child /san-pham/korallen-zucht had 0 products on old deployment.
+- Astro source updated on master:
+  - `src/lib/wordpress/products/categoryRoute.ts` changes product category href to existing /san-pham/<categorySlug> instead of broken /thuong-hieu/<brand>.
+  - `src/astro/pages/ProductsSSRPage.astro` modern ocean-blue cards, red prices, stock, proper image fit, better category scope and responsive grid.
+  - `src/pages/thuong-hieu/[...slug].astro` redirects obsolete brand URLs with 301 to valid /san-pham routes.
+- Source CI #43166369289 SUCCESS, no deploy.
+- Production-equivalent build QA (no deploy) #43166554927 SUCCESS, from latest Astro master source, real WordPress data.
+- **No production deployment of new Astro listing changes yet**. Wait for verified completion of current import; then use sanctioned WordPress Build Website trigger and post-deploy Playwright QA.
 
-## Status
+## Next tasks in strict order
 
-SOURCE_LISTING_INVENTORY_PASS; PRODUCT_DETAIL_INVENTORY_PASS_246_OF_246;
-TARGET_OVERLAP_PASS_20_EXISTING_226_MISSING; TAXONOMY_MAPPING_PASS_246_OF_246;
-DATA_PARITY_NOT_DONE; IMPORT_NOT_STARTED_FOR_REMAINING_PRODUCTS;
-VISUAL_QA_NOT_DONE; PRODUCTION_RELEASE_NOT_DONE.
+1. Await import workflow #43165656463 final result. Parse logs and artifact; confirm all created ID/readbacks and no unresolved errors. If partial, rerun only missing products using the existing idempotent importer, not a duplicate concurrent job.
+2. Read-only audit complete target WC products vs 246 source URLs, source prices and taxonomy; count unmatched, missing media/SEO and verify URL-based identity.
+3. Assess full original gallery/description fidelity; migrate/repair deficits with bounded verified updates if required.
+4. Build/deploy Astro **only** via the approved WordPress Build Website route once data parity sufficiently verified. Do not directly trigger FTP deployment.
+5. Post-deploy Playwright QA: /thuong-hieu 301, /san-pham/thuong-hieu root listing, /san-pham/korallen-zucht child list/pagination, product detail links, correct red price, image rendering, mobile and desktop.
+6. Save final checkpoint with exact commits/workflow evidence. Do not repeat previously completed work.
 
 Chế độ code: auto-build
 Cổng ghi source: bypass
