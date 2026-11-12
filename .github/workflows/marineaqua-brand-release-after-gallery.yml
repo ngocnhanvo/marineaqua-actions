@@ -1,4 +1,5 @@
 name: Marine Aqua brand release after verified SEO and galleries
+# Native fetch status fix; release gated by original product + gallery parity.
 on:
   push:
     branches: [main]
