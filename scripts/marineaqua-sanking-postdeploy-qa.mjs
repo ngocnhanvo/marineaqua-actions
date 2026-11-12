@@ -88,7 +88,9 @@ try{
    mobile.cards>0,JSON.stringify(mobile));
   output.routes.push({path:path+" mobile",http:response?.status(),...mobile});
   const dropdown=page.locator("#dropdown-trigger");
-  if(await dropdown.count()){
+  if(root.children.length===0){
+   console.log("SANKING_NAVIGATION_LEAF_ROOT=PASS no child dropdown required "+root.slug);
+  }else if(await dropdown.count()){
    await dropdown.click();
    const menu=page.locator("#dropdown-menu");
    const hrefs=await menu.locator("a[href]").evaluateAll(items=>items.map(a=>a.getAttribute("href")));
