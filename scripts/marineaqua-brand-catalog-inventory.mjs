@@ -35,13 +35,13 @@ try {
         .filter(href => {
           try {
             const u = new URL(href);
-            return u.origin === location.origin && /^\\/san-pham\\/[^/]+\\/?$/.test(u.pathname);
+            return u.origin === location.origin && u.pathname.startsWith("/san-pham/") && u.pathname.split("/").filter(Boolean).length === 2;
           } catch { return false; }
         }))];
       const childCategories = anchors
         .filter(a => a.closest("ul.product-categories, .widget_product_categories"))
         .map(a => ({ label: a.textContent.trim(), url: a.href }))
-        .filter(x => /^https:\\/\\/marine-aqua\\.vn\\/danh-muc\\/[^?#]+/.test(x.url));
+        .filter(x => x.url.startsWith("https://marine-aqua.vn/danh-muc/"));
       const pagination = anchors.find(a =>
         a.matches(".next.page-numbers, a.next") &&
         a.href.startsWith(location.origin + "/danh-muc/thuong-hieu/"));
