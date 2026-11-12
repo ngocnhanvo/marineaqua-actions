@@ -28,11 +28,16 @@ jobs:
           if(!response.ok)throw Error('Read-only runs API failed '+response.status);
           const data=await response.json();
           const runs=(data.workflow_runs||[]).map(x=>({id:x.id,status:x.status,conclusion:x.conclusion,head_sha:x.head_sha,created_at:x.created_at,updated_at:x.updated_at,html_url:x.html_url,event:x.event}));
+          const qaUrl='https://api.github.com/repos/'+repo+'/actions/workflows/marineaqua-information-pages-live-qa.yml/runs?per_page=12';
+          const qaResponse=await fetch(qaUrl,{headers});
+          if(!qaResponse.ok)throw Error('Read-only QA runs API failed '+qaResponse.status);
+          const qaData=await qaResponse.json();
+          const qaRuns=(qaData.workflow_runs||[]).map(x=>({id:x.id,status:x.status,conclusion:x.conclusion,head_sha:x.head_sha,created_at:x.created_at,updated_at:x.updated_at,html_url:x.html_url,event:x.event}));
           const endpoint='https://api.github.com/repos/'+repo+'/contents/docs/information-pages-production-runs.json';
           const previous=await fetch(endpoint,{headers}).then(r=>r.ok?r.json():null);
-          const body={message:'Record read-only canonical production run statuses',content:Buffer.from(JSON.stringify({runs},null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
+          const body={message:'Record read-only canonical production run statuses',content:Buffer.from(JSON.stringify({runs,qaRuns},null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
           if(previous?.sha)body.sha=previous.sha;
           const saved=await fetch(endpoint,{method:'PUT',headers,body:JSON.stringify(body)});
           if(!saved.ok)throw Error('Status evidence write failed '+saved.status+' '+(await saved.text()).slice(0,140));
-          console.log('MARINEAQUA_CANONICAL_DEPLOY_RUNS='+JSON.stringify(runs));
+          console.log('MARINEAQUA_CANONICAL_DEPLOY_RUNS='+JSON.stringify({runs,qaRuns}));
           NODE
