@@ -70,8 +70,20 @@ try {
   valid(src.origin===SOURCE&&src.pathname.startsWith("/wp-content/uploads/"),"Unowned original image");
   const filename=decodeURIComponent(src.pathname.split("/").at(-1));
   valid(/^[^\/\\\x00-\x1f]{1,170}\.(png|jpe?g|webp)$/i.test(filename),"Image filename invalid");
-  valid(!originalSources.has(filename)||originalSources.get(filename)===src.href,"Filename collision "+filename);
-  originalSources.set(filename,src.href);
+  const priorSource=originalSources.get(filename);
+  if(priorSource&&priorSource!==src.href){
+   // Distinct legacy paths may contain byte-identical assets. Reuse is safe
+   // only after direct hash comparison; never silently rename or overwrite.
+   const [oldResponse,newResponse]=await Promise.all([
+    context.request.get(priorSource,{timeout:45000,failOnStatusCode:false}),
+    context.request.get(src.href,{timeout:45000,failOnStatusCode:false})
+   ]);
+   valid(oldResponse.ok()&&newResponse.ok(),"Unable to verify legacy media collision "+filename);
+   const oldHash=createHash("sha256").update(await oldResponse.body()).digest("hex");
+   const newHash=createHash("sha256").update(await newResponse.body()).digest("hex");
+   valid(oldHash===newHash,"Different legacy media content under same filename "+filename);
+  }
+  if(!priorSource)originalSources.set(filename,src.href);
   const reused=mediaByFilename.get(filename);
   if(reused){
    valid(isOwnedMedia(reused.source_url),"Media origin mismatch");
