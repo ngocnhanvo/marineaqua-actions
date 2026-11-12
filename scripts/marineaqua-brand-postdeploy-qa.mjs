@@ -22,6 +22,19 @@ try {
  }
  for(const path of ["/san-pham/thuong-hieu/","/san-pham/thuong-hieu/16/","/san-pham/korallen-zucht/","/san-pham/korallen-zucht/2/","/san-pham/korallen-zucht/6/"]){
   const response=await page.goto(origin+path,{waitUntil:"domcontentloaded",timeout:40000});
+  // Images use loading="lazy". Bring the first four into the viewport and
+  // wait for actual decoded image content before asserting media correctness.
+  await page.evaluate(async()=>{
+   const cards=[...document.querySelectorAll("article.group")].slice(0,4);
+   const imgs=cards.map(card=>card.querySelector("img")).filter(Boolean);
+   for(const img of imgs)img.loading="eager";
+   await Promise.all(imgs.map(img=>new Promise(resolve=>{
+    if(img.complete)return resolve();
+    img.addEventListener("load",resolve,{once:true});
+    img.addEventListener("error",resolve,{once:true});
+    setTimeout(resolve,12000);
+   })));
+  });
   const info=await page.evaluate(()=>{
    const cards=[...document.querySelectorAll("article.group")];
    const prices=cards.map(card=>card.querySelector("p.text-base.font-extrabold"));
