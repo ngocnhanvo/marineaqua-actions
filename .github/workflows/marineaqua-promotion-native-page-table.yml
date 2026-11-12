@@ -1,0 +1,37 @@
+name: Marine Aqua publish native promotion ESC Table and Page
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-promotion-native-page-table.mjs'
+      - '.github/workflows/marineaqua-promotion-native-page-table.yml'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-native-promotion-page
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-promotion-native-page-table.mjs
+      - name: Create eight-product native ESC Table and insert via WordPress editor
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-promotion-native-page-table.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-promotion-page-table
+          path: promotion-page-table-evidence/
+          retention-days: 7
