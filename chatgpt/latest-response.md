@@ -1,35 +1,31 @@
-# Marine Aqua — GitHub Actions Dispatcher MCP prototype (2026-11-13, Asia/Ho_Chi_Minh)
+# Marine Aqua — GitHub-only dispatch bridge and production release (2026-11-13, Vietnam)
 
-Project: marine-aqua.vn
-Repository: ngocnhanvo/marineaqua-actions@main
+## User intent
+- Remove the MCP prototype completely. Use ordinary connected GitHub tooling.
+- Create a reusable authorized GitHub Actions workflow that can trigger `workflow_dispatch` or `repository_dispatch`, following the same mechanism as prior self-activated Actions deployments.
+- No MCP, extra hosting, user token in chat, no second production pipeline.
 
-## Request
-User asked to TRY a standalone GitHub Actions Dispatcher with 3 functions:
-`workflow_dispatch`, `repository_dispatch`, `get_workflow_run`.
+## Completed changes
+- **MCP removed**: commit `93393c595bf123540a6a09c2f6b849eb3fe957d3`, deletes `tools/github-actions-dispatcher/**` and `.github/workflows/github-actions-dispatcher-ci.yml`. Verified git tree has no MCP files.
+- **Bridge added**: `.github/workflows/marineaqua-dispatch-bridge.yml` and `scripts/marineaqua-dispatch-bridge.py`; offline unit tests in `scripts/test_marineaqua_dispatch_bridge.py`, usage in `docs/marineaqua-dispatch-bridge.md`.
+- Workflow `on.push main paths: dispatch-requests/*.json`; a true new single-purpose JSON request commit is the dispatch command. It requires a unique filename, exact source SHA, allowlisted workflow/event/inputs/domain, rejects duplicate live runs, locks a new target run, checks terminal conclusion and jobs, prevents rerun re-dispatch. Source `master` checked using existing secret `SOURCE_REPO_PAT`; Actions API POST uses `github.token` with workflow `contents:write`, `actions:write`. No new credential or app.
+- Bridge's own code push run [#43276579882](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43276579882) PASS: tests PASS, no request → NO_DISPATCH_REQUEST, no deployment.
 
-## Implemented (real commits to Actions main)
-- `tools/github-actions-dispatcher/dispatcher.mjs`: allowlisted GitHub REST client with exact repo/workflow/ref/event/input/payload policies, POST event trigger, unique direct workflow run ID where available (GitHub API 2026-03-10), no retries of non-idempotent POSTs, duplicate active run guard, read run/job results, explicit acceptance-vs-build/QA states.
-- `tools/github-actions-dispatcher/server.mjs`: minimal dependency-free JSON-RPC MCP Streamable HTTP endpoint POST /mcp, initialize, tools/list, tools/call; exactly three tools; bearer secret for local authenticated backend, timing-safe check, loopback default.
-- `tools/github-actions-dispatcher/dispatcher.test.mjs`: 7 automated tests incl. no live dispatch, authorization, allowlist and payload reject, duplicate prevention, run results, MCP HTTP init/list/call round-trip.
-- `tools/github-actions-dispatcher/package.json`: standalone Node >=22 package.
-- `tools/github-actions-dispatcher/README.md`: local test, Marine Aqua env allowlists, security, GitHub permissions, OAuth/Tunnel setup and ChatGPT plugin connection limitations.
-- `.github/workflows/github-actions-dispatcher-ci.yml`: NO DEPLOY test-only CI on genuine dispatcher source changes, zero production secrets.
-- HEAD after source work: `6886c176acfa2410322ae4b3f8e20fb65722938b`.
+## Real production dispatch evidence
+- PHP request commit `73cba00fde236a2272923319969d527aaf6f8dd4`, file `dispatch-requests/20261112T180842Z-php-product-paging-release.json`.
+- PHP bridge [#43276766922](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43276766922) **completed/success**. It triggered PHP production via **`workflow_dispatch`**, run [#43276847920](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43276847920) **completed/success**. Job log `MARINEAQUA_PHP_RELEASE installed=wp-content/plugins/github-trigger/products/endpoint.php sha256_verified=PASS`, `completed=PASS files_checked=8`, ready marker PASS.
+- Astro request commit `46b763af20cfa43960a21db6b75b85698a88d9d5`, file `dispatch-requests/20261112T181143Z-astro-product-paging-release.json`.
+- Astro bridge [#43277293206](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43277293206) triggered production `repository_dispatch wp_trigger_build`; run [#43277360360](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43277360360) source Astro `479f79e4356660387d8271bfdca4b76bef461026`. Latest checked Astro production **in_progress**, at `Build Astro Production (incremental WordPress data cache)`.
+- Previous source CI PHP `#43267657238` and Astro `#43267666534` PASS.
+- Attempted direct readback of WP paginated REST through web: inaccessible via this environment; FTPS file SHA verification is direct deploy evidence, not REST validation.
+- No new external hosting/plugin.
 
-## Evidence
-- GitHub Actions [#43274677108](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43274677108): completed / success; syntax checks PASS; offline MCP/REST contract tests PASS. Prior CI runs #43274196489, #43274355544, #43274642092 also success.
-- API modern behavior: `workflow_dispatch` returns run ID when `return_run_details:true`; `repository_dispatch` still returns HTTP 204 only. Don't invent correlation.
-- **No real dispatch** was sent; existing production workflow and PHP release were NOT run by this task.
-- **MCP NOT installed in ChatGPT**; no hosted HTTPS endpoint, OAuth 2.1 provider/proxy, GitHub App dispatch credential or activated custom plugin was available in this session. Internal `MCP_BEARER_TOKEN` is for local/proxy use, not supported ChatGPT OAuth replacement. Never publish raw backend with "No authentication".
+## Next actions
+1. Track production run `43277360360` and bridge run `43277293206` to completion, inspect job steps/log. If failed, investigate and fix actual source/pipeline, issue a **new** reviewed request file only when safe. Do NOT rerun old bridge requests (script rejects run_attempt >1).
+2. If success, verify signed activation job, source SHA, staging provenance and live HTTP/browser QA on marine-aqua.io.vn using an authorized runner, since direct web access is blocked.
+3. Preserve existing successful post-deploy log acknowledgement; do NOT reimplement.
+4. Keep repository docs/checkpoint consistent and update final status only with evidence.
 
-## Follow-up work required
-1. Provision trusted hosting or Secure MCP Tunnel and OAuth 2.1 / authorized proxy with per-user auth. Configure GitHub App installation token for only Actions repo with `Actions:write`, `Contents:write`, secure env/secret manager. Do not share secrets in chat.
-2. Connect this hosted MCP in ChatGPT Plugins, install, observe actual `tools/list` and authenticated read-only `get_workflow_run`. No connector installation can be forced from repo commits.
-3. Once direct tool access exists, dispatch existing `marineaqua-php-release.yml` ref main inputs confirm=DEPLOY_PHP, verify new paginated endpoint live, then `repository_dispatch wp_trigger_build` payload site_domain=marine-aqua.io.vn and verify signed Astro production deploy/QA.
-4. If tool isn't available in a later session, resume Knowledge CORE-07 A-D fallback, do not fake push events or create second deployment pipeline.
-
-## Final status
-Source CODE_READY + CI PASS; Hosted MCP connection NOT SET UP; production PHP/Astro deployment from previous task remains open.
 Chế độ code: auto-build
 Cổng ghi source: bypass
 Trạng thái: PARTIAL — chưa hoàn tất
