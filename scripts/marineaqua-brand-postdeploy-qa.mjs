@@ -1,5 +1,5 @@
 import { chromium } from "playwright";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
 const origin="https://marine-aqua.io.vn";
 const dir="brand-postdeploy-qa-evidence";
 await mkdir(dir,{recursive:true});
@@ -52,6 +52,31 @@ try {
    record("detail_"+path,detail?.status()===200,"HTTP="+detail?.status()+" href="+info.firstProduct);
   }
   console.log("BRAND_PROD_LISTING="+JSON.stringify(result.routes.at(-1)));
+ }
+ let sourceMapping=null;
+ try{
+  sourceMapping=JSON.parse(await readFile("brand-taxonomy-mapping-evidence/mapping.json","utf8"));
+ }catch{/* Standalone QA may not have an imported source manifest. */}
+ if(sourceMapping?.inputCount===246&&Array.isArray(sourceMapping.brands)){
+  const known=[{slug:"thuong-hieu",count:246},
+   ...sourceMapping.brands.map(brand=>({slug:brand.slug,count:brand.matched}))];
+  for(const brand of known){
+   const targetPath="/san-pham/"+brand.slug+"/";
+   const response=await page.goto(origin+targetPath,{waitUntil:"domcontentloaded",timeout:40000});
+   const data=await page.evaluate(()=>{
+    const cards=document.querySelectorAll("article.group").length;
+    const text=document.querySelector("main")?.textContent||"";
+    const count=text.match(/Tổng\s*(\d+)\s*sản phẩm/i);
+    return {cards,reportedTotal:count?Number(count[1]):-1};
+   });
+   const expectedCards=Math.min(16,brand.count);
+   record("category_count_"+brand.slug,response?.status()===200&&
+    data.cards===expectedCards&&(brand.count===0||data.reportedTotal===brand.count),
+    "expected="+brand.count+" visibleExpected="+expectedCards+
+    " visibleActual="+data.cards+" reported="+data.reportedTotal);
+   result.routes.push({path:targetPath,http:response?.status(),...data,expected:brand.count});
+  }
+  console.log("BRAND_SOURCE_CATEGORY_PARITY_CHECKED="+known.length);
  }
  await page.setViewportSize({width:390,height:844});
  const mobile=await page.goto(origin+"/san-pham/korallen-zucht/",{waitUntil:"domcontentloaded",timeout:40000});
