@@ -5,7 +5,7 @@ const DIR="brand-seo-repair-evidence";
 await mkdir(DIR,{recursive:true});
 const original=JSON.parse(await readFile("brand-catalog-evidence/manifest.json","utf8"));
 const mapping=JSON.parse(await readFile("brand-taxonomy-mapping-evidence/mapping.json","utf8"));
-const result={checked:0,updated:[],reused:[],errors:[],status:"STARTED"};
+const result={checked:0,updated:[],reused:[],backups:[],errors:[],status:"STARTED"};
 const browser=await chromium.launch({headless:true});
 try{
  if(original.details?.length!==246||mapping.unassigned?.length)
@@ -74,6 +74,12 @@ try{
     return [{...v,...(existing?.id?{id:existing.id}:{})}];
    });
    if(!changes.length){result.reused.push(slug);continue}
+   result.backups.push({slug,id:current.id,
+    previous:changes.map(c=>{
+     const item=meta.find(x=>x.key===c.key);
+     return {key:c.key,id:item?.id||null,value:item?.value??null};
+    })});
+   await writeFile(DIR+"/result.json",JSON.stringify(result,null,2)+"\n");
    await api("PUT","/wp-json/wc/v3/products/"+current.id,{meta_data:changes});
    const readback=await api("GET","/wp-json/wc/v3/products/"+current.id);
    for(const expected of desired){
