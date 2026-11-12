@@ -60,10 +60,11 @@ try {
       if(response?.ok()) {loaded=true;break;}
     } catch {}
    }
-   assert(loaded, 'Source page unavailable; do not publish guessed content');
-   const landedPath=new URL(source.url()).pathname.replace(/\/+$/, '') || '/';
-   assert(landedPath===entry.source.replace(/\/+$/, ''), 'Source redirected to unrelated URL: '+landedPath);
-   const extracted=await source.evaluate(() => {
+   if(loaded){
+     const landedPath=new URL(source.url()).pathname.replace(/\/+$/, '') || '/';
+     assert(landedPath===entry.source.replace(/\/+$/, ''), 'Source redirected to unrelated URL: '+landedPath);
+   }
+   let extracted=loaded ? await source.evaluate(() => {
       const all = [
        'article .entry-content', '.single-page .entry-content', '.entry-content',
        'main article .content', 'main .page-content', 'article .post-content',
@@ -91,8 +92,31 @@ try {
        }
       });
       return {title:document.querySelector('h1')?.textContent?.trim()||'',html:copy.innerHTML,text:copy.textContent?.trim()||''};
-   });
+   }) : null;
    await source.close();
+   if(!extracted) {
+     // Public source WordPress REST is a read-only fallback when the browser
+     // cannot obtain an article. Require one published page with exact slug.
+     try {
+       const rest=await context.request.get(SOURCE+'/wp-json/wp/v2/pages?slug='+encodeURIComponent(entry.slug)+'&_fields=id,slug,status,title,content',
+         {failOnStatusCode:false,timeout:35000});
+       if(rest.ok()) {
+         const items=await rest.json();
+         const exact=Array.isArray(items)?items.filter(p=>p.slug===entry.slug&&p.status==='publish'):[];
+         if(exact.length===1 && typeof exact[0]?.content?.rendered==='string') {
+           const html=exact[0].content.rendered.trim();
+           const text=html.replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\\s+/g,' ').trim();
+           const sourceTitle=String(exact[0].title?.rendered||'').replace(/<[^>]+>/g,'').trim();
+           if(sourceTitle&&text.length>=35&&html.length<90000) {
+             extracted={html,text,title:sourceTitle};
+             row.readVia='source-wordpress-rest';
+           }
+         }
+       }
+     } catch(error) {
+       row.sourceRestError=String(error?.message||error).slice(0,120);
+     }
+   }
    const minimumLength=['thoi-gian-ban-hang','thong-bao'].includes(entry.slug) ? 35 : 100;
    assert(extracted&&extracted.text.length>=minimumLength,'Source page missing substantive article content');
    assert(extracted.title, 'Source missing page heading; refuse unrelated document');
