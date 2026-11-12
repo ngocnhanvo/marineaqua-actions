@@ -1,0 +1,38 @@
+name: Marine Aqua original gallery asset size audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-brand-gallery-file-audit.mjs'
+      - '.github/workflows/marineaqua-brand-gallery-file-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-brand-gallery-file-audit.mjs
+      - name: Load verified source gallery snapshots
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p brand-gallery-source-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13920814186/zip" --output /tmp/gallery.zip
+          python3 -m zipfile -e /tmp/gallery.zip brand-gallery-source-evidence
+      - run: node scripts/marineaqua-brand-gallery-file-audit.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-brand-gallery-assets
+          path: brand-gallery-file-evidence/
