@@ -21,6 +21,14 @@ try {
       bodyCategoryClasses: [...document.body.classList].filter(c => c.includes("product_cat")),
       categoryAnchors: [...document.querySelectorAll("a[href*='/danh-muc/']")]
         .slice(0, 20).map(a => ({ text: a.textContent.trim(), href: a.href })),
+      galleryImages: [...document.querySelectorAll(".woocommerce-product-gallery img")].slice(0,12).map(img=>({
+        src:img.getAttribute("src"),dataLarge:img.getAttribute("data-large_image"),
+        dataSrc:img.getAttribute("data-src"),srcset:img.getAttribute("srcset"),
+        outer:img.outerHTML.slice(0,350)
+      })),
+      galleryWrappers:[...document.querySelectorAll(".woocommerce-product-gallery")].slice(0,2).map(el=>({
+        tag:el.tagName,html:el.outerHTML.slice(0,1100)
+      })),
       itemprops: [...document.querySelectorAll('[itemprop="category"]')]
         .map(el => ({ text: el.textContent.trim(), content: el.getAttribute("content") || "" })),
     })));
