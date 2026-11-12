@@ -107,13 +107,22 @@ try {
     break;
    }catch(e){if(attempt===3){result.deferred.push({src:src.href,attempts:4,error:String(e).slice(0,160)});return null}}
   }
-  const mime=/\.png$/i.test(filename)?"image/png":/\.webp$/i.test(filename)?"image/webp":"image/jpeg";
+  // WordPress reserves image-size suffixes and sanitizes Unicode punctuation.
+  // Use a stable, collision-resistant media name only for the known unsafe
+  // filename patterns; keep source filename and exact bytes in metadata.
+  const riskyFilename=/woocommerce-placeholder|[\u2018\u2019]|-\d+x\d+\.[^.]+$/i.test(filename);
+  const originalHash=createHash("sha256").update(bytes).digest("hex");
+  const safeFilename=riskyFilename
+    ? "marine-aqua-original-"+originalHash.slice(0,20)+"."+filename.split(".").at(-1).toLowerCase()
+    : filename;
+  if(riskyFilename)console.log("BRAND_MEDIA_SAFE_FILENAME="+filename+" => "+safeFilename);
+  const mime=/\.png$/i.test(safeFilename)?"image/png":/\.webp$/i.test(safeFilename)?"image/webp":"image/jpeg";
   // Native WordPress media uploader is preferred for the original product images.
   // A REST binary upload can be interrupted by the upstream proxy even when
   // the request was accepted; always check Media Library before submitting.
   const readExisting=async()=>{
-    const list=await api("GET","/wp-json/wp/v2/media?search="+encodeURIComponent(filename.replace(/\.[^.]+$/,""))+"&per_page=100&_fields=id,source_url,alt_text");
-    return list.find(m=>decodeURIComponent(String(m.source_url||"").split("/").at(-1))===filename);
+    const list=await api("GET","/wp-json/wp/v2/media?search="+encodeURIComponent(safeFilename.replace(/\.[^.]+$/,""))+"&per_page=100&_fields=id,source_url,alt_text");
+    return list.find(m=>decodeURIComponent(String(m.source_url||"").split("/").at(-1))===safeFilename);
   };
   let uploaded=await readExisting();
   if(!uploaded){
@@ -125,7 +134,7 @@ try {
     const hasHTML5=await html5.count()>0;
     const input=hasHTML5?html5:page.locator("#async-upload");
     valid(await input.count()>0,"WordPress native media upload input missing");
-    await input.setInputFiles({name:filename,mimeType:mime,buffer:bytes});
+    await input.setInputFiles({name:safeFilename,mimeType:mime,buffer:bytes});
     if(!hasHTML5){
       await page.evaluate(()=>{
         const field=document.querySelector("#async-upload");
@@ -151,7 +160,11 @@ try {
   const confirmed=await api("GET","/wp-json/wp/v2/media/"+uploaded.id+"?_fields=id,source_url,alt_text");
   const confirmedUrl=new URL(String(confirmed.source_url||""),WP);
   valid(confirmed.id===uploaded.id&&confirmedUrl.origin===WP&&confirmedUrl.pathname.startsWith("/wp-content/uploads/"),"Media upload invalid "+filename+" source="+String(confirmed.source_url).slice(0,120));
-  valid(decodeURIComponent(confirmedUrl.pathname.split("/").at(-1))===filename,"Media filename changed "+filename);
+  valid(decodeURIComponent(confirmedUrl.pathname.split("/").at(-1))===safeFilename,"Media filename changed "+filename);
+  const mediaResponse=await context.request.get(confirmedUrl.href,{timeout:45000,failOnStatusCode:false});
+  valid(mediaResponse.ok(),"Uploaded media verification HTTP "+mediaResponse.status());
+  valid(createHash("sha256").update(await mediaResponse.body()).digest("hex")===originalHash,
+    "Uploaded image differs from original source "+filename);
   const alt=String(image.alt||name).slice(0,220);
   const media=await api("POST","/wp-json/wp/v2/media/"+uploaded.id,{alt_text:alt});
   valid(media.id===uploaded.id&&media.alt_text===alt,"Media alt readback mismatch");
