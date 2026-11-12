@@ -30,10 +30,23 @@ try {
  const headers={"X-WP-Nonce":nonce};
  const isOwnedMedia=(v)=>{try{const u=new URL(v,WP);return Boolean(v)&&u.origin===WP&&u.pathname.startsWith("/wp-content/uploads/")}catch{return false}};
  async function api(method,path,payload) {
-  const response=await context.request.fetch(WP+path,{method,headers:{...headers,...(payload?{"Content-Type":"application/json"}:{})},
-   data:payload?JSON.stringify(payload):undefined,failOnStatusCode:false,timeout:50000});
-  if(!response.ok())throw Error("WP "+method+" "+path.split("?")[0]+" HTTP "+response.status()+" "+(await response.text()).slice(0,180));
-  return response.json();
+  const maxAttempts=method==="GET"?4:1;
+  for(let attempt=1;attempt<=maxAttempts;attempt++){
+   try {
+    const response=await context.request.fetch(WP+path,{method,
+     headers:{...headers,...(payload?{"Content-Type":"application/json"}:{})},
+     data:payload?JSON.stringify(payload):undefined,failOnStatusCode:false,timeout:50000});
+    if(method==="GET"&&response.status()>=500&&attempt<maxAttempts){
+     await new Promise(resolve=>setTimeout(resolve,attempt*800));continue;
+    }
+    if(!response.ok())throw Error("WP "+method+" "+path.split("?")[0]+" HTTP "+response.status()+" "+(await response.text()).slice(0,180));
+    return response.json();
+   }catch(e){
+    if(attempt>=maxAttempts||!/ECONNRESET|socket hang up|ETIMEDOUT|TimeoutError|ECONNABORTED/i.test(String(e)))throw e;
+    console.log("BRAND_WP_GET_RETRY="+attempt+" path="+path.split("?")[0]);
+    await new Promise(resolve=>setTimeout(resolve,attempt*800));
+   }
+  }
  }
  const existing=[];
  for(let pageNo=1;pageNo<=50;pageNo++){
