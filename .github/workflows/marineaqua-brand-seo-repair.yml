@@ -1,0 +1,59 @@
+name: Marine Aqua repair verified Yoast SEO metadata
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-brand-seo-repair.mjs'
+      - '.github/workflows/marineaqua-brand-seo-repair.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: marine-aqua-woocommerce-brand-import
+  cancel-in-progress: false
+jobs:
+  seo-repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-brand-seo-repair.mjs
+      - name: Require completed successful original gallery import
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/runs/43169467713" -o /tmp/gallery-run.json
+          python3 - <<'PY'
+          import json
+          r=json.load(open('/tmp/gallery-run.json'))
+          assert r['status']=='completed' and r['conclusion']=='success', 'Gallery import must PASS before SEO repair'
+          print('BRAND_GALLERY_IMPORT_GATE=PASS run='+str(r['id']))
+          PY
+      - name: Restore verified original product content and taxonomy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p brand-catalog-evidence brand-taxonomy-mapping-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13917609900/zip" --output /tmp/products.zip
+          python3 -m zipfile -e /tmp/products.zip brand-catalog-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13918288250/zip" --output /tmp/mapping.zip
+          python3 -m zipfile -e /tmp/mapping.zip brand-taxonomy-mapping-evidence
+      - name: Repair and verify Yoast SEO metadata only where source values exist
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-brand-seo-repair.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-brand-yoast-repair
+          path: brand-seo-repair-evidence/
+          retention-days: 14
