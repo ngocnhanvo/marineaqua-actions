@@ -27,6 +27,21 @@ try{
  const context=await browser.newContext({baseURL:WP});
  const before=await getMenu(context);
  console.log("PROMO_HEADER_CURRENT="+JSON.stringify(before.map(x=>({key:x.key,label:label(x),href:x.href,slug:x.slug,linkType:x.linkType,children:(x.children||[]).map(y=>({key:y.key,label:label(y),linkType:y.linkType}))}))));
+ const inspector=await context.newPage();
+ await inspector.goto("/wp-login.php",{waitUntil:"domcontentloaded",timeout:45000});
+ await inspector.locator("#user_login").fill(process.env.WP_ADMIN_USERNAME);
+ await inspector.locator("#user_pass").fill(process.env.WP_ADMIN_PASSWORD);
+ await inspector.locator("#wp-submit").click();
+ await inspector.goto("/wp-admin/nav-menus.php",{waitUntil:"domcontentloaded",timeout:45000});
+ const snapshot=await inspector.evaluate(()=>{
+  const item=document.getElementById("menu-item-82503");
+  return {menuName:document.getElementById("menu-name")?.value,
+   promoHtml:item?.outerHTML.slice(0,12500),
+   itemFields:item?[...item.querySelectorAll("input,select,button")].map(e=>({tag:e.tagName,name:e.name,id:e.id,type:e.type,value:e.value,options:e.tagName==="SELECT"?[...e.options].map(x=>({value:x.value,label:x.textContent.trim()})):undefined})):[],
+   candidates:[...document.querySelectorAll('input,select')].filter(e=>/82503|link.mode|custom.url/i.test(e.name+" "+e.id)).map(e=>({name:e.name,id:e.id,value:e.value})).slice(0,70)};
+ });
+ console.log("PROMO_MENU_SINGLE_ITEM_INSPECTION="+JSON.stringify(snapshot).slice(0,18000));
+ result.status="INSPECTED";return;
  guard(before);
  result.before=before.map(x=>({key:x.key,label:label(x),href:x.href,slug:x.slug,linkType:x.linkType,children:x.children?.length||0}));
  const promo=before[1];
