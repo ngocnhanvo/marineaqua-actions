@@ -76,11 +76,29 @@ try{
   valid(/^[^\/\\\x00-\x1f]{1,170}\.(png|jpe?g|webp)$/i.test(filename),"Image filename invalid");
   valid(!originalSources.has(filename)||originalSources.get(filename)===src.href,"Filename collision "+filename);
   originalSources.set(filename,src.href);
-  const reused=mediaByFilename.get(filename);
+  const riskyFilename=/\.\.(?=[^.]+$)/.test(filename);
+  const originalResponse=await (async()=>{
+   for(let attempt=1;attempt<=4;attempt++){
+    try{
+     const response=await context.request.get(src.href,{timeout:45000,failOnStatusCode:false});
+     valid(response.ok(),"Original image HTTP "+response.status());
+     return response;
+    }catch(error){
+     if(attempt===4)throw error;
+     await new Promise(resolve=>setTimeout(resolve,attempt*900));
+    }
+   }
+  })();
+  const originalBytes=await originalResponse.body();
+  const expectedSha=createHash("sha256").update(originalBytes).digest("hex");
+  const safeFilename=riskyFilename
+   ? "marine-aqua-original-"+expectedSha.slice(0,20)+"."+filename.split(".").at(-1).toLowerCase()
+   : filename;
+  const reused=mediaByFilename.get(safeFilename);
   if(reused){
    valid(isOwnedMedia(reused.source_url),"Media origin mismatch");
    const [sourceResponse,targetResponse]=await Promise.all([
-     context.request.get(src.href,{timeout:45000,failOnStatusCode:false}),
+     Promise.resolve({ok:()=>true,body:async()=>originalBytes}),
      context.request.get(new URL(reused.source_url,WP).href,{timeout:45000,failOnStatusCode:false})
    ]);
    valid(sourceResponse.ok()&&targetResponse.ok(),"Unable to compare media for safe reuse "+filename);
@@ -89,7 +107,7 @@ try{
    valid(sourceSha===targetSha,"Filename conflict: same name but different media "+filename);
    result.reusedMedia.push({filename,id:reused.id});return reused.id;
   }
-  let bytes=null;
+  let bytes=originalBytes;
   for(let attempt=0;attempt<=3;attempt++){
    try{
     const response=await context.request.get(src.href,{timeout:35000,failOnStatusCode:false});
@@ -104,8 +122,8 @@ try{
   // A REST binary upload can be interrupted by the upstream proxy even when
   // the request was accepted; always check Media Library before submitting.
   const readExisting=async()=>{
-    const list=await api("GET","/wp-json/wp/v2/media?search="+encodeURIComponent(filename.replace(/\.[^.]+$/,""))+"&per_page=100&_fields=id,source_url,alt_text");
-    return list.find(m=>decodeURIComponent(String(m.source_url||"").split("/").at(-1))===filename);
+    const list=await api("GET","/wp-json/wp/v2/media?search="+encodeURIComponent(safeFilename.replace(/\.[^.]+$/,""))+"&per_page=100&_fields=id,source_url,alt_text");
+    return list.find(m=>decodeURIComponent(String(m.source_url||"").split("/").at(-1))===safeFilename);
   };
   let uploaded=await readExisting();
   if(!uploaded){
@@ -117,7 +135,7 @@ try{
     const hasHTML5=await html5.count()>0;
     const input=hasHTML5?html5:page.locator("#async-upload");
     valid(await input.count()>0,"WordPress native media upload input missing");
-    await input.setInputFiles({name:filename,mimeType:mime,buffer:bytes});
+    await input.setInputFiles({name:safeFilename,mimeType:mime,buffer:bytes});
     if(!hasHTML5){
       await page.evaluate(()=>{
         const field=document.querySelector("#async-upload");
@@ -143,11 +161,18 @@ try{
   const confirmed=await api("GET","/wp-json/wp/v2/media/"+uploaded.id+"?_fields=id,source_url,alt_text");
   const confirmedUrl=new URL(String(confirmed.source_url||""),WP);
   valid(confirmed.id===uploaded.id&&confirmedUrl.origin===WP&&confirmedUrl.pathname.startsWith("/wp-content/uploads/"),"Media upload invalid "+filename+" source="+String(confirmed.source_url).slice(0,120));
-  valid(decodeURIComponent(confirmedUrl.pathname.split("/").at(-1))===filename,"Media filename changed "+filename);
+  valid(decodeURIComponent(confirmedUrl.pathname.split("/").at(-1))===safeFilename,"Media filename changed "+filename);
+  if(riskyFilename){
+   const imageCheck=await context.request.get(confirmedUrl.href,{timeout:45000,failOnStatusCode:false});
+   valid(imageCheck.ok(),"Safe media file HTTP "+imageCheck.status());
+   valid(createHash("sha256").update(await imageCheck.body()).digest("hex")===expectedSha,
+    "Safe media checksum mismatch "+filename);
+   result.renamed=(result.renamed||[]).concat([{original:filename,safe:safeFilename,sha256:expectedSha}]);
+  }
   const alt=String(image.alt||name).slice(0,220);
   const media=await api("POST","/wp-json/wp/v2/media/"+uploaded.id,{alt_text:alt});
   valid(media.id===uploaded.id&&media.alt_text===alt,"Media alt readback mismatch");
-  mediaByFilename.set(filename,uploaded);
+  mediaByFilename.set(safeFilename,uploaded);
   result.createdMedia.push({filename,id:uploaded.id});
   return uploaded.id;
  }
