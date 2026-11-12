@@ -32,3 +32,5 @@ jobs:
         with:
           name: marine-aqua-category-layout-live-qa
           path: next-category-production-qa-evidence/
+
+# Verify independent live card layout and archive membership
