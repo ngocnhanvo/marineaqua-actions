@@ -26,6 +26,7 @@ try{
  check(process.env.WP_ADMIN_USERNAME&&process.env.WP_ADMIN_PASSWORD,"Missing WP credentials");
  const context=await browser.newContext({baseURL:WP});
  const before=await getMenu(context);
+ console.log("PROMO_HEADER_CURRENT="+JSON.stringify(before.map(x=>({key:x.key,label:label(x),href:x.href,slug:x.slug,linkType:x.linkType,children:(x.children||[]).map(y=>({key:y.key,label:label(y),linkType:y.linkType}))}))));
  guard(before);
  result.before=before.map(x=>({key:x.key,label:label(x),href:x.href,slug:x.slug,linkType:x.linkType,children:x.children?.length||0}));
  const promo=before[1];
