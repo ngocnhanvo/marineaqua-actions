@@ -1,0 +1,41 @@
+name: Marine Aqua Sanking original gallery inventory
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-sanking-gallery-source.mjs'
+      - '.github/workflows/marineaqua-sanking-gallery-source.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source-gallery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-sanking-gallery-source.mjs
+      - name: Recover original source inventory
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          mkdir -p sanking-catalog-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13940113224/zip" -o /tmp/source.zip
+          python3 -m zipfile -e /tmp/source.zip sanking-catalog-evidence
+          test -s sanking-catalog-evidence/manifest.json
+      - name: Verify original gallery full-size order
+        run: node scripts/marineaqua-sanking-gallery-source.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-sanking-gallery-source
+          path: sanking-gallery-source-evidence/
+          retention-days: 14
