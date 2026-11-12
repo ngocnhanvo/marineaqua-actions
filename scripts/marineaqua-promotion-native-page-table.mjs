@@ -120,7 +120,10 @@ try{
  }
 
  const inventory=await api("GET","/wp-json/wp/v2/pages?context=edit&per_page=100&_fields=id,slug,status,acf,content");
- const pages=inventory.filter(p=>p.slug===PAGE_SLUG||p.acf?.key===PAGE_KEY);
+ const searched=await api("GET","/wp-json/wp/v2/pages?context=edit&search="+encodeURIComponent("Khuyến mãi")+"&per_page=100&_fields=id,slug,title,status,acf");
+ console.log("PROMOTION_PAGE_SEARCH="+JSON.stringify(searched.map(p=>({id:p.id,slug:p.slug,title:p.title?.rendered,status:p.status,acf:p.acf}))).slice(0,4000));
+ const pages=[...new Map([...inventory,...searched.filter(p=>String(p.title?.rendered||"").toLocaleLowerCase("vi").trim()==="khuyến mãi")]
+   .filter(p=>p.slug===PAGE_SLUG||p.acf?.key===PAGE_KEY||String(p.title?.rendered||"").trim()==="Khuyến mãi").map(p=>[p.id,p])).values()];
  valid(pages.length<=1,"Duplicate promotion pages; refuse mutation");
  let record=pages[0];
  if(record){
@@ -128,6 +131,7 @@ try{
   result.pageId=record.id;
  }else{
   record=await api("POST","/wp-json/wp/v2/pages",{title:"Khuyến mãi",slug:PAGE_SLUG,status:"draft",acf:{key:PAGE_KEY,action:"HomePage",product_lang:"vi"}});
+  console.log("PROMOTION_PAGE_CREATE_RESPONSE="+JSON.stringify({id:record?.id,slug:record?.slug,status:record?.status,acf:record?.acf,title:record?.title}).slice(0,2000));
   valid(record?.id&&record.slug===PAGE_SLUG,"Create promotion draft Page failed");
   result.pageId=record.id;
   result.temporaryCreated.push(record.id);
