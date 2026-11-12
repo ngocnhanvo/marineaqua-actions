@@ -4,10 +4,16 @@ on:
     workflows:
       - 'Marine Aqua Astro deployment (WordPress Build Website only)'
     types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-information-pages-live-qa.yml'
+      - 'scripts/marineaqua-information-pages-live-qa.mjs'
 permissions:
   contents: write
 jobs:
   deploy-record:
+    if: github.event_name == 'workflow_run'
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
@@ -32,7 +38,7 @@ jobs:
           console.log('MARINEAQUA_INFORMATION_DEPLOY_RECORD='+JSON.stringify(payload));
           NODE
   verify:
-    if: github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'push' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     container:
