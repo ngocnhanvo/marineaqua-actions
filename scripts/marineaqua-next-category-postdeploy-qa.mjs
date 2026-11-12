@@ -51,7 +51,7 @@ try{
    assert("total_"+path,response?.status()===200&&result.cards===expectedCards&&(total===0?result.reportedTotal===0||result.reportedTotal===-1:result.reportedTotal===total),
     "expected "+total+"/"+expectedCards+" got "+result.reportedTotal+"/"+result.cards+" HTTP "+response?.status());
    assert("title_"+path,result.h1.length===1&&Boolean(result.h1[0]),"H1="+JSON.stringify(result.h1));
-   assert("prices_"+path,result.prices.length===result.cards&&result.prices.every(p=>p.color.includes("217, 38, 46")&&p.text),
+   assert("prices_"+path,result.prices.length===result.cards&&result.prices.every(p=>p.color.includes("225, 36, 47")&&p.text),
     "Invalid prices "+JSON.stringify(result.prices.slice(0,3)));
    assert("media_"+path,result.media.every(img=>img.ok),"Failed media "+JSON.stringify(result.media));
    assert("hrefs_"+path,result.hrefs.every(h=>h.startsWith("/san-pham/")),"Invalid product detail links");
