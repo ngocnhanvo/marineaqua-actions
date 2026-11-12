@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "e11e6b0b53f3e825f173c503b76ab070171c10dc",
+  "reason": "Build sale price REST integration and refresh product caches",
+  "request_id": "20261112T210300Z-sale-price-data-fix",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
