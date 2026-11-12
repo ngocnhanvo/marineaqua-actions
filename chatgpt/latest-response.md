@@ -1,3 +1,22 @@
+# Marine Aqua — FOUR PRODUCT CATEGORIES FINAL checkpoint (2026-11-12)
+
+Status: **DONE — original inventory, taxonomy repair, source price parity, galleries, signed Astro production deploy, desktop/mobile live acceptance.** Do not repeat this migration.
+
+## User scope and actual source
+- Source roots: `/danh-muc/cat-da-va-chat-nen/` **0 products** (original source explicitly empty), `/danh-muc/den-cho-be-ca-bien-san-ho/` **11**, `/danh-muc/lo-canxi-va-vat-lieu/` **4**, `/danh-muc/lo-khu/` **2**.
+- Total **17 unique products**, all 17 existed in target WooCommerce from prior brand migration; **0 new products created**, all 17 needed category membership added. Source detail inventory 17/17, independent archive price oracle 17/17, taxonomy mapping 17/17.
+- Original fullsize gallery inventory 15 products with multiple images; exact gallery identity/order parity **15/15 PASS**.
+- Import run [#43216127630](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43216127630) PASS: 17 existing category terms appended, 0 created, 0 errors, 0 deferred. No unrelated product data overwritten.
+- Independent archive price oracle found **1 existing price mismatch**, fixed with backup/readback in [#43216570421](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43216570421) PASS: 17 checked, 1 updated, 16 unchanged, 0 errors.
+- Final strict independent WooCommerce parity **PASS 17/17**: 0 missing, 0 wrong categories/prices/stock/main media, 0 archive count errors, 0 SEO review.
+- Canonical signed production Astro build [#43217149964](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43217149964) SUCCESS, exact Astro master SHA `4a3f0dfbe75d5632dd1a3f28d728e6eeb7ba31f3`, signed activation and live route readiness PASS.
+- Final release/acceptance [#43216816856](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43216816856) SUCCESS: source parity PASS, gallery 15/15 PASS, signed production PASS, Playwright live **10 route/check records, 0 errors** (4 desktop category routes, 4 mobile, 2 brand regressions).
+- Live routes: `https://marine-aqua.io.vn/san-pham/cat-da-va-chat-nen/` 0 (empty state), `/san-pham/den-cho-be-ca-bien-san-ho/` 11, `/san-pham/lo-canxi-va-vat-lieu/` 4, `/san-pham/lo-khu/` 2. All HTTP 200, correct H1 and card count, images/prices/details and mobile no overflow.
+- Runner scripts/workflows use prefix `marineaqua-four-category-` in `ngocnhanvo/marineaqua-actions@main`; evidence artifacts tied to runs above. No Astro/PHP source changes needed; WordPress category memberships changed, followed by canonical production rebuild.
+- Project: `ngocnhanvo/knowledge@main`, `ngocnhanvo/marineaqua-astro@master`, `ngocnhanvo/marineaqua-php@master`, `ngocnhanvo/marineaqua-actions@main`. Code mode auto-build, source gate bypass.
+
+---
+
 # Marine Aqua — BRAND catalog migration FINAL checkpoint
 
 Date: 2026-11-12 (Asia/Ho_Chi_Minh)
