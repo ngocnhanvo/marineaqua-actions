@@ -1,0 +1,45 @@
+name: Marine Aqua two category product parity audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-two-category-parity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-two-category-parity.mjs
+      - name: Read verified source products and mapped taxonomy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          mkdir -p two-category-catalog-evidence two-category-mapping-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13929359331/zip" -o /tmp/source.zip
+          python3 -m zipfile -e /tmp/source.zip two-category-catalog-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13931210653/zip" -o /tmp/mapping.zip
+          python3 -m zipfile -e /tmp/mapping.zip two-category-mapping-evidence
+      - name: Strict source WooCommerce product and category count parity
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-two-category-parity.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-two-category-parity
+          path: two-category-parity-evidence/
+          retention-days: 14
