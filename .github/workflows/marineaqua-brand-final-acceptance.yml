@@ -1,0 +1,78 @@
+name: Marine Aqua final production brand catalog acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-brand-final-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Verify canonical signed production deployment and Astro master SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REPO_PAT: ${{ secrets.SOURCE_REPO_PAT }}
+        run: |
+          set -euo pipefail
+          mkdir -p brand-final-acceptance-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/runs/43182976954" -o /tmp/release-run.json
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/runs/43182976954/jobs" -o /tmp/release-jobs.json
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $SOURCE_REPO_PAT" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-astro/git/ref/heads/master" -o /tmp/astro-ref.json
+          python3 - <<'PY'
+          import json
+          run=json.load(open('/tmp/release-run.json'))
+          jobs=json.load(open('/tmp/release-jobs.json'))['jobs']
+          ref=json.load(open('/tmp/astro-ref.json'))['object']['sha']
+          expected='4a3f0dfbe75d5632dd1a3f28d728e6eeb7ba31f3'
+          assert run['status']=='completed' and run['conclusion']=='success' and run['event']=='repository_dispatch'
+          assert ref==expected, 'Astro master has changed since deployed source - cannot attest latest'
+          assert len(jobs)==1 and jobs[0]['conclusion']=='success'
+          for name in ('Build Astro Production (incremental WordPress data cache)',
+                       'Upload compiled staging archive by verified Python FTP-TLS',
+                       'Verify provenance and activate staging bundle using signed PHP rollback'):
+              assert any(s['name']==name and s['conclusion']=='success' for s in jobs[0]['steps']), name
+          open('/tmp/release-job-id','w').write(str(jobs[0]['id']))
+          open('brand-final-acceptance-evidence/deploy.json','w').write(
+            json.dumps({'run':run['id'],'astro_sha':ref,'conclusion':'success',
+                        'signed_activation':True},indent=2))
+          print('SIGNED_DEPLOY_STEPS=PASS sha='+ref+' run='+str(run['id']))
+          PY
+          id="$(cat /tmp/release-job-id)"
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/jobs/$id/logs" -o /tmp/release-job.log
+          python3 - <<'PY'
+          text=open('/tmp/release-job.log',errors='replace').read()
+          for label in ('ASTRO_BUILD_COMPLETE=PASS','FTPS_UPLOAD=PASS','SIGNED_UNZIP_SUCCESS','4a3f0dfbe75d5632dd1a3f28d728e6eeb7ba31f3'):
+              assert label in text, 'Missing signed release provenance: '+label
+          print('SIGNED_RELEASE_LOG=PASS')
+          PY
+      - name: Restore complete verified source brand mapping
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p brand-taxonomy-mapping-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13918288250/zip" -o /tmp/mapping.zip
+          python3 -m zipfile -e /tmp/mapping.zip brand-taxonomy-mapping-evidence
+          test -s brand-taxonomy-mapping-evidence/mapping.json
+      - name: Verify production URL, all brand counts, images, prices, details and mobile
+        run: node scripts/marineaqua-brand-postdeploy-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-final-brand-acceptance
+          path: |
+            brand-final-acceptance-evidence/
+            brand-postdeploy-qa-evidence/
+          retention-days: 14
