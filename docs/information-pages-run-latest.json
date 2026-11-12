@@ -43,7 +43,6 @@
       "slug": "thong-bao",
       "source": "https://marine-aqua.vn/thong-bao/",
       "status": "EXISTING_CONTENT_PRESERVED",
-      "actionFixed": true,
       "id": 83273,
       "compare": {
         "sourceTextLength": 149,
@@ -79,15 +78,19 @@
     {
       "slug": "thoi-gian-ban-hang",
       "source": "https://marine-aqua.vn/thoi-gian-ban-hang/",
-      "status": "CREATED",
+      "status": "EXISTING_CONTENT_PRESERVED",
       "id": 83285,
+      "compare": {
+        "sourceTextLength": 78,
+        "existingHtmlLength": 104
+      },
       "sourceLength": 78,
       "sourceTitle": ""
     }
   ],
   "errors": [],
   "status": "PASS",
-  "run_id": "43313464647",
+  "run_id": "43313678695",
   "run_attempt": "1",
   "job_outcome": "success",
   "source": "marineaqua-information-pages-migration.yml"
