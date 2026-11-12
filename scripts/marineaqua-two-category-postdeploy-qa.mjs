@@ -68,7 +68,7 @@ try{
   const response=await page.goto(ORIGIN+path,{waitUntil:"domcontentloaded",timeout:45000});
   const record=await page.evaluate(()=>{
    const text=document.querySelector("main")?.textContent||"";
-   const match=text.match(/Tổng\\s*(\\d+)\\s*sản phẩm/i);
+   const match=text.match(/Tổng\s*(\d+)\s*sản phẩm/i);
    return {count:match?Number(match[1]):-1,cards:document.querySelectorAll("article.group").length};
   });
   assert("regression_"+slug,response?.status()===200&&record.count===expected&&record.cards===16,
@@ -94,7 +94,7 @@ try{
    const hrefs=await menu.locator("a[href]").evaluateAll(items=>items.map(a=>a.getAttribute("href")));
    const expectedChildren=root.children.map(slug=>"/san-pham/"+slug);
    const available=await menu.isVisible()&&expectedChildren.every(child=>
-     hrefs.some(h=>h&&h.replace(/\\/$/,"")===child));
+     hrefs.some(h=>h&&h.replace(/\/$/,"")===child));
    assert("category_navigation_"+root.slug,available,JSON.stringify({hrefs,expectedChildren}));
   }else assert("category_navigation_"+root.slug,false,"Missing category dropdown");
   await page.screenshot({path:DIR+"/mobile-"+root.slug+".png",fullPage:false});
