@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "d6ca7bc3e897f346f319090ab1ece5271de6688a",
+  "reason": "Deploy product listing count and sorting controls from Astro master",
+  "request_id": "20261112T183100Z-product-list-sort",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
