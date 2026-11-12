@@ -63,23 +63,41 @@ try{
  const initial=await readTable(TABLE);
  const alt=await readTable("145");
  console.log("PROMOTION_TABLE_CURRENT="+JSON.stringify({tableNamed:initial&&{id:initial.id,title:initial.title,source:initial.meta?.api,fields:initial.fields,rows:initial.items?.length},oldNumeric:alt&&{id:alt.id,title:alt.title,source:alt.meta?.api,rows:alt.items?.length}}));
- if(initial?.meta?.api==="Product"){
-  valid(initial.fields?.length===COLS.length&&COLS.every((c,j)=>initial.fields[j]?.key===c),"Existing table field conflict");
-  valid(initial.items?.length===8,"Existing table has unexpected item count");
-  valid(initial.items.every((item,i)=>String(item.key)===String(products[i].id)),"Existing table product order conflict");
-  result.steps.push("existing_table_verified");
+ const expectedIds=products.map(x=>String(x.id));
+ const complete=initial?.meta?.api==="Product"&&initial.items?.length===8&&
+   initial.fields?.length===5&&COLS.every((c,j)=>initial.fields[j]?.key===c)&&
+   initial.items.every((item,i)=>String(item.key)===expectedIds[i]);
+ if(complete){
+   result.steps.push("existing_table_verified");
  }else{
-  valid(initial?.id===TABLE && initial?.title==="Khuyến mãi","Expected previously created native promotion table; refusing overwrite");
+   valid(initial?.id===TABLE && initial?.title==="Khuyến mãi","Expected existing native promotion table; refusing overwrite");
+   const present=(initial.items||[]).map(x=>String(x.key||""));
+   valid(!initial.meta?.api||initial.meta.api==="Product","Foreign ESC Table API source; refusing overwrite");
+   valid(present.every(x=>expectedIds.includes(x)),"Foreign ESC Table product references; refusing overwrite");
+   console.log("PROMOTION_PARTIAL_TABLE="+JSON.stringify({fields:initial.fields,source:initial.meta?.api,present,expectedIds}));
   await page.goto(WP+"/wp-admin/admin.php?page=tablepress&action=edit&table_id="+TABLE,{waitUntil:"domcontentloaded",timeout:45000});
   await page.waitForFunction(()=>Boolean(window.tp?.editor?.setValueFromCoords&&window.tp?.table?.data),null,{timeout:30000});
-  const initialGrid=await page.evaluate(()=>window.tp.table.data);
+  let initialGrid=await page.evaluate(()=>window.tp.table.data);
   console.log("PROMOTION_NATIVE_TABLE_GRID="+JSON.stringify({rows:initialGrid.length,columns:initialGrid[0]?.length}));
-  valid(initialGrid.length===9&&initialGrid.every(x=>x.length===5),"Unexpected native table dimensions; refuse mutation");
+  valid([9,10].includes(initialGrid.length)&&initialGrid.every(x=>x.length===5),"Unexpected native table dimensions; refuse mutation");
+  if(initialGrid.length===9){
+    await page.evaluate(()=>{
+      const input=document.querySelector("#rows-append-number");
+      if(!(input instanceof HTMLInputElement)||input.value!=="1")throw Error("Native Add Rows control missing");
+      const button=document.evaluate('following::button[normalize-space(.)="Add"][1]',input,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+      if(!(button instanceof HTMLButtonElement))throw Error("Native Add Rows button missing");
+      button.click();
+    });
+    await page.waitForFunction(()=>window.tp?.table?.data?.length===10,null,{timeout:18000});
+  }
   await page.evaluate(({products,cols,paths})=>{
-   for(let j=0;j<cols.length;j++)window.tp.editor.setValueFromCoords(j,0,cols[j]);
+   for(let j=0;j<cols.length;j++){
+     window.tp.editor.setValueFromCoords(j,0,cols[j]);
+     window.tp.editor.setValueFromCoords(j,1,"");
+   }
    for(let i=0;i<products.length;i++){
-    window.tp.editor.setValueFromCoords(0,i+1,String(products[i].id));
-    for(let j=1;j<cols.length;j++)window.tp.editor.setValueFromCoords(j,i+1,paths[j]);
+    window.tp.editor.setValueFromCoords(0,i+2,String(products[i].id));
+    for(let j=1;j<cols.length;j++)window.tp.editor.setValueFromCoords(j,i+2,paths[j]);
    }
   },{products,cols:COLS,paths:PATHS});
   const src=page.locator("#js_custom_api");
@@ -88,6 +106,7 @@ try{
   await page.getByRole("button",{name:/Save Changes/i}).first().click();
   await page.waitForTimeout(1600);
   const after=await readTable(TABLE);
+  console.log("PROMOTION_TABLE_SAVED_ITEMS="+JSON.stringify({fields:after?.fields,items:after?.items,source:after?.meta?.api}).slice(0,7500));
   valid(after?.meta?.api==="Product","TablePress source was not saved");
   valid(after.fields?.length===5&&COLS.every((c,j)=>after.fields[j]?.key===c),"TablePress field mapping missing");
   valid(after.items?.length===8&&after.items.every((item,i)=>String(item.key)===String(products[i].id)),"TablePress eight product IDs mismatch");
