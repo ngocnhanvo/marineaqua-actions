@@ -1201,6 +1201,55 @@ try {
     + " " + JSON.stringify(summary.consultationPanel));
   if (!consultationPass) process.exitCode=1;
 
+  // Check mobile promotion style and nested WooCommerce category dots against the live build.
+  summary.mobileMenuVisual = [];
+  for (const width of [390, 768]) {
+    const page = await browser.newPage({viewport:{width,height:844},deviceScaleFactor:1});
+    try {
+      await page.goto(frontend.origin + "/", {waitUntil:"domcontentloaded",timeout:45000});
+      await page.locator("#hamburger-btn").click({timeout:12000});
+      const sale = page.locator("#mobile-menu-container [data-marine-sale]").first();
+      const saleResult = await sale.evaluate(el => {
+        const control = el.querySelector(":scope > div > a, :scope > div > button, :scope > div > span");
+        const caption = control?.querySelector(".marine-sale-caption");
+        const stars = [...(caption?.querySelectorAll(".marine-sale-star") || [])];
+        const style = control ? getComputedStyle(control) : null;
+        return {
+          starCount:stars.length,
+          sparkleAnimated:stars.every(star=>getComputedStyle(star).animationName==="marineSaleStarTwinkle"),
+          boltCount:el.querySelectorAll(".marine-sale-bolt").length,
+          background:style?.backgroundColor || "",
+          backgroundImage:style?.backgroundImage || "",
+          label:caption?.textContent?.trim() || ""
+        };
+      });
+      const expandable = page.locator("#mobile-menu-container .marine-mobile-menu-categories > .marine-mobile-category-list > .marine-mobile-category-item > button[data-menu-toggle]").first();
+      if (await expandable.count()) await expandable.click();
+      const categoryResult = await page.locator("#mobile-menu-container .marine-mobile-category-nested").first().evaluate(el => {
+        const icons = [...el.querySelectorAll(".marine-mobile-category-dot")];
+        const dotMarks = [...el.querySelectorAll(".marine-mobile-category-dot-mark")];
+        return {iconCount:icons.length, markCount:dotMarks.length,
+          noOldIcons: icons.every(icon=>!icon.querySelector("svg")),
+          dotSizes:dotMarks.map(el=>Math.round(el.getBoundingClientRect().width)),
+          borderLeft:getComputedStyle(el).borderLeftWidth};
+      }).catch(error=>({iconCount:0,markCount:0,noOldIcons:false,dotSizes:[],borderLeft:"unknown",error:String(error.name)}));
+      const pass = saleResult.starCount===3 && saleResult.sparkleAnimated &&
+        saleResult.boltCount===0 && saleResult.background==="rgba(0, 0, 0, 0)" &&
+        saleResult.backgroundImage==="none" &&
+        categoryResult.iconCount>0 && categoryResult.iconCount===categoryResult.markCount &&
+        categoryResult.noOldIcons && categoryResult.dotSizes.every(s=>s===6) &&
+        categoryResult.borderLeft==="0px";
+      const result={width,sale:saleResult,categories:categoryResult,pass};
+      summary.mobileMenuVisual.push(result);
+      await page.screenshot({path:dir+"/mobile-menu-stars-dots-"+width+".png",fullPage:false});
+    }catch(error){
+      summary.mobileMenuVisual.push({width,pass:false,error:String(error.message||error).slice(0,300)});
+    }finally{await page.close();}
+  }
+  const mobileVisualPass=summary.mobileMenuVisual.every(item=>item.pass);
+  console.log("MARINEAQUA_MOBILE_MENU_VISUAL="+(mobileVisualPass?"PASS":"FAIL")+" "+JSON.stringify(summary.mobileMenuVisual));
+  if (!mobileVisualPass) process.exitCode=1;
+
   const context = await browser.newContext();
   for (const [label, path] of [
     ["menus", "/wp-json/esc-api/v1/menus"],
