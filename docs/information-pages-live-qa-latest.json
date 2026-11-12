@@ -1,0 +1,88 @@
+{
+  "site": "https://marine-aqua.io.vn",
+  "records": [
+    {
+      "slug": "chinh-sach-doi-tra-hang",
+      "title": "Chính sách đổi trả hàng",
+      "status": 200,
+      "url": "https://marine-aqua.io.vn/chinh-sach-doi-tra-hang",
+      "h1": "Chính sách đổi trả hàng",
+      "bodyLength": 553,
+      "htmlWidth": 1366,
+      "viewportWidth": 1366,
+      "listing": false,
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "verdict": "PASS"
+    },
+    {
+      "slug": "thong-bao",
+      "title": "Phí ship hàng",
+      "status": 200,
+      "url": "https://marine-aqua.io.vn/thong-bao",
+      "h1": "Phí ship hàng",
+      "bodyLength": 149,
+      "htmlWidth": 1366,
+      "viewportWidth": 1366,
+      "listing": false,
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "verdict": "PASS"
+    },
+    {
+      "slug": "huong-dan-mua-hang-o-xa",
+      "title": "Hướng dẫn mua hàng ở xa",
+      "status": 200,
+      "url": "https://marine-aqua.io.vn/huong-dan-mua-hang-o-xa",
+      "h1": "Hướng dẫn mua hàng ở xa",
+      "bodyLength": 1292,
+      "htmlWidth": 1366,
+      "viewportWidth": 1366,
+      "listing": false,
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "verdict": "PASS"
+    },
+    {
+      "slug": "huong-dan-mua-hang-tai-nha",
+      "title": "Hướng dẫn mua hàng tại nhà",
+      "status": 200,
+      "url": "https://marine-aqua.io.vn/huong-dan-mua-hang-tai-nha",
+      "h1": "Hướng dẫn mua hàng tại nhà",
+      "bodyLength": 712,
+      "htmlWidth": 1366,
+      "viewportWidth": 1366,
+      "listing": false,
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "verdict": "PASS"
+    },
+    {
+      "slug": "thoi-gian-ban-hang",
+      "title": "Thời gian bán hàng",
+      "status": 200,
+      "url": "https://marine-aqua.io.vn/thoi-gian-ban-hang",
+      "h1": "Thời gian bán hàng",
+      "bodyLength": 78,
+      "htmlWidth": 1366,
+      "viewportWidth": 1366,
+      "listing": false,
+      "mobile": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "verdict": "PASS"
+    }
+  ],
+  "failures": [],
+  "run_id": "43314866860",
+  "job_outcome": "success"
+}
