@@ -1,5 +1,6 @@
 name: Marine Aqua Astro build validation (NO DEPLOY)
 # CMS ESC Table homepage integration QA 2026-11-11: seven native sections; no production deploy.
+# Validate 2026-11-12 brand listing page, prices, and legacy category redirect.
 on:
   workflow_dispatch:
   push:
