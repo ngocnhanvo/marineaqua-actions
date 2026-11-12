@@ -1,26 +1,35 @@
-# Marine Aqua — Audit đường kích hoạt workflow dự phòng (2026-11-13, Asia/Ho_Chi_Minh)
+# Marine Aqua — GitHub Actions Dispatcher MCP prototype (2026-11-13, Asia/Ho_Chi_Minh)
 
 Project: marine-aqua.vn
-Repo: ngocnhanvo/marineaqua-actions@main
+Repository: ngocnhanvo/marineaqua-actions@main
 
-## Phát hiện quan trọng
-- Knowledge `core/07-execution-and-checkpoints.md` có runbook A-D: (A) POST dispatch có quyền, (B) WordPress Build Website qua UI đã đăng nhập, (C) workflow cầu nối đã tồn tại, (D) rerun chỉ khi tương đương SHA/payload. KHÔNG được dừng chỉ vì connector thiếu dispatch.
-- Chế độ `auto-build` và cổng `bypass` cho phép deploy trong phạm vi được duyệt, **không phải nguyên nhân gây BLOCKED**.
-- **Cầu nối có thật:** `.github/workflows/marineaqua-shared-playwright.yml` job `trigger-production-build-after-header` phát `repository_dispatch wp_trigger_build` tới workflow production. Job ID `130370217689` của run `42974470922` từng SUCCESS; job ID `130368597841` của run `42973955210` từng SUCCESS. Job chỉ kích khi push main chứa file trong paths trigger và HEAD commit message là `build: deploy approved WordPress Header menu` hoặc `build: deploy restored Home_00 banner`. Không được tạo commit giả/đổi trigger để chạy.
-- **Rerun job cũ là một công cụ có thật**, cần xác minh tính tương đương ref/SHA/payload và guard trước khi dùng. Cầu nối Astro này KHÔNG thay thế PHP release cần làm trước. Không tuyên bố tất cả con đường C/D không tồn tại.
-- **PHP production vẫn chưa triển khai endpoint phân trang.** Workflow PHP hiện tại `.github/workflows/marineaqua-php-release.yml` chỉ `workflow_dispatch` với `confirm=DEPLOY_PHP`. Run PHP thành công cũ `42641150259` ngày 2026-11-09 là event push tại Actions SHA `f784357b...`. Script `scripts/marineaqua-php-live-release.py` tại SHA đó **chưa có** `wp-content/plugins/github-trigger/products/endpoint.php` trong FILES, nên rerun job cũ không phát hành được bản vá hiện hành. Script HEAD mới có endpoint.
-- GitHub connector: GET, fetch, update, rerun job; không có POST workflow_dispatch/repository_dispatch. Container không có gh CLI/credentials. WP browser/session chưa được kết nối. Không có queued/in_progress run tại lượt kiểm tra.
-- Phần code/CI đã PASS: PHP HEAD `d401337`, Astro HEAD `479f79e`; run #43267657238 và #43267666534. Last production Astro run #43244690678 failed trước deploy.
+## Request
+User asked to TRY a standalone GitHub Actions Dispatcher with 3 functions:
+`workflow_dispatch`, `repository_dispatch`, `get_workflow_run`.
 
-## Đánh giá đúng nguyên nhân
-- Phương án A: thiếu tool POST/token, không đồng nghĩa thiếu GitHub write.
-- B: không có UI authenticated trong phiên.
-- C: có bridge limited to specific legitimate CMS header/banner changes, không phù hợp trực tiếp cho PHP pagination; cấm commit no-op để kích hoạt.
-- D: PHP run cũ dùng code Actions không upload endpoint. Astro bridge rerun chỉ đánh giá sau khi PHP mới lên live, không dùng để vượt qua bước PHP.
-- Hạn chế thật: **chưa có đường hợp lệ trong công cụ phiên hiện tại để chạy PHP workflow hiện hữu với Actions script mới**. Cần công cụ có quyền `workflow_dispatch` trên `marineaqua-actions` hoặc phiên WordPress/runner phù hợp để triển khai PHP, rồi mới kích hoạt Astro production và QA.
+## Implemented (real commits to Actions main)
+- `tools/github-actions-dispatcher/dispatcher.mjs`: allowlisted GitHub REST client with exact repo/workflow/ref/event/input/payload policies, POST event trigger, unique direct workflow run ID where available (GitHub API 2026-03-10), no retries of non-idempotent POSTs, duplicate active run guard, read run/job results, explicit acceptance-vs-build/QA states.
+- `tools/github-actions-dispatcher/server.mjs`: minimal dependency-free JSON-RPC MCP Streamable HTTP endpoint POST /mcp, initialize, tools/list, tools/call; exactly three tools; bearer secret for local authenticated backend, timing-safe check, loopback default.
+- `tools/github-actions-dispatcher/dispatcher.test.mjs`: 7 automated tests incl. no live dispatch, authorization, allowlist and payload reject, duplicate prevention, run results, MCP HTTP init/list/call round-trip.
+- `tools/github-actions-dispatcher/package.json`: standalone Node >=22 package.
+- `tools/github-actions-dispatcher/README.md`: local test, Marine Aqua env allowlists, security, GitHub permissions, OAuth/Tunnel setup and ChatGPT plugin connection limitations.
+- `.github/workflows/github-actions-dispatcher-ci.yml`: NO DEPLOY test-only CI on genuine dispatcher source changes, zero production secrets.
+- HEAD after source work: `6886c176acfa2410322ae4b3f8e20fb65722938b`.
 
-## Trạng thái
-Không thực hiện deploy/rerun; chỉ kiểm tra Knowledge, workflow source, lịch sử run/job và script tại historic SHA.
+## Evidence
+- GitHub Actions [#43274677108](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43274677108): completed / success; syntax checks PASS; offline MCP/REST contract tests PASS. Prior CI runs #43274196489, #43274355544, #43274642092 also success.
+- API modern behavior: `workflow_dispatch` returns run ID when `return_run_details:true`; `repository_dispatch` still returns HTTP 204 only. Don't invent correlation.
+- **No real dispatch** was sent; existing production workflow and PHP release were NOT run by this task.
+- **MCP NOT installed in ChatGPT**; no hosted HTTPS endpoint, OAuth 2.1 provider/proxy, GitHub App dispatch credential or activated custom plugin was available in this session. Internal `MCP_BEARER_TOKEN` is for local/proxy use, not supported ChatGPT OAuth replacement. Never publish raw backend with "No authentication".
+
+## Follow-up work required
+1. Provision trusted hosting or Secure MCP Tunnel and OAuth 2.1 / authorized proxy with per-user auth. Configure GitHub App installation token for only Actions repo with `Actions:write`, `Contents:write`, secure env/secret manager. Do not share secrets in chat.
+2. Connect this hosted MCP in ChatGPT Plugins, install, observe actual `tools/list` and authenticated read-only `get_workflow_run`. No connector installation can be forced from repo commits.
+3. Once direct tool access exists, dispatch existing `marineaqua-php-release.yml` ref main inputs confirm=DEPLOY_PHP, verify new paginated endpoint live, then `repository_dispatch wp_trigger_build` payload site_domain=marine-aqua.io.vn and verify signed Astro production deploy/QA.
+4. If tool isn't available in a later session, resume Knowledge CORE-07 A-D fallback, do not fake push events or create second deployment pipeline.
+
+## Final status
+Source CODE_READY + CI PASS; Hosted MCP connection NOT SET UP; production PHP/Astro deployment from previous task remains open.
 Chế độ code: auto-build
 Cổng ghi source: bypass
 Trạng thái: PARTIAL — chưa hoàn tất
