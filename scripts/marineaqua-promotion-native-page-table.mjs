@@ -61,6 +61,8 @@ try{
   return r.json();
  }
  const initial=await readTable(TABLE);
+ const alt=await readTable("khuyen_mai_01");
+ console.log("PROMOTION_TABLE_CURRENT="+JSON.stringify({table145:initial&&{id:initial.id,title:initial.title,source:initial.meta?.api,fields:initial.fields,rows:initial.items?.length},renamed:alt&&{id:alt.id,title:alt.title,source:alt.meta?.api,rows:alt.items?.length}}));
  if(initial?.meta?.api==="Product"){
   valid(initial.fields?.length===COLS.length&&COLS.every((c,j)=>initial.fields[j]?.key===c),"Existing table field conflict");
   valid(initial.items?.length===8,"Existing table has unexpected item count");
