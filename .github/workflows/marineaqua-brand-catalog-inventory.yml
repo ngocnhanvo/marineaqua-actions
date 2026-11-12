@@ -22,7 +22,10 @@ jobs:
           node-version: '24'
       - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
       - run: node --check scripts/marineaqua-brand-catalog-inventory.mjs
-      - name: Inventory original brand category and target taxonomy
+      - name: Inventory original brand catalog and destination overlap
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
         run: node scripts/marineaqua-brand-catalog-inventory.mjs
       - uses: actions/upload-artifact@v4
         if: always()
