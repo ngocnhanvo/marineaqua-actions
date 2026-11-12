@@ -1,0 +1,11 @@
+{
+  "action": "workflow_dispatch",
+  "source_sha": "3c48e15c8604b1d77ed48cded30b2887935aa011",
+  "reason": "Publish WooCommerce sale price fields required by Astro",
+  "request_id": "20261112T205300Z-woo-sale-rest-prices",
+  "workflow": "marineaqua-php-release.yml",
+  "ref": "main",
+  "inputs": {
+    "confirm": "DEPLOY_PHP"
+  }
+}
