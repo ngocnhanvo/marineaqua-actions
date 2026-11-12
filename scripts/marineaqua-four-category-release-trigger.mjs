@@ -1,0 +1,150 @@
+import { writeFile, mkdir, readFile } from "node:fs/promises";
+const REPO="ngocnhanvo/marineaqua-actions";
+const ASTRO="ngocnhanvo/marineaqua-astro";
+const GH="https://api.github.com";
+const WORKFLOW="marineaqua-production-deploy.yml";
+const token=process.env.GH_TOKEN;
+const sourceToken=process.env.SOURCE_REPO_PAT;
+if(!token||!sourceToken)throw Error("Missing GitHub workflow or Astro source credential");
+const manifest=JSON.parse(await readFile("four-category-catalog-evidence/manifest.json","utf8"));
+const report={triggeredAt:new Date().toISOString(),events:[],status:"STARTED"};
+await mkdir("four-category-release-evidence",{recursive:true});
+const headers={
+ Authorization:"Bearer "+token,Accept:"application/vnd.github+json",
+ "X-GitHub-Api-Version":"2022-11-28","Content-Type":"application/json"
+};
+const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function safe(method,path,body){
+ for(let n=1;n<=4;n++){
+  try{
+   const requestHeaders=path.startsWith("/repos/"+ASTRO+"/")
+    ? {...headers,Authorization:"Bearer "+sourceToken}
+    : headers;
+   const response=await fetch(GH+path,{method,headers:requestHeaders,
+    body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(20000)});
+   if([429,502,503,504].includes(response.status)&&n<4){
+    await sleep(n*1000);continue;
+   }
+   if(!response.ok&&response.status!==204)
+    throw Error("GitHub "+method+" "+path.split("?")[0]+" HTTP "+response.status);
+   return response.status===204?null:response.json();
+  }catch(error){
+   if(n===4||!(/fetch failed|timeout|AbortError/i.test(String(error))))throw error;
+   await sleep(n*1000);
+  }
+ }
+}
+const runList=()=>safe("GET","/repos/"+REPO+"/actions/workflows/"+WORKFLOW+"/runs?per_page=30");
+const runInfo=id=>safe("GET","/repos/"+REPO+"/actions/runs/"+id);
+try{
+ const astroRef=await safe("GET","/repos/"+ASTRO+"/git/ref/heads/master");
+ const expectedSHA=astroRef?.object?.sha;
+ if(!/^[a-f0-9]{40}$/.test(expectedSHA||""))throw Error("Astro master source SHA unknown");
+ report.expectedAstroSHA=expectedSHA;
+ const previous=await runList();
+ const priorIds=new Set(previous.workflow_runs.map(r=>r.id));
+ const dispatchedAt=Date.now();
+ await safe("POST","/repos/"+REPO+"/dispatches",{
+  event_type:"wp_trigger_build",client_payload:{site_domain:"marine-aqua.io.vn"}
+ });
+ report.events.push({event:"BUILD_TRIGGER_ACCEPTED",time:new Date().toISOString()});
+ console.log("MARINEAQUA_FOUR_CATEGORY_BUILD_TRIGGER_ACCEPTED expectedAstroSHA="+expectedSHA);
+ let run=null;
+ const discoverDeadline=Date.now()+5*60*1000;
+ while(Date.now()<discoverDeadline){
+  const list=await runList();
+  const candidates=list.workflow_runs.filter(r=>
+   !priorIds.has(r.id)&&r.event==="repository_dispatch"&&
+   r.name==="Marine Aqua Astro deployment (WordPress Build Website only)"&&
+   new Date(r.created_at).getTime()>=dispatchedAt-15000);
+  if(candidates.length>1)throw Error("Multiple production runs after dispatch; cannot identify request uniquely");
+  if(candidates.length===1){run=candidates[0];break}
+  await sleep(12000);
+ }
+ if(!run)throw Error("Cannot locate unique production run for accepted dispatch");
+ report.runId=run.id;report.url=run.html_url;
+ console.log("MARINEAQUA_FOUR_CATEGORY_BUILD_RUN_LOCKED="+run.html_url);
+ const buildDeadline=Date.now()+55*60*1000;
+ while(Date.now()<buildDeadline){
+  run=await runInfo(run.id);
+  report.events.push({event:"BUILD_STATUS",status:run.status,conclusion:run.conclusion,
+   time:new Date().toISOString()});
+  console.log("MARINEAQUA_FOUR_CATEGORY_BUILD_STATUS="+run.status+" conclusion="+
+   (run.conclusion||"pending")+" run="+run.id);
+  if(run.status==="completed")break;
+  await sleep(20000);
+ }
+ if(run?.status!=="completed")throw Error("Production build wait timed out run="+report.url);
+ if(run.conclusion!=="success")throw Error("Production build "+run.conclusion+" run="+report.url);
+ console.log("MARINEAQUA_FOUR_CATEGORY_BUILD_SUCCESS="+run.html_url);
+ report.status="BUILD_SUCCESS";
+ // Signed deployment provenance is authoritative when Apache does not
+ // expose the optional staging marker as a public static route.
+ const jobResult=await safe("GET","/repos/"+REPO+"/actions/runs/"+run.id+"/jobs");
+ const jobs=jobResult?.jobs||[];
+ if(jobs.length!==1||jobs[0].conclusion!=="success")
+  throw Error("SIGNED_DEPLOY_JOBS_UNVERIFIED run="+run.id);
+ const activation=jobs[0].steps?.find(x=>
+  x.name==="Verify provenance and activate staging bundle using signed PHP rollback");
+ if(activation?.conclusion!=="success")
+  throw Error("SIGNED_DEPLOY_ACTIVATION_UNVERIFIED run="+run.id);
+ const logResponse=await fetch(GH+"/repos/"+REPO+"/actions/jobs/"+jobs[0].id+"/logs",{
+  headers,signal:AbortSignal.timeout(25000)
+ });
+ if(!logResponse.ok)throw Error("SIGNED_DEPLOY_LOG_UNAVAILABLE HTTP "+logResponse.status);
+ const signedLog=await logResponse.text();
+ if(!signedLog.includes("SIGNED_UNZIP_SUCCESS")||
+    !signedLog.includes("ASTRO_BUILD_COMPLETE=PASS")||
+    !signedLog.includes("FTPS_UPLOAD=PASS")||
+    !signedLog.includes(expectedSHA))
+  throw Error("SIGNED_DEPLOY_PROVENANCE_MISMATCH run="+run.id);
+ const readinessDeadline=Date.now()+120000;
+ let ready=false,last="";
+ while(Date.now()<readinessDeadline){
+  try{
+   const marker=await fetch("https://marine-aqua.io.vn/marineaqua-staging-build.json",{
+    headers:{"Cache-Control":"no-cache"},signal:AbortSignal.timeout(15000)});
+   if(marker.ok){
+    const value=await marker.json();
+    if(value.commit===expectedSHA&&value.branch==="master"&&value.target==="marine-aqua.io.vn"){
+     ready=true;report.readiness="REVISION_MARKER";break;
+    }
+    last="Marker revision mismatch";
+   }else if(marker.status===404){
+    // Some installations route all non-whitelisted paths to Astro SSR and
+    // therefore 404 the root staging JSON despite signed PHP activation.
+    // Require BOTH signed logged SHA and browser-visible new route behavior.
+    const roots=manifest.categoryRoots||[];
+    const checks=await Promise.all(roots.map(async root=>{
+     const expected=manifest.archiveMembership[root.slug]?.length;
+     const resp=await fetch("https://marine-aqua.io.vn/san-pham/"+root.slug+"/",{
+      headers:{"Cache-Control":"no-cache"},signal:AbortSignal.timeout(15000)});
+     const html=resp.ok?await resp.text():"";
+     const visible=html.replace(/<[^>]*>/g," ").replace(/&nbsp;|&#160;/g," ").replace(/\s+/g," ").trim();
+     return {slug:root.slug,status:resp.status,count:expected,
+      okay:resp.ok&&Number.isInteger(expected)&&expected>=0&&
+       (expected===0?html.includes("CÁT, ĐÁ VÀ CHẤT NỀN")&&!html.includes("article class=\"group"):visible.includes("Tổng "+expected+" sản phẩm"))};
+    }));
+    report.liveCategoryChecks=checks;
+    if(checks.length===roots.length&&checks.every(c=>c.okay)){
+      ready=true;report.readiness="SIGNED_PROVENANCE_AND_LIVE_NEW_ROUTES";
+      report.warning="Public staging marker not exposed; signed SHA and all four live category routes verified";
+      console.log("MARINEAQUA_FOUR_CATEGORY_DEPLOY_READY_FALLBACK=PASS SHA="+expectedSHA);
+      break;
+    }
+    last="Signed deploy passed; new live category routes not yet ready";
+   }else last="Marker HTTP "+marker.status;
+  }catch(e){last=String(e?.message||e).slice(0,120)}
+  await sleep(10000);
+ }
+ if(!ready)throw Error("DEPLOY_READINESS_FAILED "+last+" expectedSHA="+expectedSHA);
+ report.status="DEPLOY_READY";
+ console.log("MARINEAQUA_FOUR_CATEGORY_DEPLOY_READY="+expectedSHA);
+}catch(e){
+ report.status="FAIL";
+ report.error=String(e?.stack||e?.message||e).slice(0,800);
+ console.error("MARINEAQUA_FOUR_CATEGORY_BRAND_RELEASE_FAIL="+report.error);
+ process.exitCode=1;
+}finally{
+ await writeFile("four-category-release-evidence/result.json",JSON.stringify(report,null,2)+"\n");
+}
