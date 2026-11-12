@@ -65,6 +65,23 @@ jobs:
           assert.match(mapper,/stockStatus: initI18n\(stockStatus\)/);
           console.log('HOME_PRODUCT_LINK_AND_STOCK_SOURCE=PASS');
           NODE
+      - name: Verify WordPress-owned marine footer source
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const footer=readFileSync('src/astro/components/Layout/Footer.astro','utf8');
+          const css=readFileSync('src/styles/marine-aqua-approved.css','utf8');
+          assert.match(footer,/data-marine-footer-link/);
+          assert.match(footer,/value\(data_info\?\.facebook\)/);
+          assert.match(footer,/value\(data_info\?\.googlemapHaNoi\)/);
+          assert.match(footer,/knowledgeHref/);
+          assert.doesNotMatch(footer,/<form\b|Bản preview độc lập|Thông tin và hình ảnh sản phẩm được đối chiếu/);
+          assert.match(css,/#footer-contact > \.marine-footer__content/);
+          console.log('MARINEAQUA_FOOTER_SOURCE=PASS');
+          NODE
       - name: Run Astro unit tests
         run: pnpm run test:run
       # Validate approved Marine Aqua design integration with local Quicksand, CMS-only menu and prices.
