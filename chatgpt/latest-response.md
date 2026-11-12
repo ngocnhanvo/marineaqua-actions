@@ -1,31 +1,44 @@
 # Marine Aqua — latest response
 
-- Time: 2026-11-12 09:15+07:00 (Asia/Ho_Chi_Minh, approximate)
-- Project: marine-aqua.vn
-- Repository: ngocnhanvo/marineaqua-actions
-- Branch: main
-- Work: diagnose and fix desktop CLS at TROPIC-MARIN section
-- Astro source: ngocnhanvo/marineaqua-astro@master c518083c54761752a66360808eb5725c7b9388df
-- Production deployment: run 43136036466 attempt 2 — SUCCESS
-- CLS browser comparison: run 43138875630, baseline attempt 1, after fix attempt 2
-- CLS 1440px: 0.14397 -> 0.00000
-- CLS 1917px: 0.06353 -> 0.00000
-- Playwright full suite: FAILURE for unrelated category scroll anchor and banner image checks; targeted CLS = PASS
+- Checkpoint: 2026-11-12 10:00+07:00, Accessibility / Best Practices Lighthouse follow-up.
+- Scope: marine-aqua.vn; frontend https://marine-aqua.io.vn; WordPress https://admin.marine-aqua.io.vn.
+- Knowledge: ngocnhanvo/knowledge@main, CORE-01..09 / relevant Astro/WordPress and Playwright stacks.
+- Astro: ngocnhanvo/marineaqua-astro@master eafca07427539473c5ad7377d1c904b7df186dd9.
+- PHP: ngocnhanvo/marineaqua-php@master 54574851 (unchanged).
+- Actions: ngocnhanvo/marineaqua-actions@main 8106d4f84a57fbe77deb83c045d3fdac55d60356 (QA source before checkpoint).
+- Prior CLS fix c518083c, last production comparison CLS 0 at desktop: DONE; do not repeat.
+- Prior keyboard/focus fix to hidden slide anchors 0c5ccc4: DONE; do not repeat.
+- Lighthouse source report: Accessibility 89/100; Best Practices 96/100. Accessibility failures: aria-hidden-focus, aria-prohibited-attr, color-contrast (promo contrast 4.46 vs 4.5). Best Practices failure: inspector-issues => Content security policy, no affected URLs in report.
+
+## Implemented
+
+- Astro 72dd730: role=img on two non-interactive header icons with aria-label.
+- Astro eafca074: promo red #d6334b -> #c12a43 in final CSS, 5.38:1 contrast on #f3f9ff.
+- Actions 20514b1: update existing visual-QA color assertions.
+- Actions c9691ed + 9ad204b: add corrected read-only regression for icon semantics, inert slides, promo contrast.
+- Actions 8106d4f: inspect CSP on clean Playwright Chromium using CDP Audits.
+
+## Verified run evidence
+
+- CI source check: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43124177120 attempt 2 SUCCESS; checked Astro commit eafca074, 209/209 unit tests PASS, astro check 0 errors/0 warnings.
+- Production release: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43136036466 attempt 3 SUCCESS, deploying Astro eafca074; FTPS_UPLOAD=PASS, SIGNED_UNZIP_SUCCESS.
+- Post-deploy read-only Playwright: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43144280281 (overall FAILED; targeted MARINEAQUA_LIGHTHOUSE_ACCESSIBILITY=PASS; rolesValid=true, slidesInert=true, inactiveSlides=2, contrast=5.38).
+- CSP browser verification: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43144791043 (overall FAILED due unrelated existing failures; targeted CSP audit pageCspPresent=true, scriptUnsafeInline=true, scriptStrictDynamic=false, issues=[]; accessibility PASS again).
+- Remaining unrelated full-suite failures: MARINEAQUA_CATEGORY_SCROLL_ANCHOR (scroll reset to 0 on toggle), MARINEAQUA_HOME00_BANNER (media not loaded and mobile slide navigation fail).
+- No fresh Lighthouse scoring after release. Browser CSP check alone does not prove old Chrome DevTools issue resolved in user's audit environment.
+
+## Next precise steps
+
+1. Re-run real Lighthouse clean browser on current production to determine whether Best Practices inspector-issues persists and identify original CSP issue source. If improvement requires nonce/hash/strict-dynamic changes to security architecture, provide impact, compatibility/rollback and seek explicit owner approval; never weaken CSP to raise score.
+2. Diagnose and fix two separate existing UI QA failures (category scroll anchor, Home_00 banner media and mobile nav) from current source/WordPress, only after source-specific confirmation; do not use arbitrary placeholders or alter CMS without relevant rights.
+3. Distinguish targeted Accessibility PASS and production deploy PASS from full Playwright FAIL, Lighthouse not re-scored.
 
 ## Intended full final response
 
-Mình đã kiểm tra mã nguồn Astro master của Marine Aqua và xác định lỗi CLS của section sản phẩm TROPIC-MARIN. Phần tử Lighthouse đánh dấu là `div.mx-auto.w-[92.5%].max-w-[1920px]` trong `BrandProductSection.astro`, nhưng phần tử đó bị đẩy do bố cục thay đổi, không phải bản thân thẻ sản phẩm gây lỗi.
+Đã đọc lại Knowledge và checkpoint mới nhất, không lặp lại phần CLS/footer đã hoàn tất. Đã sửa ba lỗi Accessibility từ Lighthouse, commit Astro `eafca074`, chạy CI 209/209 PASS và deploy thành công qua production run #43136036466 attempt 3. Playwright trên production xác nhận ARIA và slide ẩn đúng, màu “Khuyến mãi” đạt 5,38:1.
 
-Trong `src/astro/pages/HomePage.astro`, scroll-reveal dùng `content-visibility: auto` cùng `contain-intrinsic-size: auto 900px`. Chiều cao dự phòng 900px khác kích thước thật của các section ESC Table nên khi trình duyệt tính lại layout, section sản phẩm dịch chuyển. Đã xóa cơ chế chiều cao giả, giữ nguyên hiệu ứng opacity và transform, dữ liệu WordPress và giao diện.
-
-Playwright trước sửa: desktop 1440px CLS 0,14397; 1917px CLS 0,06353. Sau sửa và deploy: cả hai = 0,00000. Điều này xác nhận nguyên nhân trên các phép đo desktop thực tế. Mobile vẫn có CLS nhỏ 0,002–0,004 do header và thành phần nổi khi cuộn.
-
-Source commit: https://github.com/ngocnhanvo/marineaqua-astro/commit/c518083c54761752a66360808eb5725c7b9388df
-Production deploy: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43136036466 (attempt 2, success).
-Browser comparison: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43138875630
-
-Lưu ý: Full Playwright suite báo FAIL vì hai bài kiểm thử không liên quan: category scroll anchor và Home_00 banner image. Targeted CLS test đã PASS, hai mục khác chưa được sửa.
+Best Practices chưa thể chốt: Chrome sạch ghi nhận 0 CSP issue trong phiên, nhưng site vẫn sử dụng `'unsafe-inline'` và chưa có phép đo Lighthouse mới. Bộ Playwright tổng vẫn FAIL vì lỗi cuộn danh mục và banner đã tồn tại trước đó, không phải do sửa Accessibility. Đã cập nhật bài kiểm thử và lưu checkpoint, bước tiếp theo là khoanh vùng CSP và xử lý hai lỗi UI riêng.
 
 Chế độ code: auto-build
 Cổng ghi source: bypass
-Trạng thái: DONE — hoàn tất
+Trạng thái: PARTIAL — chưa hoàn tất
