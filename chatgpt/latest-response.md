@@ -4,7 +4,7 @@
 - Astro master: c8eec1c10d1f1b72de45ccdd1c5d4f385366394e (unchanged).
 - PHP master: 54574851f0eaea9e40341b36c5a7215573bc436e (unchanged).
 - Knowledge main: 945d1dc265ee.
-- Actions main: d56d0028f092cb41799d1c6d84467aa5010b97d3 (before this checkpoint).
+- Actions main: f38c12bbc2b523887d5dbb6906ff991b9d0e1fc8 (before this checkpoint).
 - Previous sticky-bottom removal was verified DONE, do not repeat.
 
 ## Current owner task
@@ -24,6 +24,7 @@ WooCommerce `https://admin.marine-aqua.io.vn` and complete corresponding
 - Source metadata: 197 of 246 do not expose a meta description and must be marked SEO_SOURCE_MISSING (do not fabricate).
 - IMPORTANT: the old `.posted_in` selectors found zero product categories on source detail pages. Must extract Woo product_cat CSS classes / source category listing membership or other verified taxonomy before importing.
 - Source products contain special prices (sale price/original price) and one `Liên hệ` case. Do not parse all price strings as one integer.
+- Source category mapping run #43163059058 SUCCESS: 246/246 products assigned, zero unassigned, zero unexpected; root-only 14 verified from actual product taxonomy classes. Artifact `marine-aqua-brand-category-mapping` ID 13918288250.
 - No import of remaining 226 has been attempted, no additional production deploy.
 - New scripts and workflow in actions/main use WordPress credentials only for read-only product GET.
 
@@ -38,8 +39,8 @@ WooCommerce `https://admin.marine-aqua.io.vn` and complete corresponding
 
 ## Exact next steps
 
-1. Fix exact source taxonomy membership capture (current .posted_in extraction is empty), and distinguish product sale/contact/variable prices; validate SEO_SOURCE_MISSING for absent meta description.
-2. Validate 226 missing matches by canonical URL and slug, mapping to 39 target taxonomy records; back up scoped records.
+1. Consume verified source product detail manifest artifact 13917609900 and category mapping artifact 13918288250; distinguish sale/contact/variable prices, validate SEO_SOURCE_MISSING on source absence.
+2. Revalidate 226 missing matches by canonical URL and slug, mapping to 39 target taxonomy records; back up scoped records.
 3. Adapt existing native WordPress importer from `scripts/marineaqua-import-home-products.mjs`
    for bounded, resumable product batches and owned media uploads. Enforce
    idempotency, asset deferrals (initial + max 3 retries), original filenames,
@@ -54,7 +55,7 @@ WooCommerce `https://admin.marine-aqua.io.vn` and complete corresponding
 ## Status
 
 SOURCE_LISTING_INVENTORY_PASS; PRODUCT_DETAIL_INVENTORY_PASS_246_OF_246;
-TARGET_OVERLAP_PASS_20_EXISTING_226_MISSING; TAXONOMY_MEMBERSHIP_UNVERIFIED;
+TARGET_OVERLAP_PASS_20_EXISTING_226_MISSING; TAXONOMY_MAPPING_PASS_246_OF_246;
 DATA_PARITY_NOT_DONE; IMPORT_NOT_STARTED_FOR_REMAINING_PRODUCTS;
 VISUAL_QA_NOT_DONE; PRODUCTION_RELEASE_NOT_DONE.
 
