@@ -64,7 +64,7 @@ try {
    valid(isOwnedMedia(reused.source_url),"Media origin mismatch");
    const [sourceResponse,targetResponse]=await Promise.all([
      context.request.get(src.href,{timeout:45000,failOnStatusCode:false}),
-     context.request.get(reused.source_url,{timeout:45000,failOnStatusCode:false})
+     context.request.get(new URL(reused.source_url,WP).href,{timeout:45000,failOnStatusCode:false})
    ]);
    valid(sourceResponse.ok()&&targetResponse.ok(),"Unable to compare media for safe reuse "+filename);
    const sourceSha=createHash("sha256").update(await sourceResponse.body()).digest("hex");
