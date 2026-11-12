@@ -1,51 +1,41 @@
-# Marine Aqua — Dispatch Bridge ported to Template / Knowledge (2026-11-13)
+# Marine Aqua — Phản hồi cuối phiên 2026-11-13 (Asia/Ho_Chi_Minh)
 
-## Current completed task
-- User requested: add rules for dispatch bridge to shared Knowledge and move reusable code to project Template so new projects inherit it, WITHOUT MCP.
-- **Template source created and tested** in `ngocnhanvo/template-actions@main` HEAD `5fa1d4964d173847f8c2577d36ec36f01646c1c9`. Files: `.github/workflows/dispatch-bridge.yml`, `scripts/dispatch-bridge.py`, `scripts/test_dispatch_bridge.py`, `dispatch-bridge.config.json`, `docs/dispatch-bridge.md`, plus README. Generic policy reads exact project repo/workflow/source/host from reviewed config. Template ships **disabled by default**, no production dispatch on code changes.
-- Template Actions [run #43281251745](https://github.com/ngocnhanvo/template-actions/actions/runs/43281251745) **completed/success**; 11/11 offline tests PASS; dispatch job logged `NO_DISPATCH_REQUEST: workflow/script update only`. Initial test fixture failed then corrected; latest PASS is authoritative.
-- **Knowledge updated:** `ngocnhanvo/knowledge@main` HEAD `bd7a1e82a8b93340749ea025480262618b3afd6f`, files AGENTS.md, README.md, CORE-07, `stacks/github-actions-execution-and-secrets.md`, `stacks/github-actions-dispatch-bridge.md`, `templates/AGENTS.template.md`, CHANGELOG.md. Rules: inherit from `template-actions`, bind exact per-project config and secrets, approve/enable separately; prefer existing GitHub-only bridge when direct POST dispatch missing, no MCP, no dummy commits or alternate pipeline; preserve QA and code mode.
-- **Marine Aqua existing bridge retained unchanged** and functional (both production dispatches/deployments/QA previously PASS), to prevent regression. New projects inherit generic copy; **not automatically enabled or rolled into existing projects**.
-- No production deploy from this template/knowledge change. No pending work in the requested scope.
+Project: marine-aqua.vn  
+Repository lưu: ngocnhanvo/marineaqua-actions  
+Branch: main  
+Verification: GitHub commits, Actions jobs/logs, deployed source SHA and production Playwright browser QA.
 
-## Prior completed production evidence
-Project marine-aqua.vn. User explicitly rejected MCP and requested ordinary GitHub connection with a reusable Actions workflow for workflow_dispatch/repository_dispatch.
+## 1. Kết quả kiểm tra trạng thái mới nhất
 
-## DONE: Remove MCP
-- Commit `93393c595bf123540a6a09c2f6b849eb3fe957d3` removed all 6 prototype files (`tools/github-actions-dispatcher/**`, `.github/workflows/github-actions-dispatcher-ci.yml`).
-- Verified current git tree has **no MCP files**.
+Đã kiểm tra trực tiếp 5 repository GitHub, quyền truy cập đều Admin + Push:
+- knowledge/main: bd7a1e82a8b93340749ea025480262618b3afd6f
+- marineaqua-astro/master: cập nhật từ d6ca7bc3e897f346f319090ab1ece5271de6688a lên 08832a4ba0f2a62853123b766b7bb3985f98d266 trong phiên.
+- marineaqua-php/master: d4013371fbfaa072ad2508a0dfe6d5163a578052
+- marineaqua-actions/main: đã thay đổi qua các commit QA 41347f9abad00f61c3ef147d8c5c7a3b75c6cd8f và checkpoint 547a968e99ec7b5ea0897f03225c0fb6eeb4efc4.
+- knowledge-actions/main: 18bd7b67ee43fddde5a9f24de51252b1263a472b
 
-## DONE: GitHub-only dispatch bridge
-- `.github/workflows/marineaqua-dispatch-bridge.yml`
-- `scripts/marineaqua-dispatch-bridge.py` and `scripts/test_marineaqua_dispatch_bridge.py`
-- `docs/marineaqua-dispatch-bridge.md`
-- New approved files `dispatch-requests/<timestamp>-<reason>.json` committed through the existing ChatGPT GitHub connector produce genuine `push` triggers; Actions runner calls GitHub REST POST with its existing `github.token` and permissions `contents:write/actions:write`. No MCP, hosting, new ChatGPT plugin, no token in chat.
-- Validation: exactly one added request file (not a no-op commit), unique request id, exact allowlisted repo/workflow/event/ref/inputs/domain, source SHA matches source `master`, no duplicate active workflow; run locking, wait-to-completion and all jobs success. Reruns of old bridge run forbidden. Workflow code push run [#43276579882](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43276579882) succeeded and printed NO_DISPATCH_REQUEST.
+Đã xác nhận Dispatch Bridge GitHub-only được đưa sang template-actions và Knowledge; không MCP. Không làm lại.
+Đã xác nhận phân trang product logs PHP/Astro và QA trước đây hoàn tất; không làm lại cơ chế cleanup/ack log sau deploy.
+Run production trước: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43280720740 SUCCESS, source SHA d6ca7bc3e8.
 
-## Production workflow_dispatch: PASS
-- Request commit `73cba00fde236a2272923319969d527aaf6f8dd4` (`dispatch-requests/20261112T180842Z-php-product-paging-release.json`).
-- Bridge [#43276766922](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43276766922) completed/success → PHP production [#43276847920](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43276847920) completed/success.
-- PHP source `ngocnhanvo/marineaqua-php@master` SHA `d4013371fbfaa072ad2508a0dfe6d5163a578052`.
-- Log `MARINEAQUA_PHP_RELEASE installed=wp-content/plugins/github-trigger/products/endpoint.php sha256_verified=PASS`, `completed=PASS files_checked=8`, unzip ready PASS.
+## 2. Đã bổ sung và chạy Playwright QA
 
-## Production repository_dispatch: PASS
-- Request commit `46b763af20cfa43960a21db6b75b85698a88d9d5` (`dispatch-requests/20261112T181143Z-astro-product-paging-release.json`).
-- Bridge [#43277293206](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43277293206) completed/success → Astro production [#43277360360](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43277360360) completed/success.
-- Astro source `ngocnhanvo/marineaqua-astro@master` SHA `479f79e4356660387d8271bfdca4b76bef461026`.
-- Exact SHA confirmed in release log; `ASTRO_BUILD_COMPLETE=PASS`, `FTPS_UPLOAD=PASS`, `SIGNED_UNZIP_SUCCESS` confirmed. Build 3m50s without old 30s AbortError. Existing production pipeline unchanged.
+Bổ sung regression test vào script có sẵn `scripts/marineaqua-product-pagination-live-qa.mjs`, commit [41347f9abad0](https://github.com/ngocnhanvo/marineaqua-actions/commit/41347f9abad00f61c3ef147d8c5c7a3b75c6cd8f).
+Workflow read-only https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43283106067 completed SUCCESS attempt 1.
 
-## Live QA: PASS
-- Created specific read-only QA: `scripts/marineaqua-product-pagination-live-qa.mjs` and `.github/workflows/marineaqua-product-pagination-live-qa.yml`.
-- GitHub Actions [#43278636054](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43278636054) completed/success:
-  - `MARINEAQUA_PAGED_PRODUCT_LOGS=PASS total=355`: paged response schema, snapshot SHA256, per-page limit.
-  - `MARINEAQUA_LEGACY_PRODUCT_LOGS=PASS count=355`: backward compatible array.
-  - `MARINEAQUA_PUBLIC_HOME_DESKTOP=PASS`, `MARINEAQUA_PUBLIC_HOME_MOBILE=PASS` (Playwright).
-  - artifact ID `13970843469`, name `marineaqua-product-pagination-live-qa`, JSON report + screenshots.
-- QA inspected 355 product log records at the time; this alone doesn't prove whether old successful-build cleanup succeeded or not. Per explicit user instruction, **do not redo prior log deletion/ack logic**.
-- External public web fetch from ChatGPT's web tool unavailable; authoritative runner QA passed.
+Các bài kiểm tra PASS: sắp xếp tên A–Z/Z–A, giá thấp→cao/cao→thấp, so sánh thứ tự qua trang 1–2, giữ sort khi tìm kiếm và phân trang, giữ query khi thay đổi sort, giao diện mobile 390px không bị tràn, product log API paged + legacy, homepage desktop/mobile.
 
-## Summary
-GitHub-only bridge, both dispatch methods, production PHP, production Astro, signed provenance and live browser/REST QA are DONE. No MCP. Check repo Actions docs for new approved request format; do not rerun old requests.
+## 3. Kết quả kiểm tra sau bản production mới nhất
+
+Trong lúc QA có production deployment khác: [#43282741889](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43282741889), từ Dispatch Bridge [#43282693630](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43282693630). Deploy completed SUCCESS, Astro source SHA `08832a4ba0f2a62853123b766b7bb3985f98d266` (bỏ sticky product toolbar) được chứng thực từ log. `ASTRO_BUILD_COMPLETE=PASS`, `FTPS_UPLOAD=PASS`, `SIGNED_UNZIP_SUCCESS`.
+
+Đã rerun QA read-only sau deploy: [#43283106067 attempt 2](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43283106067/attempts/2) completed SUCCESS. Các dấu mốc `MARINEAQUA_PRODUCT_SORT_NAME_ASC`, `NAME_DESC`, `PRICE_ASC`, `PRICE_DESC`, `SORT_SEARCH_PAGING`, `SORT_MOBILE` đều PASS. Kèm screenshots và JSON artifact trong Actions.
+
+Đã lưu checkpoint bền vững: [docs/product-sorting-postdeploy-checkpoint.md](https://github.com/ngocnhanvo/marineaqua-actions/blob/main/docs/product-sorting-postdeploy-checkpoint.md).
+Không tạo workflow deploy khác, không dispatch build lần nữa, không chỉnh dữ liệu WordPress hay product log cleanup.
+
+Công việc thuộc phạm vi sorting/search/postdeploy QA: DONE. Các hạng mục toàn website còn lại chưa được tuyên bố hoàn tất; CLS đã được chủ sở hữu trì hoãn trước đó nên không tự sửa.
+
 Chế độ code: auto-build
 Cổng ghi source: bypass
-Trạng thái: DONE — hoàn tất
+Trạng thái: PARTIAL — chưa hoàn tất
