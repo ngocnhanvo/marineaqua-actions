@@ -1,8 +1,6 @@
 name: Marine Aqua import verified brand product galleries
 on:
-  workflow_run:
-    workflows: ["Marine Aqua brand catalog parity after import"]
-    types: [completed]
+  # Archived legacy alternate path: manual-only to prevent two gallery writers.
   workflow_dispatch:
 permissions:
   contents: read
