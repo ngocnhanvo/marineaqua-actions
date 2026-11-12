@@ -77,19 +77,61 @@ try{
  if(run.conclusion!=="success")throw Error("Production build "+run.conclusion+" run="+report.url);
  console.log("MARINEAQUA_BUILD_SUCCESS="+run.html_url);
  report.status="BUILD_SUCCESS";
+ // Signed deployment provenance is authoritative when Apache does not
+ // expose the optional staging marker as a public static route.
+ const jobResult=await safe("GET","/repos/"+REPO+"/actions/runs/"+run.id+"/jobs");
+ const jobs=jobResult?.jobs||[];
+ if(jobs.length!==1||jobs[0].conclusion!=="success")
+  throw Error("SIGNED_DEPLOY_JOBS_UNVERIFIED run="+run.id);
+ const activation=jobs[0].steps?.find(x=>
+  x.name==="Verify provenance and activate staging bundle using signed PHP rollback");
+ if(activation?.conclusion!=="success")
+  throw Error("SIGNED_DEPLOY_ACTIVATION_UNVERIFIED run="+run.id);
+ const logResponse=await fetch(GH+"/repos/"+REPO+"/actions/jobs/"+jobs[0].id+"/logs",{
+  headers,signal:AbortSignal.timeout(25000)
+ });
+ if(!logResponse.ok)throw Error("SIGNED_DEPLOY_LOG_UNAVAILABLE HTTP "+logResponse.status);
+ const signedLog=await logResponse.text();
+ if(!signedLog.includes("SIGNED_UNZIP_SUCCESS")||
+    !signedLog.includes("ASTRO_BUILD_COMPLETE=PASS")||
+    !signedLog.includes("FTPS_UPLOAD=PASS")||
+    !signedLog.includes(expectedSHA))
+  throw Error("SIGNED_DEPLOY_PROVENANCE_MISMATCH run="+run.id);
  const readinessDeadline=Date.now()+120000;
  let ready=false,last="";
  while(Date.now()<readinessDeadline){
   try{
-   const response=await fetch("https://marine-aqua.io.vn/marineaqua-staging-build.json",{
+   const marker=await fetch("https://marine-aqua.io.vn/marineaqua-staging-build.json",{
     headers:{"Cache-Control":"no-cache"},signal:AbortSignal.timeout(15000)});
-   if(response.ok){
-    const value=await response.json();
+   if(marker.ok){
+    const value=await marker.json();
     if(value.commit===expectedSHA&&value.branch==="master"&&value.target==="marine-aqua.io.vn"){
-     ready=true;break;
+     ready=true;report.readiness="REVISION_MARKER";break;
     }
-    last="Revision mismatch";
-   }else last="HTTP "+response.status;
+    last="Marker revision mismatch";
+   }else if(marker.status===404){
+    // Some installations route all non-whitelisted paths to Astro SSR and
+    // therefore 404 the root staging JSON despite signed PHP activation.
+    // Require BOTH signed logged SHA and browser-visible new route behavior.
+    const [redirect,listing]=await Promise.all([
+     fetch("https://marine-aqua.io.vn/thuong-hieu/",{
+      redirect:"manual",headers:{"Cache-Control":"no-cache"},signal:AbortSignal.timeout(15000)}),
+     fetch("https://marine-aqua.io.vn/san-pham/thuong-hieu/",{
+      headers:{"Cache-Control":"no-cache"},signal:AbortSignal.timeout(15000)})
+    ]);
+    const location=redirect.headers.get("location")||"";
+    const html=listing.ok?await listing.text():"";
+    if(redirect.status===301&&
+       new URL(location,"https://marine-aqua.io.vn").pathname.replace(/\/$/,"")==="/san-pham/thuong-hieu"&&
+       listing.ok&&html.includes("BRAND - HÃNG SẢN XUẤT")&&
+       html.includes("Tổng 246 sản phẩm")){
+      ready=true;report.readiness="SIGNED_PROVENANCE_AND_LIVE_NEW_ROUTES";
+      report.warning="Public staging marker not exposed by Apache; signed source and new live routes verified";
+      console.log("MARINEAQUA_DEPLOY_READY_FALLBACK=PASS SHA="+expectedSHA);
+      break;
+    }
+    last="Signed deploy passed; new live category routes not yet ready";
+   }else last="Marker HTTP "+marker.status;
   }catch(e){last=String(e?.message||e).slice(0,120)}
   await sleep(10000);
  }
