@@ -1,0 +1,30 @@
+name: Marine Aqua brand listing route audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-brand-listing-route-audit.mjs'
+      - '.github/workflows/marineaqua-brand-listing-route-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  route-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-brand-listing-route-audit.mjs
+      - run: node scripts/marineaqua-brand-listing-route-audit.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-brand-listing-route-audit
+          path: brand-listing-route-evidence/
