@@ -1,5 +1,10 @@
 name: Marine Aqua restore full verified galleries
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-brand-gallery-import.mjs'
+      - '.github/workflows/marineaqua-brand-gallery-import.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -29,7 +34,7 @@ jobs:
           curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13917609900/zip" --output /tmp/brand-products.zip
           python3 -m zipfile -e /tmp/brand-products.zip brand-catalog-evidence
           test -s brand-catalog-evidence/manifest.json
-          if [ -z "${GALLERY_ARTIFACT_ID:-}" ]; then echo "GALLERY_ARTIFACT_ID not set"; exit 1; fi
+          GALLERY_ARTIFACT_ID=13920814186
           curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/$GALLERY_ARTIFACT_ID/zip" --output /tmp/brand-galleries.zip
           python3 -m zipfile -e /tmp/brand-galleries.zip brand-gallery-source-evidence
           test -s brand-gallery-source-evidence/manifest.json
