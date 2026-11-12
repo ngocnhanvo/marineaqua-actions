@@ -72,7 +72,7 @@ try{
   const stock=/hết hàng/i.test(item.stockText)?"outofstock":"instock";
   if(target.stock_status!==stock)result.wrongStock.push({slug,source:item.stockText,target:target.stock_status});
   const media=target.images?.[0]?.src||"";
-  if(!media||!/^https?:\/\//i.test(media)||!media.includes("/wp-content/uploads/"))
+  if(!media||!(/^\/wp-content\/uploads\//.test(media)||/^https:\/\/admin\.marine-aqua\.io\.vn\/wp-content\/uploads\//.test(media)))
    result.wrongMedia.push({slug,targetMedia:media});
   if(item.images?.length>1&&target.images?.length<item.images.length)
    result.galleryReview.push({slug,originalCaptured:item.images.length,targetMediaCount:target.images.length});
