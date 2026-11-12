@@ -1,29 +1,30 @@
 # Marine Aqua — latest response
 
-- Checkpoint: 2026-11-12 ~11:25 Asia/Ho_Chi_Minh, nested mobile category row alignment and short see-all label.
-- Astro repo ngocnhanvo/marineaqua-astro@master **2d509e94a60a4db562dee8e23a9cee1057e52143** (PRODUCTION)
-- Actions repo ngocnhanvo/marineaqua-actions@main **65d68900be45ced68bc8db15083af53ffbfa433d** before checkpoint.
-- Knowledge main and PHP master unchanged.
-- User requested remove repeated category title from "Xem tất cả BRAND - HÃNG SẢN XUẤT" and place child category rows on same indentation/alignment as "Xem tất cả". **DONE**.
+- Checkpoint: 2026-11-12 11:35+07, seamless mobile header/menu join.
+- Astro PRODUCTION master: 2ed3f233ae88c6aff5d7c5f36970c1457f1bea14.
+- Actions main: 2288de39b8df7c8c9f575d502964d1939fc46c4b before this checkpoint.
+- WordPress/PHP unchanged.
 
-## Changes
+## Change and cause
 
-1. `src/astro/components/Menu/MobileProductCategoryBranch.astro`: replaced `Xem tất cả {node.name}` with `Xem tất cả`. Astro commit `2bd3498f`.
-2. `src/styles/marine-aqua-approved.css`: nested category list now `padding-left:4px; margin-left:0` and nested row `gap:4px` to remove second-level indent while keeping dot icon; computes identical dot/text starts as See all item. Commit `48e88b29`.
-3. `src/styles/marine-aqua-approved.test.ts`: guard short label and alignment CSS; commit `2d509e94`.
-4. Actions `scripts/marineaqua-live-readonly.mjs`: check real rendered text and left coordinate delta of dot and label at 390px and 768px. Commit `65d68900`.
+The mobile menu was opening separated from the bottom edge of the brand header, exposing a strip of the homepage banner. The extra offset was due to positioning the absolutely positioned menu relative to the header shell in the non-fixed state rather than the actual edge of the brand bar.
 
-## Verification
+- CSS `src/styles/marine-aqua-approved.css`, commit 358a2519: the open menu shell becomes the positioning context; menu aligns at `top:-1px` in nonfixed mode; fixed mode aligned at `top:73px`; bottom corners keep rounding; drop shadow softened; a 3px white-to-blue overlay conceals the boundary without creating a new gap.
+- CSS source regression test `src/styles/marine-aqua-approved.test.ts` commit 2ed3f233.
+- Actions read-only Playwright script `scripts/marineaqua-live-readonly.mjs` commit 2288de39: measures headerBottom and menuTop at 390px/768px, requiring absolute difference <=3px while retaining previous menu visual checks.
 
-- Source CI: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43124177120 latest attempt SUCCESS, 214/214 unit tests PASS, Astro check 0 errors / 0 warnings. SHA 2d509e94.
-- Production deploy: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43136036466 attempt 9 SUCCESS: same SHA 2d509e94, ASTRO_BUILD_COMPLETE=PASS, FTPS_UPLOAD=PASS, SIGNED_UNZIP_SUCCESS.
-- Post-deploy Playwright: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43154168952; targeted `MARINEAQUA_MOBILE_MENU_VISUAL=PASS` for 390px and 768px: `allText="Xem tất cả"`, `dotDelta=0`, `labelDelta=0`, `alignment.pass=true`, 14 nested 6px dot marks.
-- Overall read-only QA job still FAILED from preexisting `MARINEAQUA_CATEGORY_SCROLL_ANCHOR` and `MARINEAQUA_HOME00_BANNER`. These are NOT part of current task; don't conflate with targeted PASS.
+## Evidence
 
-## Next preexisting backlog
+- CI https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43124177120 (latest attempt): SUCCESS.
+- Production deploy https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43136036466 attempt 10: SUCCESS; exact deployed Astro SHA 2ed3f233, ASTRO_BUILD_COMPLETE=PASS, FTPS_UPLOAD=PASS, SIGNED_UNZIP_SUCCESS.
+- Production read-only Playwright https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43155246138: targeted `MARINEAQUA_MOBILE_MENU_VISUAL=PASS`. At 390px and 768px headerBottom=87px, menuTop=86px, seam delta=-1px. Previously verified sale stars, category dot icons and category item alignment remain PASS.
+- Full site diagnostic still FAIL due separate known category scroll-anchor and Home_00 banner issues. No new defects attributed to this header/menu change.
 
-- Category scroll-anchor reset and Home_00 banner media/navigation UI failures.
-- Lighthouse Best Practices CSP diagnostics, not to weaken CSP without approval.
+## Existing backlog unchanged
+
+- Category scroll-anchor reset.
+- Home_00 banner media/navigation.
+- Lighthouse Best Practices CSP.
 
 Chế độ code: auto-build
 Cổng ghi source: bypass
