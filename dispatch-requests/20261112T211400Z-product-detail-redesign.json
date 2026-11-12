@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "3de6162206460957424633496eda7ca3e6da8791",
+  "reason": "Publish redesigned Marine Aqua WooCommerce product detail page",
+  "request_id": "20261112T211400Z-product-detail-redesign",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
