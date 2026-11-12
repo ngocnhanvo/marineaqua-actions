@@ -1150,6 +1150,12 @@ try {
         };
       });
       await page.screenshot({path:dir+"/consultation-open-"+width+".png",fullPage:false});
+      // Regression: clicking the same launcher a second time MUST close, not reopen.
+      await launcher.click();
+      const secondClickClosed = await page.locator("#marine-consult-panel").evaluate(el => el.hidden && el.inert);
+      const secondClickCollapsed = await launcher.getAttribute("aria-expanded") === "false";
+      await launcher.click();
+      const thirdClickOpened = await page.locator("#marine-consult-panel").evaluate(el => !el.hidden && !el.inert);
       await page.keyboard.press("Escape");
       const closedByEscape = await page.locator("#marine-consult-panel").evaluate(el => el.hidden && el.inert);
       await launcher.click();
@@ -1162,14 +1168,27 @@ try {
       await launcher.click();
       await page.mouse.click(3,3);
       const closedOutside = await page.locator("#marine-consult-panel").evaluate(el => el.hidden);
+      await page.evaluate(() => window.scrollTo({top:document.body.scrollHeight,behavior:"instant"}));
+      await page.waitForTimeout(700);
+      const floatingButtons = await page.evaluate(() => {
+        const top = document.querySelector("#back-to-top-btn");
+        const consult = document.querySelector("#ai-agent-btn");
+        if (!top || !consult) return {visible:false,gap:-1};
+        const a = top.getBoundingClientRect(), b = consult.getBoundingClientRect();
+        const visible = getComputedStyle(top).opacity !== "0" && !top.disabled;
+        return {visible, gap:Math.round(b.top - a.bottom),
+          centerDelta:Math.round(Math.abs((a.left+a.right)/2 - (b.left+b.right)/2))};
+      });
       const linkTypesValid = opened.links.every(link =>
         (link.href.startsWith("tel:") && /^tel:\+?\d{9,15}$/.test(link.href)) ||
         /^https:\/\/(?:www\.)?(?:facebook\.com|m\.facebook\.com|fb\.com|m\.me|zalo\.me|oa\.zalo\.me)\//.test(link.href));
-      const result = {width, ...opened, closedByEscape, aiOpened, aiClosed,
-        closedOutside, linkTypesValid};
+      const result = {width, ...opened, secondClickClosed, secondClickCollapsed, thirdClickOpened,
+        closedByEscape, aiOpened, aiClosed, closedOutside, linkTypesValid, floatingButtons};
       result.pass = opened.open && opened.expanded && opened.title === "Kênh tư vấn"
         && opened.inViewport && opened.aiOption && !opened.horizontalOverflow
-        && closedByEscape && aiOpened && aiClosed && closedOutside && linkTypesValid;
+        && secondClickClosed && secondClickCollapsed && thirdClickOpened
+        && closedByEscape && aiOpened && aiClosed && closedOutside && linkTypesValid
+        && floatingButtons.visible && floatingButtons.gap >= 22 && floatingButtons.centerDelta <= 9;
       summary.consultationPanel.push(result);
     } catch (error) {
       summary.consultationPanel.push({width, pass:false, error:String(error.message || error).slice(0,350)});
