@@ -1,0 +1,69 @@
+name: Marine Aqua import two verified product category trees
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  import:
+    concurrency:
+      group: marine-aqua-woocommerce-brand-import
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-two-category-import.mjs
+      - name: Fetch immutable original source product and taxonomy mapping evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          mkdir -p two-category-catalog-evidence two-category-mapping-evidence
+          python3 - <<'PY'
+          import json,os,urllib.request
+          owner='ngocnhanvo/marineaqua-actions'
+          token=os.environ['GH_TOKEN']
+          for run_id,expected,outdir in [
+            (43188424042,'marine-aqua-two-category-inventory','two-category-catalog-evidence'),
+            (0,'marine-aqua-two-category-mapping','two-category-mapping-evidence')]:
+              if run_id==0:
+                request=urllib.request.Request(f'https://api.github.com/repos/{owner}/actions/workflows/marineaqua-two-category-mapping.yml/runs?per_page=20',
+                  headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'})
+                runs=json.load(urllib.request.urlopen(request)).get('workflow_runs',[])
+                completed=[r for r in runs if r.get('conclusion')=='success']
+                assert completed, 'No completed verified category mapping run'
+                run_id=completed[0]['id']
+              url=f'https://api.github.com/repos/{owner}/actions/runs/{run_id}/artifacts'
+              request=urllib.request.Request(url,headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'})
+              artifacts=json.load(urllib.request.urlopen(request)).get('artifacts',[])
+              matching=[a for a in artifacts if a['name']==expected and not a['expired']]
+              assert len(matching)==1, 'Expected one '+expected+' artifact'
+              aid=matching[0]['id']
+              request=urllib.request.Request(f'https://api.github.com/repos/{owner}/actions/artifacts/{aid}/zip',
+                headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'})
+              import io,zipfile
+              data=urllib.request.urlopen(request).read()
+              with zipfile.ZipFile(io.BytesIO(data)) as archive: archive.extractall(outdir)
+              print('SOURCE_EVIDENCE_LOCKED='+expected+' artifact='+str(aid)+' run='+str(run_id))
+          PY
+          test -s two-category-catalog-evidence/manifest.json
+          test -s two-category-mapping-evidence/mapping.json
+      - name: Import only missing products and attach new categories to existing products
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-two-category-import.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-two-category-import
+          path: two-category-import-evidence/
+          retention-days: 14
