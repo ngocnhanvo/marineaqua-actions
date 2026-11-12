@@ -24,7 +24,7 @@ try {
   const response=await page.goto(origin+path,{waitUntil:"domcontentloaded",timeout:40000});
   const info=await page.evaluate(()=>{
    const cards=[...document.querySelectorAll("article.group")];
-   const prices=cards.map(card=>card.querySelector(".text-\\[\\#d9262e\\]"));
+   const prices=cards.map(card=>card.querySelector("p.text-base.font-extrabold"));
    const priceStyles=prices.filter(Boolean).map(el=>getComputedStyle(el).color);
    return {
     h1:[...document.querySelectorAll("main h1")].map(el=>el.textContent.trim()),
