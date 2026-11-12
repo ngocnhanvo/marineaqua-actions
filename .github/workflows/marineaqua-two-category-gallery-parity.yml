@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/marineaqua-two-category-gallery-parity.yml'
+      - 'scripts/marineaqua-two-category-gallery-parity.mjs'
   workflow_dispatch:
 permissions:
   contents: read
