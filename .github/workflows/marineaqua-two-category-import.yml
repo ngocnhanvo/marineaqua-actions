@@ -1,5 +1,9 @@
 name: Marine Aqua import two verified product category trees
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-two-category-import.yml'
   workflow_run:
     workflows: ["Marine Aqua two category verified taxonomy mapping"]
     types: [completed]
@@ -9,7 +13,7 @@ permissions:
   actions: read
 jobs:
   import:
-    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     concurrency:
       group: marine-aqua-woocommerce-brand-import
       cancel-in-progress: false
@@ -31,33 +35,11 @@ jobs:
         run: |
           set -eu
           mkdir -p two-category-catalog-evidence two-category-mapping-evidence
-          python3 - <<'PY'
-          import json,os,urllib.request
-          owner='ngocnhanvo/marineaqua-actions'
-          token=os.environ['GH_TOKEN']
-          for run_id,expected,outdir in [
-            (43188424042,'marine-aqua-two-category-inventory','two-category-catalog-evidence'),
-            (0,'marine-aqua-two-category-mapping','two-category-mapping-evidence')]:
-              if run_id==0:
-                request=urllib.request.Request(f'https://api.github.com/repos/{owner}/actions/workflows/marineaqua-two-category-mapping.yml/runs?per_page=20',
-                  headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'})
-                runs=json.load(urllib.request.urlopen(request)).get('workflow_runs',[])
-                completed=[r for r in runs if r.get('conclusion')=='success']
-                assert completed, 'No completed verified category mapping run'
-                run_id=completed[0]['id']
-              url=f'https://api.github.com/repos/{owner}/actions/runs/{run_id}/artifacts'
-              request=urllib.request.Request(url,headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'})
-              artifacts=json.load(urllib.request.urlopen(request)).get('artifacts',[])
-              matching=[a for a in artifacts if a['name']==expected and not a['expired']]
-              assert len(matching)==1, 'Expected one '+expected+' artifact'
-              aid=matching[0]['id']
-              request=urllib.request.Request(f'https://api.github.com/repos/{owner}/actions/artifacts/{aid}/zip',
-                headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'})
-              import io,zipfile
-              data=urllib.request.urlopen(request).read()
-              with zipfile.ZipFile(io.BytesIO(data)) as archive: archive.extractall(outdir)
-              print('SOURCE_EVIDENCE_LOCKED='+expected+' artifact='+str(aid)+' run='+str(run_id))
-          PY
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13929359331/zip" --output /tmp/two-category-source.zip
+          python3 -m zipfile -e /tmp/two-category-source.zip two-category-catalog-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13931210653/zip" --output /tmp/two-category-map.zip
+          python3 -m zipfile -e /tmp/two-category-map.zip two-category-mapping-evidence
+          echo "TWO_CATEGORY_IMMUTABLE_ARTIFACTS=13929359331,13931210653"
           test -s two-category-catalog-evidence/manifest.json
           test -s two-category-mapping-evidence/mapping.json
       - name: Import only missing products and attach new categories to existing products
