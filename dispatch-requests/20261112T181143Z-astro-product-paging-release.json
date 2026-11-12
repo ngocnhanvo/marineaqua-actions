@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "479f79e4356660387d8271bfdca4b76bef461026",
+  "reason": "Deploy Astro bounded product log pagination after verified PHP production release",
+  "request_id": "20261112T181143Z-astro-product-paging-release",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
