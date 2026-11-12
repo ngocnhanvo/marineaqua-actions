@@ -5,7 +5,7 @@ on:
       - 'Marine Aqua Astro deployment (WordPress Build Website only)'
     types: [completed]
 permissions:
-  contents: read
+  contents: write
 jobs:
   verify:
     if: github.event.workflow_run.conclusion == 'success'
@@ -21,10 +21,33 @@ jobs:
           node-version: '24'
       - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
       - run: node --check scripts/marineaqua-information-pages-live-qa.mjs
-      - run: node scripts/marineaqua-information-pages-live-qa.mjs
+      - id: live-qa
+        run: node scripts/marineaqua-information-pages-live-qa.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: marineaqua-information-pages-live-qa
           path: information-pages-live-evidence/
           retention-days: 10
+      - name: Persist production QA results
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          GH_RUN_ID: ${{ github.run_id }}
+          LIVE_QA_OUTCOME: ${{ steps.live-qa.outcome }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, existsSync } from 'node:fs';
+          const path='information-pages-live-evidence/result.json';
+          const evidence=existsSync(path)?JSON.parse(readFileSync(path,'utf8')):{records:[],failures:[{error:'No QA results'}]};
+          const report={...evidence,run_id:process.env.GH_RUN_ID,job_outcome:process.env.LIVE_QA_OUTCOME};
+          const endpoint='https://api.github.com/repos/'+process.env.GH_REPO+'/contents/docs/information-pages-live-qa-latest.json';
+          const headers={Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};
+          const previous=await fetch(endpoint,{headers}).then(r=>r.ok?r.json():null);
+          const body={message:'Record information pages QA run '+process.env.GH_RUN_ID,content:Buffer.from(JSON.stringify(report,null,2)+'\n').toString('base64'),branch:'main'};
+          if(previous?.sha)body.sha=previous.sha;
+          const response=await fetch(endpoint,{method:'PUT',headers,body:JSON.stringify(body)});
+          if(!response.ok)throw Error('QA evidence write failed '+response.status);
+          console.log('INFORMATION_PAGES_LIVE_QA_EVIDENCE='+JSON.stringify({run_id:report.run_id,failures:report.failures?.length,outcome:report.job_outcome}));
+          NODE
