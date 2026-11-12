@@ -91,7 +91,7 @@ try {
         }catch{node.removeAttribute(key);}
        }
       });
-      return {title:document.querySelector('h1')?.textContent?.trim()||'',html:copy.innerHTML,text:copy.textContent?.trim()||''};
+      return {title:document.querySelector('h1,.entry-title,article h2')?.textContent?.trim()||'',documentTitle:document.title||'',html:copy.innerHTML,text:copy.textContent?.trim()||''};
    }) : null;
    await source.close();
    if(!extracted) {
@@ -119,7 +119,14 @@ try {
    }
    const minimumLength=['thoi-gian-ban-hang','thong-bao'].includes(entry.slug) ? 35 : 100;
    assert(extracted&&extracted.text.length>=minimumLength,'Source page missing substantive article content');
-   assert(extracted.title, 'Source missing page heading; refuse unrelated document');
+   const normalizeTitle=(value)=>String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+   const sourceTitle=normalizeTitle(extracted.title||extracted.documentTitle||'');
+   const expectedTitle=normalizeTitle(entry.title);
+   const titleAlternatives=entry.slug==='thong-bao'?['phi ship hang','thong bao']: [expectedTitle];
+   if(!titleAlternatives.some(title=>sourceTitle.includes(title))){
+     row.sourceDiagnostic={title:extracted.title,documentTitle:extracted.documentTitle,textSample:extracted.text.slice(0,120)};
+     throw Error('Source title mismatch; refuse unrelated document');
+   }
    assert(extracted.html.length<90000,'Unexpected oversized source content');
    const exact=records.filter(p=>p.slug===entry.slug && p.status!=='trash');
    assert(exact.length<=1,'Duplicate WordPress Pages for '+entry.slug);
