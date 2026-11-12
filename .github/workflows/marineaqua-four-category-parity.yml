@@ -1,0 +1,46 @@
+name: Marine Aqua four categories independent data parity (NO DEPLOY)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-four-category-parity.mjs'
+      - '.github/workflows/marineaqua-four-category-parity.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-four-category-parity.mjs
+      - name: Recover source, mapping and price oracle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          for pair in "13942597917 four-category-catalog-evidence" "13944050499 four-category-mapping-evidence" "13942662942 four-category-price-oracle-evidence"; do
+            set -- $pair
+            mkdir -p "$2"
+            curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/$1/zip" -o "/tmp/$1.zip"
+            python3 -m zipfile -e "/tmp/$1.zip" "$2"
+          done
+      - name: Independently compare 17 products and four category memberships
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-four-category-parity.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-four-category-parity
+          path: four-category-parity-evidence/
+          retention-days: 14
