@@ -1,0 +1,38 @@
+name: Marine Aqua read-only main media collision verification
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-brand-media-collision-audit.mjs'
+      - '.github/workflows/marineaqua-brand-media-collision-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  collision-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-brand-media-collision-audit.mjs
+      - name: Restore source media inventory
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p brand-catalog-evidence
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/13917609900/zip" --output /tmp/brand-products.zip
+          python3 -m zipfile -e /tmp/brand-products.zip brand-catalog-evidence
+      - run: node scripts/marineaqua-brand-media-collision-audit.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marine-aqua-brand-media-collision
+          path: brand-media-collision-evidence/
