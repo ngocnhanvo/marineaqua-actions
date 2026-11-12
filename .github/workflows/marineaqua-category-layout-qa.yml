@@ -34,3 +34,5 @@ jobs:
           path: next-category-production-qa-evidence/
 
 # Verify independent live card layout and archive membership
+
+# Final visual regression validation
