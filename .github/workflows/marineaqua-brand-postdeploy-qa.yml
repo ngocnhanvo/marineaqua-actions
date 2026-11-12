@@ -1,5 +1,9 @@
 name: Marine Aqua brand listing post-deploy QA
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-brand-postdeploy-qa.yml'
   workflow_dispatch:
 permissions:
   contents: read
