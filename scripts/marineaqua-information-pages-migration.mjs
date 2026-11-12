@@ -164,10 +164,29 @@ try {
      assert(updated.id===old.id && updated.status==='publish','Existing Page readback failed');
      row.status='UPDATED';row.id=old.id;
    } else {
-     const created=await api('POST','/wp-json/wp/v2/pages',{
+     const newPagePayload={
        title:entry.title,slug:entry.slug,content:newContent,status:'publish',
        acf:{key:'information-'+entry.slug,action:'HomePage',product_lang:'vi'},
-     });
+     };
+     let created;
+     try {
+       created=await api('POST','/wp-json/wp/v2/pages',newPagePayload);
+     } catch(writeError) {
+       // A lost HTTP response may still mean WordPress committed the Page.
+       // Check by exact slug and our unique ACF key BEFORE any retry.
+       row.writeError=String(writeError?.message||writeError).slice(0,160);
+       let found=[];
+       try {
+         const lookup=await api('GET','/wp-json/wp/v2/pages?context=edit&status=any&slug='+encodeURIComponent(entry.slug)+'&per_page=10&_fields=id,slug,status,acf');
+         found=Array.isArray(lookup)?lookup.filter(p=>p.slug===entry.slug&&p.acf?.key==='information-'+entry.slug):[];
+       } catch {}
+       if(found.length===1&&found[0].status==='publish'){
+         created=found[0];
+         row.recoveredFromResponseLoss=true;
+       } else {
+         throw writeError;
+       }
+     }
      assert(created.id && created.slug===entry.slug && created.status==='publish','Created Page readback failed');
      row.status='CREATED';row.id=created.id;
    }
