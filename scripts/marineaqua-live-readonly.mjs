@@ -1208,6 +1208,15 @@ try {
     try {
       await page.goto(frontend.origin + "/", {waitUntil:"domcontentloaded",timeout:45000});
       await page.locator("#hamburger-btn").click({timeout:12000});
+      const seam = await page.evaluate(() => {
+        const header = document.querySelector("#header-brandbar");
+        const menu = document.querySelector("#mobile-menu-container");
+        if (!header || !menu || menu.hasAttribute("hidden")) return {pass:false,reason:"missing open menu"};
+        const h = header.getBoundingClientRect(), m = menu.getBoundingClientRect();
+        const delta = Number((m.top - h.bottom).toFixed(2));
+        return {delta, headerBottom:h.bottom, menuTop:m.top,
+          pass:Math.abs(delta)<=3};
+      });
       const sale = page.locator("#mobile-menu-container [data-marine-sale]").first();
       const saleResult = await sale.evaluate(el => {
         const control = el.querySelector(":scope > div > a, :scope > div > button, :scope > div > span");
@@ -1251,13 +1260,13 @@ try {
           pass:(all.textContent||"").trim()==="Xem tất cả" &&
             Math.abs(dotLeft-allDotLeft)<=2 && Math.abs(labelLeft-allLabelLeft)<=2};
       }).catch(error=>({pass:false,error:String(error.message||error).slice(0,150)}));
-      const pass = saleResult.starCount===3 && saleResult.sparkleAnimated &&
+      const pass = seam.pass && saleResult.starCount===3 && saleResult.sparkleAnimated &&
         saleResult.boltCount===0 && saleResult.background==="rgba(0, 0, 0, 0)" &&
         saleResult.backgroundImage==="none" &&
         categoryResult.iconCount>0 && categoryResult.iconCount===categoryResult.markCount &&
         categoryResult.noOldIcons && categoryResult.dotSizes.every(s=>s===6) &&
         categoryResult.borderLeft==="0px" && alignment.pass;
-      const result={width,sale:saleResult,categories:categoryResult,alignment,pass};
+      const result={width,seam,sale:saleResult,categories:categoryResult,alignment,pass};
       summary.mobileMenuVisual.push(result);
       await page.screenshot({path:dir+"/mobile-menu-stars-dots-"+width+".png",fullPage:false});
     }catch(error){
