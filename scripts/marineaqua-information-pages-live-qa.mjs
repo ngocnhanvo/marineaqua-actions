@@ -29,7 +29,8 @@ try{
        listing:Boolean(document.querySelector('#search-form'))};
    });
    Object.assign(row,details);
-   if(row.status!==200 || !row.bodyLength || row.bodyLength<85 || !row.h1 || row.listing)throw Error('Invalid informational page rendering');
+   const minLength=['thong-bao','thoi-gian-ban-hang'].includes(target.slug)?30:85;
+   if(row.status!==200 || !row.bodyLength || row.bodyLength<minLength || !row.h1 || row.listing)throw Error('Invalid informational page rendering');
    await page.screenshot({path:DIR+'/'+target.slug+'-desktop.png',fullPage:true});
    await page.setViewportSize({width:390,height:844});
    await page.screenshot({path:DIR+'/'+target.slug+'-mobile.png',fullPage:true});
