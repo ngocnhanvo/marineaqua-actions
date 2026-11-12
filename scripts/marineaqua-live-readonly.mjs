@@ -38,6 +38,35 @@ try {
     const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
     const problems = [];
     page.on("pageerror", error => problems.push(error.name || "pageerror"));
+    // Track real layout-shift entries before any page script runs.
+    // Unlike a Lighthouse DOM element list, sources are the *moved* nodes,
+    // so capture the enclosing ESC section as well as its previous/current Y.
+    await page.addInitScript(() => {
+      window.__marineLayoutShifts = { score: 0, entries: [] };
+      try {
+        const observer = new PerformanceObserver(list => {
+          for (const entry of list.getEntries()) {
+            if (entry.hadRecentInput) continue;
+            const record = {
+              value: Math.round(entry.value * 100000) / 100000,
+              startTime: Math.round(entry.startTime),
+              sources: (entry.sources || []).slice(0, 5).map(source => ({
+                tag: source.node?.tagName || "",
+                class: typeof source.node?.className === "string" ? source.node.className.slice(0, 120) : "",
+                section: source.node?.closest?.("[data-tablepress-preview]")?.getAttribute("data-tablepress-preview") || "",
+                previousY: Math.round(source.previousRect?.y || 0),
+                currentY: Math.round(source.currentRect?.y || 0)
+              }))
+            };
+            window.__marineLayoutShifts.score += entry.value;
+            if (window.__marineLayoutShifts.entries.length < 25) window.__marineLayoutShifts.entries.push(record);
+          }
+        });
+        observer.observe({ type: "layout-shift", buffered: true });
+      } catch (error) {
+        window.__marineLayoutShifts.error = String(error.name || "unsupported");
+      }
+    });
     try {
       const response = await page.goto(frontend.origin + "/", {
         waitUntil: "domcontentloaded", timeout: 45000,
@@ -217,8 +246,38 @@ try {
       result.finalHost = new URL(page.url()).hostname;
       result.pageErrors = problems.length;
       result.content = result.mainTextLength > 20 || result.escSections > 0 ? "PRESENT" : "EMPTY";
+      // Capture both initial-load shifts and shifts when the category/brand
+      // sections enter the viewport; mobile and desktop are measured separately.
+      result.layoutShiftBeforeScroll = await page.evaluate(() => ({
+        score: Math.round((window.__marineLayoutShifts?.score || 0) * 100000) / 100000,
+        entries: window.__marineLayoutShifts?.entries || []
+      }));
       summary.views.push({ width, ...result });
       await page.screenshot({ path: dir + "/frontend-" + width + ".png", fullPage: false });
+      for (const sectionId of ["home_03", "home_04"]) {
+        await page.evaluate(id => {
+          const section = document.querySelector('section[data-tablepress-preview="' + id + '"]');
+          section?.scrollIntoView({ block: "center", behavior: "instant" });
+        }, sectionId);
+        await page.waitForTimeout(600);
+      }
+      const clsAfterScroll = await page.evaluate(() => {
+        const category = document.querySelector('section[data-tablepress-preview="home_03"]');
+        const style = category ? getComputedStyle(category) : null;
+        return {
+          score: Math.round((window.__marineLayoutShifts?.score || 0) * 100000) / 100000,
+          entries: window.__marineLayoutShifts?.entries || [],
+          category: {
+            contentVisibility: style?.contentVisibility || "",
+            containIntrinsicSize: style?.containIntrinsicSize || "",
+            height: Math.round(category?.getBoundingClientRect().height || 0)
+          }
+        };
+      });
+      console.log("MARINEAQUA_CLS_" + width + "=" + JSON.stringify({
+        beforeScroll: result.layoutShiftBeforeScroll,
+        afterScroll: clsAfterScroll
+      }));
       console.log("FRONTEND_" + width + "=" + JSON.stringify(result));
       console.log("BANNER_AUDIT_" + width + "=" + JSON.stringify(result.bannerAudit));
     } catch (error) {
