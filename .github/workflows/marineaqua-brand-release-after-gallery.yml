@@ -1,5 +1,9 @@
 name: Marine Aqua brand release after verified SEO and galleries
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-brand-release-after-gallery.yml'
   workflow_run:
     workflows: ["Marine Aqua repair verified Yoast SEO metadata"]
     types: [completed]
@@ -11,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   verified-release:
-    if: github.repository == 'ngocnhanvo/marineaqua-actions' && github.event.workflow_run.conclusion == 'success'
+    if: github.repository == 'ngocnhanvo/marineaqua-actions' && (github.event_name == 'push' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 85
     container:
