@@ -1,0 +1,11 @@
+{
+  "action": "workflow_dispatch",
+  "source_sha": "d4013371fbfaa072ad2508a0dfe6d5163a578052",
+  "reason": "Deploy bounded product log pagination endpoint to Marine Aqua WordPress",
+  "request_id": "20261112T180842Z-php-product-paging-release",
+  "workflow": "marineaqua-php-release.yml",
+  "ref": "main",
+  "inputs": {
+    "confirm": "DEPLOY_PHP"
+  }
+}
