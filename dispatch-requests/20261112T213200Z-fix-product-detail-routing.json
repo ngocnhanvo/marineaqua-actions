@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "fc3e7cc6ec9244e5748e1329aa79c6a965d0d77f",
+  "reason": "Fix exact WooCommerce product detail URLs being routed to product archive",
+  "request_id": "20261112T213200Z-fix-product-detail-routing",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
