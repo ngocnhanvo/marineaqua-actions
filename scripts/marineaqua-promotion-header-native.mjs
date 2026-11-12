@@ -1,98 +1,64 @@
-import {chromium} from "playwright";
-import {mkdir,writeFile} from "node:fs/promises";
+import { chromium } from "playwright";
+import { mkdir,writeFile } from "node:fs/promises";
 const WP="https://admin.marine-aqua.io.vn",DIR="promotion-header-evidence";
-const URL="/san-pham/giam-gia-khung",KEY="approved-v3-2";
-const result={scope:"Header/vi promotion link only",status:"STARTED",errors:[],changed:false};
+const TARGET="/san-pham/giam-gia-khung",ITEM_ID=82503,ITEM_KEY="approved-v3-2";
+const report={scope:{itemId:ITEM_ID,target:TARGET},changed:false,status:"STARTED",errors:[]};
 await mkdir(DIR,{recursive:true});
 const browser=await chromium.launch({headless:true});
 const check=(v,m)=>{if(!v)throw Error(m)};
-const expected=["Trang chủ","Khuyến mãi","Kiến thức","Hỗ trợ","Liên hệ"];
-const support=["Chính sách và hướng dẫn","Thời gian bán hàng","Phí ship hàng"];
-const label=x=>String(x?.label||x?.title||"").trim();
-const getMenu=async(context)=>{
+const readMenu=async(context)=>{
  const response=await context.request.get(WP+"/wp-json/esc-api/v1/menus",{timeout:30000,failOnStatusCode:false});
- check(response.ok(),"Header menu HTTP "+response.status());
+ check(response.ok(),"WordPress Header API HTTP "+response.status());
  const data=await response.json();
- check(data?.success===true&&Array.isArray(data?.menus?.Header?.vi?.items),"WordPress header schema invalid");
+ check(data?.success===true&&Array.isArray(data?.menus?.Header?.vi?.items),"Header VI API invalid");
  return data.menus.Header.vi.items;
 };
-const guard=items=>{
- check(items.length===5&&items.every((x,i)=>label(x)===expected[i]),"WordPress Header main labels changed");
- check(items[3]?.children?.length===3&&items[3].children.every((x,i)=>label(x)===support[i]),"Support menu tree changed");
- check(items[1]?.key===KEY,"Promotion menu key mismatch");
- check(items[0]?.linkType!=="none","Home menu reference missing");
-};
+const flatten=nodes=>nodes.flatMap(x=>[x,...flatten(x.children||[])]);
+const normalize=x=>String(x||"").replace(/^\/+|\/+$/g,"");
+const checksum=nodes=>JSON.stringify(flatten(nodes).map(x=>[x.id,x.key,x.label,x.href,x.slug,x.linkType,x.children?.map(y=>y.id)]).filter(x=>x[0]!==ITEM_ID));
 try{
  check(process.env.WP_ADMIN_USERNAME&&process.env.WP_ADMIN_PASSWORD,"Missing WP credentials");
  const context=await browser.newContext({baseURL:WP});
- const before=await getMenu(context);
- console.log("PROMO_HEADER_CURRENT="+JSON.stringify(before.map(x=>({key:x.key,label:label(x),href:x.href,slug:x.slug,linkType:x.linkType,children:(x.children||[]).map(y=>({key:y.key,label:label(y),linkType:y.linkType}))}))));
- const inspector=await context.newPage();
- await inspector.goto("/wp-login.php",{waitUntil:"domcontentloaded",timeout:45000});
- await inspector.locator("#user_login").fill(process.env.WP_ADMIN_USERNAME);
- await inspector.locator("#user_pass").fill(process.env.WP_ADMIN_PASSWORD);
- await inspector.locator("#wp-submit").click();
- await inspector.goto("/wp-admin/nav-menus.php",{waitUntil:"domcontentloaded",timeout:45000});
- const snapshot=await inspector.evaluate(()=>{
-  const item=document.getElementById("menu-item-82503");
-  return {menuName:document.getElementById("menu-name")?.value,
-   promoHtml:item?.outerHTML.slice(0,12500),
-   itemFields:item?[...item.querySelectorAll("input,select,button")].map(e=>({tag:e.tagName,name:e.name,id:e.id,type:e.type,value:e.value,options:e.tagName==="SELECT"?[...e.options].map(x=>({value:x.value,label:x.textContent.trim()})):undefined})):[],
-   candidates:[...document.querySelectorAll('input,select')].filter(e=>/82503|link.mode|custom.url/i.test(e.name+" "+e.id)).map(e=>({name:e.name,id:e.id,value:e.value})).slice(0,70)};
- });
- console.log("PROMO_MENU_SINGLE_ITEM_INSPECTION="+JSON.stringify(snapshot).slice(0,18000));
- result.status="INSPECTED";throw Error("Inspection completed without mutation");
- guard(before);
- result.before=before.map(x=>({key:x.key,label:label(x),href:x.href,slug:x.slug,linkType:x.linkType,children:x.children?.length||0}));
- const promo=before[1];
- if(promo.href===URL||promo.slug===URL||promo.href?.endsWith(URL)){
-  result.status="PASS";result.changed=false;
+ const before=await readMenu(context);
+ const beforeFlat=flatten(before);
+ const item=beforeFlat.find(x=>x.id===ITEM_ID||x.key===ITEM_KEY);
+ check(item?.id===ITEM_ID&&item.key===ITEM_KEY&&item.label==="Khuyến mãi","Promotion menu identity mismatch");
+ const previousSignature=checksum(before);
+ const prevMode=item.linkType,prevHref=item.href,prevSlug=item.slug;
+ if(normalize(item.href||item.slug)===normalize(TARGET)){
+  report.status="PASS";report.changed=false;
  }else{
-  check(promo.linkType==="none"&&!promo.href&&!promo.slug,"Promotion link already configured differently");
-  const items=[
-   {key:"home",lang:"vi",label:"Trang chủ",pageId:82454,linkMode:"page",children:[]},
-   {key:KEY,lang:"vi",label:"Khuyến mãi",linkMode:"custom",url:URL,children:[]},
-   {key:"approved-v3-7",lang:"vi",label:"Kiến thức",linkMode:"none",children:[]},
-   {key:"marine-support",lang:"vi",label:"Hỗ trợ",linkMode:"none",children:[
-    {key:"approved-v3-3",lang:"vi",label:"Chính sách và hướng dẫn",linkMode:"none",children:[]},
-    {key:"approved-v3-4",lang:"vi",label:"Thời gian bán hàng",linkMode:"none",children:[]},
-    {key:"approved-v3-6",lang:"vi",label:"Phí ship hàng",linkMode:"none",children:[]}
-   ]},
-   {key:"approved-v3-5",lang:"vi",label:"Liên hệ",linkMode:"none",children:[]}
-  ];
-  const byKey=new Map(before.flatMap(x=>[x,...(x.children||[])]).map(x=>[x.key,x]));
-  check(items.flatMap(x=>[x,...x.children]).every(x=>byKey.has(x.key)&&label(byKey.get(x.key))===x.label),"Menu item identity mismatch");
-  check([...byKey.values()].every(x=>x.key===KEY||x.key==="home"||x.linkType==="none"),"Other menu links present, refusing menu replacement");
+  check(item.linkType==="none"&&!item.href&&!item.slug,"Existing promotion destination conflicts");
   const page=await context.newPage();
   await page.goto("/wp-login.php",{waitUntil:"domcontentloaded",timeout:45000});
   await page.locator("#user_login").fill(process.env.WP_ADMIN_USERNAME);
   await page.locator("#user_pass").fill(process.env.WP_ADMIN_PASSWORD);
   await page.locator("#wp-submit").click();
   await page.goto("/wp-admin/nav-menus.php",{waitUntil:"domcontentloaded",timeout:45000});
-  check(await page.locator("#menu-name").inputValue()==="Marine Aqua Header VI","Wrong selected menu");
-  check(await page.locator("#esc-menu-code").inputValue()==="Header"&&await page.locator("#esc-menu-lang").inputValue()==="vi","Wrong Header scope");
-  const input=page.locator("#esc-pse-menu-json-input");
-  await input.fill(JSON.stringify(items));
-  await page.locator("#esc-pse-menu-json-preview").click();
-  const box=page.locator("#esc-pse-menu-json-result");
-  await box.waitFor({state:"visible",timeout:20000});
-  const preview=await box.innerText();
-  result.preview=preview.slice(0,550);
-  console.log("PROMO_HEADER_PREVIEW="+result.preview);
-  check(/8 items hợp lệ/.test(preview)&&/1 items dùng custom URL/.test(preview),"Native importer validation failed");
-  guard(await getMenu(context));
-  const current=await getMenu(context);
-  check(current[1].linkType==="none"&&current[1].key===KEY,"Header changed concurrently");
-  page.once("dialog",d=>d.accept());
-  await Promise.all([page.waitForEvent("load",{timeout:30000}),page.locator("#esc-pse-menu-json-replace").click()]);
-  result.changed=true;
-  await page.screenshot({path:DIR+"/promotion-menu-admin.png"});
+  check(await page.locator("#menu-name").inputValue()==="Marine Aqua Header VI","Selected wrong Menu");
+  check(await page.locator("#esc-menu-code").inputValue()==="Header"&&await page.locator("#esc-menu-lang").inputValue()==="vi","Wrong menu code or locale");
+  const selector=page.locator('select[name="esc-menu-item-link-type[82503]"]');
+  const field=page.locator('input[name="esc-menu-item-custom-url[82503]"]');
+  check(await selector.count()===1&&await field.count()===1,"Native fields for promotion item absent");
+  check(await selector.inputValue()==="none"&&(await field.inputValue())==="","Native item differs from REST preflight");
+  check(checksum(await readMenu(context))===previousSignature,"Header modified concurrently");
+  await page.locator("#edit-82503").click();
+  await selector.selectOption("custom");
+  await field.fill(TARGET);
+  const save=page.locator("#save_menu_footer");
+  check(await save.count()===1,"Native WordPress Save Menu control absent");
+  await Promise.all([page.waitForLoadState("domcontentloaded").catch(()=>{}),save.click()]);
+  report.changed=true;
+  await page.waitForTimeout(1200);
+  await page.screenshot({path:DIR+"/promotion-menu-saved.png"});
  }
- const final=await getMenu(context);
- guard(final);
- result.after=final.map(x=>({key:x.key,label:label(x),href:x.href,slug:x.slug,linkType:x.linkType}));
- check(final[1].key===KEY&&(final[1].href===URL||final[1].slug===URL||String(final[1].href||"").endsWith(URL)), "Promotion menu destination not saved");
- result.status="PASS";
- console.log("PROMO_HEADER_MENU_PASS="+JSON.stringify({changed:result.changed,href:final[1].href,slug:final[1].slug,linkType:final[1].linkType}));
-}catch(e){result.status="FAIL";result.errors.push(String(e.message||e).slice(0,400));console.error("PROMO_HEADER_MENU_FAIL="+result.errors.at(-1));process.exitCode=1}
-finally{await writeFile(DIR+"/result.json",JSON.stringify(result,null,2)+"\n");await browser.close()}
+ const after=await readMenu(context);
+ const updated=flatten(after).find(x=>x.id===ITEM_ID||x.key===ITEM_KEY);
+ report.after={id:updated?.id,key:updated?.key,href:updated?.href,slug:updated?.slug,linkType:updated?.linkType};
+ check(updated?.id===ITEM_ID&&updated.key===ITEM_KEY&&updated.label==="Khuyến mãi","Promotion menu identity changed after save");
+ check(normalize(updated.href||updated.slug)===normalize(TARGET),"Native menu destination not saved");
+ check(checksum(after)===previousSignature,"Unrelated Header menu entries modified");
+ report.status="PASS";
+ console.log("PROMO_HEADER_NATIVE_ITEM_PASS="+JSON.stringify({changed:report.changed,after:report.after,totalItems:flatten(after).length}));
+}catch(e){report.status="FAIL";report.errors.push(String(e.message||e).slice(0,500));console.error("PROMO_HEADER_NATIVE_ITEM_FAIL="+report.errors.at(-1));process.exitCode=1}
+finally{await writeFile(DIR+"/result.json",JSON.stringify(report,null,2)+"\n");await browser.close()}
