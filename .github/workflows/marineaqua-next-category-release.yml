@@ -5,7 +5,7 @@ on:
     paths: ['.github/workflows/marineaqua-next-category-release.yml']
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
   actions: read
 concurrency:
   group: marine-aqua-next-category-production-release
