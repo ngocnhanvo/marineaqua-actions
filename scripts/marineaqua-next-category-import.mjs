@@ -10,7 +10,7 @@ const valid=(ok,msg)=>{if(!ok)throw Error(msg)};
 try {
  const source=JSON.parse(await readFile("next-category-catalog-evidence/manifest.json","utf8"));
  const mapping=JSON.parse(await readFile("next-category-mapping-evidence/mapping.json","utf8"));
- valid(source.categoryRoots?.length===4&&source.categoryRoots.every(x=>["cat-da-va-chat-nen","den-cho-be-ca-bien-san-ho","lo-canxi-va-vat-lieu","lo-khu"].includes(x.slug))&&source.details?.length===source.products?.length&&source.detailErrors?.length===0,"Source manifest unverified");
+ valid(source.categoryRoots?.length===7&&source.categoryRoots.every(x=>["may-bom-va-may-tao-song","muoi-bien","protein-skimmer","test-kits","thiet-bi-do","vat-lieu-loc","phu-kien-be-ca-canh"].includes(x.slug))&&source.details?.length===source.products?.length&&source.detailErrors?.length===0,"Source manifest unverified");
  valid(mapping.status==="PASS"&&mapping.unassigned?.length===0&&mapping.errors?.length===0,"Source taxonomy mapping unverified");
  const oracle=JSON.parse(await readFile("next-category-price-oracle-evidence/oracle.json","utf8"));
  valid(oracle.status==="PASS"&&oracle.conflicts?.length===0&&oracle.missing?.length===0&&
