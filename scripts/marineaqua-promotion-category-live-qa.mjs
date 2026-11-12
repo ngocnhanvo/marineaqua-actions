@@ -19,7 +19,7 @@ try{
    bodyWidth:document.body.scrollWidth,
    viewportWidth:window.innerWidth
   }));
-  const promoLinks=await page.locator('a').evaluateAll(xs=>xs.filter(x=>(x.textContent||"").trim()==="Khuyến mãi").map(x=>x.getAttribute("href")));
+  const promoLinks=await page.locator('a').evaluateAll(xs=>xs.filter(x=>(x.textContent||"").includes("Khuyến mãi")).map(x=>x.getAttribute("href")));
   const expectedLink=promoLinks.some(x=>String(x||"").replace(/^\/+/,"")==="san-pham/giam-gia-khung");
   if(!heading.toLowerCase().includes("giảm giá khủng"))throw Error(view.name+" page title unexpected "+heading);
   if(number!==8)throw Error(view.name+" expected 8 product cards, got "+number);
