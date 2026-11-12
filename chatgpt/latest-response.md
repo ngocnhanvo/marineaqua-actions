@@ -1,62 +1,47 @@
-# Marine Aqua — current catalog migration checkpoint (2026-11-12)
+# Marine Aqua — BRAND catalog migration FINAL checkpoint
 
-## Repository identity and policy
-- Knowledge `ngocnhanvo/knowledge@main`, Astro `ngocnhanvo/marineaqua-astro@master` (latest source 4a3f0dfbe75d), PHP `ngocnhanvo/marineaqua-php@master` (unchanged), Actions `ngocnhanvo/marineaqua-actions@main`.
-- Build policy: `auto-build`; source gateway `bypass`. Only canonical production workflow `marineaqua-production-deploy.yml` via `repository_dispatch` `wp_trigger_build` (site_domain marine-aqua.io.vn). Do not create another deploy pipeline.
-- Prior sticky-bottom removal and homepage 20 product import are DONE. Do not repeat.
+Date: 2026-11-12 (Asia/Ho_Chi_Minh)
+Status: **DONE — WooCommerce import + published Astro listing + production signed deploy + desktop/mobile Playwright QA.**
 
-## User's current request
-Migrate every product from original `https://marine-aqua.vn/danh-muc/thuong-hieu/` and its children to destination WooCommerce, then finish published Astro category product listing. Finish until verified, do not stop after a partial step.
+## Repository contract (do not change)
+- Knowledge: `ngocnhanvo/knowledge@main`, branch main.
+- Astro production: `ngocnhanvo/marineaqua-astro@master`, **deployed commit `4a3f0dfbe75d5632dd1a3f28d728e6eeb7ba31f3`**.
+- WordPress/PHP: `ngocnhanvo/marineaqua-php@master`, PHP source not modified during this migration.
+- Workflow owner: `ngocnhanvo/marineaqua-actions@main`, use one canonical production pipeline `.github/workflows/marineaqua-production-deploy.yml` and repository_dispatch `wp_trigger_build` with site_domain `marine-aqua.io.vn`.
+- Code mode auto-build; source gate bypass.
+- Prior footer, homepage ESC tables / 20 products, and sticky-bottom removal were already complete. Do not redo.
 
-## Independently verified source
-- Original listing: 21 pages, 246 unique source products (run #43159747154, artifact 13916664620).
-- Product metadata: 246/246 pages, 0 source errors; 20 initially present, 226 initially missing (run #43160118825, artifact 13917609900).
-- Brand taxonomy mapping: 246/246 source products assigned correctly; 232 from 14 child archives, 14 verified parent-only (run #43163059058, artifact 13918288250).
-- Original gallery: 64 product pages with extra thumbnail elements, gallery capture PASS 64/64 (run #43168972457 artifact 13920814186); verified 78 distinct additional full-size assets on 39 products after deduplicating repeat thumbnails.
-- Identical filename collision audit: all 5 same-name/different-path source main media groups are SHA256-identical, safe reuse only after hash comparison (run #43170501664 SUCCESS).
-- Original source has 197 products with no SEO meta description, 5 sale-price cases and one price marked Liên hệ.
-- WooCommerce SEO probe run #43169954769: checked 133 products at scan time, 113 matched Yoast title/description; 20 older products need source Yoast title correction, 0 source-present meta description mismatch.
+## User request — COMPLETED
+Migrate every product under original `https://marine-aqua.vn/danh-muc/thuong-hieu/` to destination WooCommerce and finish corresponding category product listings on `https://marine-aqua.io.vn/`.
 
-## Product import — active runs
-- Initial 3 batches created 11 + 7 + 12 = 30 new products, all readback PASS for created entries; the first two runs were overall partial due media URL and transient GET failures, third #43164685512 SUCCESS.
-- Main full-batch importer run **#43165656463** has been in progress since 2026-11-12 06:05Z. Do not run another importer concurrently.
-- Recovery importer run **#43170661626** is currently PENDING under the same concurrency group. It will run after main import and reread all WooCommerce products, importing only missing slugs. Added safe identical-filename SHA verification in `scripts/marineaqua-import-brand-batch.mjs`, commit f13a8d8. Watch both runs and artifact; do not assume final count until readback.
-- Concurrency group `marine-aqua-woocommerce-brand-import`, `cancel-in-progress:false`. GitHub replaces older *pending* runs within a group when a new one arrives. Earlier gallery run #43169467713 and earlier SEO run #43170262854 were cancelled **while pending, with zero writes** due replacement. They must not be mistaken as successful.
+### Source and import
+- Original category listing inventory: 21 pages, **246 unique product URLs**; run #43159747154.
+- Detail inventory: 246/246 complete, run #43160118825, artifact 13917609900.
+- Source taxonomy: 246/246 mapped, 14 child archives plus 14 parent-only source products, mapping run #43163059058, artifact 13918288250.
+- 246/246 original products are WooCommerce `simple`; run #43174026060.
+- Initial 20 genuine homepage products reused; imported remaining **226 products**, across initial bounded batches (11 + 7 + 12), main importer (181), recovery (8), and safe-media final recovery (7). Last import run #43176146719 PASS.
+- Final original product parity **PASS 246/246**, zero missing, zero wrong prices/categories/stock/main-media. Gallery parity **PASS 64/64**, all correct original image identities and order, source-alias SHA256 validated. Last release parity run #43182669546; independent gallery diagnostic run #43181556957 PASS.
+- 6 legacy source-vs-target prices corrected with rollback snapshots. 20 older Yoast titles fixed. SEO/price repair run #43180166742 PASS checked 246, updated 20, errors=0.
+- 197 source products have no original meta description, intentionally not fabricated. One SEO text review is only trailing NBSP and three descriptions are non-fatal whitespace/text-normalization reviews. Seven original main image filenames required deterministic `marine-aqua-original-<sha>` naming because WordPress disallowed legacy Unicode or size/placeholder basename; uploaded original bytes were SHA verified. A double-dot original gallery image also uses verified hash filename.
 
-## Sequential controlled workflow chain (new)
-1. On successful **recovery importer #43170661626**, `.github/workflows/marineaqua-brand-gallery-import.yml` is triggered by workflow_run and pinned to its ID. It restores verified unique full-resolution galleries via native WordPress Media Library with SHA reuse and readback. It uses the same writer concurrency group. Source gallery artifact 13920814186.
-2. On successful gallery workflow completion, `.github/workflows/marineaqua-brand-seo-repair.yml` runs automatically (workflow_run), fixing source-verified Yoast title/description only, preserving source-missing fields and snapshotting rollback before PUT. Same writer group.
-3. On successful SEO repair, `.github/workflows/marineaqua-brand-release-after-gallery.yml` runs parity on 246 products, full gallery identity/order and then dispatches the existing production Astro workflow using GitHub REST. It waits for unique run ID, build completion, revision marker, then runs Playwright postdeploy QA. This is an orchestrator, not another deploy implementation.
-4. Release source syntax CI #43170868878 PASS (all involved scripts `node --check`).
+### Astro source and release
+- Astro master commit `4a3f0dfbe75d5632dd1a3f28d728e6eeb7ba31f3`: modern ocean-blue listing, red prices, correctly scoped category links, product cards, responsive grid, legacy `/thuong-hieu/` 301 redirect.
+- Source CI #43167563741 PASS, no-deploy build QA #43166554927 PASS.
+- Canonical signed production deploy: **#43182976954 COMPLETED SUCCESS**, Astro master SHA verified, build, FTPS upload and signed unzip activation all PASS.
+- Public staging marker `/marineaqua-staging-build.json` returns 404 (not exposed through current Apache routing), causing old release orchestrator #43182669546 to report readiness FAIL despite successfully deployed source. A code-only fix to `scripts/marineaqua-brand-release-trigger.mjs` at commit `26bb5a3` now allows **signed build + exact Astro SHA + signed activate logs + live new category routes** as a bounded, secure readiness proof when the optional public marker is unavailable. Do not re-deploy merely to test this helper.
+- Live postdeploy QA #43184187438 **PASS 8 routes, 0 failures**, 301 aliases, mobile no horizontal overflow, all tested image loads, product details, red prices, last pages.
+- **FINAL independent acceptance run #43184886945 SUCCESS**: signed deployed SHA and signed activation log PASS, complete source taxonomy manifest loaded; Playwright QA **PASS 23 route/check records, 0 failures; 15/15 root and child category counts verified**.
+- Source validation of the final readiness helper #43185251537 SUCCESS.
+- Live product list `https://marine-aqua.io.vn/san-pham/thuong-hieu/`: 246 total products, 16 pages (last page 6).
+- Live `https://marine-aqua.io.vn/san-pham/korallen-zucht/`: 88 total, 6 pages (last page 8).
+- New source files are already deployed; no further build/deploy is needed for this user request.
 
-## Astro source (not deployed yet)
-- Astro master latest 4a3f0dfbe75d includes real category URLs `/san-pham/thuong-hieu`, `/san-pham/korallen-zucht`, updated modern listing grid/red prices, and 301 redirects for legacy `/thuong-hieu` routes. Source CI #43167563741 SUCCESS; production-equivalent no-deploy build #43166554927 SUCCESS. **Production deploy has not been triggered for these changes**.
-- Old live route audit #43165890354: /san-pham/thuong-hieu 200, /san-pham/korallen-zucht 200 but zero cards prior to migration, /thuong-hieu roots 404. After deploy verify 301 and actual product counts, pagination, mobile, image and detail links.
+## Evidence / definitive links
+- Production workflow: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43182976954
+- Live QA: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43184187438
+- Final signed deployment + all 15 category counts + mobile QA: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43184886945
+- Final data parity run: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43182669546 (product and gallery checks PASS, overall orchestration marked failed solely because old optional public marker probe returned 404; final independent acceptance #43184886945 supersedes readiness check).
+- Actions source validation: https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43185251537
 
-## Next actions
-- Monitor full importer #43165656463, then recovery importer #43170661626. If recovery FAIL, inspect artifact/errors, fix importer and pin gallery gate to final new recovery run; preserve already created products.
-- Confirm gallery and SEO chain fully success, resolve any failures. If a workflow does not fire, investigate workflow_run chaining and trigger via approved repo Actions route.
-- Check release gate and exact production run. Only after PASS validate /san-pham/thuong-hieu count 246, child listing, source parity, gallery, title metadata and screenshots.
-- Never claim DONE based on source CI or partial imports; save all run links and commits.
-
-Chế độ code: auto-build
-Cổng ghi source: bypass
-Trạng thái: PARTIAL — chưa hoàn tất
-
-## 2026-11-12 follow-up verification
-- Main importer #43165656463 still IN_PROGRESS at last check; recovery #43170661626 still PENDING. No duplicate import triggered. Current last *completed* verified state is still 50 matched / 196 missing.
-- Existing source gallery full-resolution manifest 13920814186 PASS (64 pages, 78 additional references / 47 unique assets). Separate original asset size audit #43172013130 PASS: 78 references, 47 unique, max bytes 1,220,728, no oversized files.
-- Existing source validation #43172535206 PASS; Astro no-deploy build #43166554927 PASS, source CI #43167563741 PASS. Production has NOT deployed this release.
-- Changed gallery/SEO writer concurrency from workflow-level to job-level in Actions commits 19396904 and 7e046fcc, protecting queued recovery #43170661626 from skipped workflow_run lock contention. Do not start new parallel writer.
-- Fixed postdeploy QA lazy image wait in Actions commit bef605804cf4; images are only verified after load events, to avoid premature false failures.
-- Continue watching main importer -> recovery -> gallery -> SEO -> parity -> canonical deploy -> postdeploy QA. Read results and artifacts before declaring success.
-
-## Verified full import & live parity (2026-11-12 after 07:38 UTC)
-- 246/246 simple products confirmed in original product-type audit run #43174026060 SUCCESS.
-- Main import run #43165656463 created 181/196, 15 failures; recovery #43170661626 created 8/15, 7 image-filename failures; final deterministic SHA256-safe filename recovery #43176146719 created 7/7 PASS. Target inventory now 246/246.
-- Gallery restore run #43176574762 IN_PROGRESS. This is the ONLY intended gallery writer; old redundant workflow `marineaqua-import-brand-galleries.yml` was disabled from automatic workflow_run to avoid double writer.
-- Read-only parity #43176574422: matched=246 missing=0 categoryErrors=0 stockErrors=0; reported 6 legacy price mismatches, 21 missing SEO titles, 3 nonfatal description reviews. The 246 `wrongMedia` results were a *bad assertion*: actual WordPress owns relative paths `/wp-content/uploads/...` as required. Fixed in `scripts/marineaqua-brand-post-import-parity.mjs` commit 3d33b6a8.
-- Fixed 6 source-backed legacy price updates to run with rollback snapshots and Yoast SEO metadata in the SAME writer workflow `marineaqua-brand-seo-repair.mjs`, commit 088f257e. No price changes executed yet (pending gallery success).
-- Source validation after changes run #43176956239 SUCCESS.
-- Final workflow chain: gallery #43176574762 SUCCESS -> Yoast/price repair -> release parity & gallery hash/order -> canonical repository_dispatch production Astro -> postdeploy Playwright. Do not claim production deployed before run evidence.
-
+## Follow-up policy
+This task is DONE. Do not rerun import, gallery, SEO repair or production deploy without a **new** user request. Use this checkpoint, commit and evidence when user opens a fresh chat. If a separate task asks for future operational diagnostics, note Apache's optional public staging marker 404 but do not confuse this with deployed version/QA (signed provenance and 15/15 live category acceptance independently PASS).
