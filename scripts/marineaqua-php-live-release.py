@@ -23,6 +23,7 @@ FILES = (
     "marineaqua-unzip-v2.ready",
     "wp-content/mu-plugins/esc-github-trigger-config.php",
     "wp-content/mu-plugins/esc-seo-files.php",
+    "wp-content/mu-plugins/marineaqua-product-sale-rest.php",
     "wp-content/plugins/github-trigger/vcs-build-trigger.php",
     "wp-content/plugins/github-trigger/products/endpoint.php",
     "wp-content/plugins/github-trigger/vcs-build-trigger.js",
