@@ -1233,13 +1233,31 @@ try {
           dotSizes:dotMarks.map(el=>Math.round(el.getBoundingClientRect().width)),
           borderLeft:getComputedStyle(el).borderLeftWidth};
       }).catch(error=>({iconCount:0,markCount:0,noOldIcons:false,dotSizes:[],borderLeft:"unknown",error:String(error.name)}));
+      const alignment = await page.locator("#mobile-menu-container .marine-mobile-category-children:not([hidden])").first().evaluate(el => {
+        const all = el.querySelector(":scope > .marine-mobile-category-all");
+        const link = el.querySelector(".marine-mobile-category-nested > .marine-mobile-category-item > .marine-mobile-category-link");
+        const dot = link?.querySelector(".marine-mobile-category-dot-mark");
+        const label = link?.querySelector(":scope > span:nth-child(2)");
+        if (!all || !dot || !label) return {pass:false,reason:"missing category row"};
+        const allStyle = getComputedStyle(all);
+        const bulletStyle = getComputedStyle(all, "::before");
+        const dotLeft = dot.getBoundingClientRect().left;
+        const allDotLeft = all.getBoundingClientRect().left +
+          parseFloat(allStyle.paddingLeft) + parseFloat(bulletStyle.marginLeft);
+        const allLabelLeft = allDotLeft + parseFloat(bulletStyle.width) + parseFloat(allStyle.gap);
+        const labelLeft = label.getBoundingClientRect().left;
+        return {allText:(all.textContent||"").trim(),dotDelta:Math.round(dotLeft-allDotLeft),
+          labelDelta:Math.round(labelLeft-allLabelLeft),
+          pass:(all.textContent||"").trim()==="Xem tất cả" &&
+            Math.abs(dotLeft-allDotLeft)<=2 && Math.abs(labelLeft-allLabelLeft)<=2};
+      }).catch(error=>({pass:false,error:String(error.message||error).slice(0,150)}));
       const pass = saleResult.starCount===3 && saleResult.sparkleAnimated &&
         saleResult.boltCount===0 && saleResult.background==="rgba(0, 0, 0, 0)" &&
         saleResult.backgroundImage==="none" &&
         categoryResult.iconCount>0 && categoryResult.iconCount===categoryResult.markCount &&
         categoryResult.noOldIcons && categoryResult.dotSizes.every(s=>s===6) &&
-        categoryResult.borderLeft==="0px";
-      const result={width,sale:saleResult,categories:categoryResult,pass};
+        categoryResult.borderLeft==="0px" && alignment.pass;
+      const result={width,sale:saleResult,categories:categoryResult,alignment,pass};
       summary.mobileMenuVisual.push(result);
       await page.screenshot({path:dir+"/mobile-menu-stars-dots-"+width+".png",fullPage:false});
     }catch(error){
