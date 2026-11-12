@@ -36,9 +36,9 @@ try{
     return {
      h1:[...document.querySelectorAll("main h1")].map(el=>el.textContent.trim()),
      cards:cards.length,reportedTotal:count?Number(count[1]):-1,
-     prices:cards.map(card=>({color:card.querySelector("p.text-base.font-extrabold")?
-       getComputedStyle(card.querySelector("p.text-base.font-extrabold")).color:"",
-       text:card.querySelector("p.text-base.font-extrabold")?.textContent.trim()||""})),
+     prices:cards.map(card=>({color:card.querySelector("p.text-center.text-base.font-bold")?
+       getComputedStyle(card.querySelector("p.text-center.text-base.font-bold")).color:"",
+       text:card.querySelector("p.text-center.text-base.font-bold")?.textContent.trim()||""})),
      media:cards.slice(0,4).map(card=>{const img=card.querySelector("img");
       return {ok:Boolean(img?.complete&&img.naturalWidth>0&&!String(img.currentSrc||img.src).includes("/placeholders/product.webp")),
       src:img?.currentSrc||img?.src||""}}),
