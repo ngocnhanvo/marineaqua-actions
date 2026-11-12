@@ -50,3 +50,13 @@ Trạng thái: PARTIAL — chưa hoàn tất
 - Changed gallery/SEO writer concurrency from workflow-level to job-level in Actions commits 19396904 and 7e046fcc, protecting queued recovery #43170661626 from skipped workflow_run lock contention. Do not start new parallel writer.
 - Fixed postdeploy QA lazy image wait in Actions commit bef605804cf4; images are only verified after load events, to avoid premature false failures.
 - Continue watching main importer -> recovery -> gallery -> SEO -> parity -> canonical deploy -> postdeploy QA. Read results and artifacts before declaring success.
+
+## Verified full import & live parity (2026-11-12 after 07:38 UTC)
+- 246/246 simple products confirmed in original product-type audit run #43174026060 SUCCESS.
+- Main import run #43165656463 created 181/196, 15 failures; recovery #43170661626 created 8/15, 7 image-filename failures; final deterministic SHA256-safe filename recovery #43176146719 created 7/7 PASS. Target inventory now 246/246.
+- Gallery restore run #43176574762 IN_PROGRESS. This is the ONLY intended gallery writer; old redundant workflow `marineaqua-import-brand-galleries.yml` was disabled from automatic workflow_run to avoid double writer.
+- Read-only parity #43176574422: matched=246 missing=0 categoryErrors=0 stockErrors=0; reported 6 legacy price mismatches, 21 missing SEO titles, 3 nonfatal description reviews. The 246 `wrongMedia` results were a *bad assertion*: actual WordPress owns relative paths `/wp-content/uploads/...` as required. Fixed in `scripts/marineaqua-brand-post-import-parity.mjs` commit 3d33b6a8.
+- Fixed 6 source-backed legacy price updates to run with rollback snapshots and Yoast SEO metadata in the SAME writer workflow `marineaqua-brand-seo-repair.mjs`, commit 088f257e. No price changes executed yet (pending gallery success).
+- Source validation after changes run #43176956239 SUCCESS.
+- Final workflow chain: gallery #43176574762 SUCCESS -> Yoast/price repair -> release parity & gallery hash/order -> canonical repository_dispatch production Astro -> postdeploy Playwright. Do not claim production deployed before run evidence.
+
