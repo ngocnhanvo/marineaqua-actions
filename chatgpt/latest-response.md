@@ -42,3 +42,11 @@ Migrate every product from original `https://marine-aqua.vn/danh-muc/thuong-hieu
 Chế độ code: auto-build
 Cổng ghi source: bypass
 Trạng thái: PARTIAL — chưa hoàn tất
+
+## 2026-11-12 follow-up verification
+- Main importer #43165656463 still IN_PROGRESS at last check; recovery #43170661626 still PENDING. No duplicate import triggered. Current last *completed* verified state is still 50 matched / 196 missing.
+- Existing source gallery full-resolution manifest 13920814186 PASS (64 pages, 78 additional references / 47 unique assets). Separate original asset size audit #43172013130 PASS: 78 references, 47 unique, max bytes 1,220,728, no oversized files.
+- Existing source validation #43172535206 PASS; Astro no-deploy build #43166554927 PASS, source CI #43167563741 PASS. Production has NOT deployed this release.
+- Changed gallery/SEO writer concurrency from workflow-level to job-level in Actions commits 19396904 and 7e046fcc, protecting queued recovery #43170661626 from skipped workflow_run lock contention. Do not start new parallel writer.
+- Fixed postdeploy QA lazy image wait in Actions commit bef605804cf4; images are only verified after load events, to avoid premature false failures.
+- Continue watching main importer -> recovery -> gallery -> SEO -> parity -> canonical deploy -> postdeploy QA. Read results and artifacts before declaring success.
