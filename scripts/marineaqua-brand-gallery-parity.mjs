@@ -5,7 +5,7 @@ const ROOT="brand-gallery-parity-evidence";
 const WP="https://admin.marine-aqua.io.vn";
 await mkdir(ROOT,{recursive:true});
 const source=JSON.parse(await readFile("brand-gallery-source-evidence/manifest.json","utf8"));
-const result={checked:0,passed:0,failures:[],status:"STARTED"};
+const result={checked:0,passed:0,failures:[],aliasDiagnostics:[],status:"STARTED"};
 const browser=await chromium.launch({headless:true});
 try{
  if(source.products?.length!==64||source.errors?.length)
@@ -68,11 +68,15 @@ try{
       context.request.get(original,{timeout:45000,failOnStatusCode:false}),
       context.request.get(new URL(current,WP).href,{timeout:45000,failOnStatusCode:false}),
      ]);
-     if(!src.ok()||!dst.ok()){match=false;break}
+     if(!src.ok()||!dst.ok()){
+      result.aliasDiagnostics.push({slug,index:i,sourceStatus:src.status(),targetStatus:dst.status()});
+      match=false;break;
+     }
      const a=createHash("sha256").update(await src.body()).digest("hex");
      const b=createHash("sha256").update(await dst.body()).digest("hex");
+     result.aliasDiagnostics.push({slug,index:i,sourceSha:a,targetSha:b,alias:actual[i],sourceName:expected[i]});
      if(a!==b||!actual[i].includes(a.slice(0,20))){match=false;break}
-    }catch{match=false;break}
+    }catch(error){result.aliasDiagnostics.push({slug,index:i,error:String(error).slice(0,180)});match=false;break}
    }
   }
   if(!match)result.failures.push({slug,expected,actual});
