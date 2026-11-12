@@ -66,3 +66,15 @@ Original content source: https://marine-aqua.vn
 - **Follow-up outside this scoped migration:** the separately reported Lighthouse CLS `0.172` was explicitly deferred by the owner until more of the website is complete; no claim of CLS fix here. Other unrelated site-wide remaining work must be evaluated from current checkpoints independently, not assumed completed by the five-brand delivery.
 
 **Status for this five-brand homepage task:** MIGRATION_PASS, ESC_TABLES_5_OF_5_PASS, SOURCE_QA_PASS, BUILD_PASS, PRODUCTION_DEPLOYED, LIVE_VISUAL_QA_PASS. **DONE**.
+
+
+## 2026-11-12 — Footer xanh biển hoàn tất và kiểm thử production
+
+- **Frontend**: `ngocnhanvo/marineaqua-astro` `master` commit `4e810079c85db6c2aebbaca47475d0e8ecae77d7`. Footer tại `src/astro/components/Layout/Footer.astro` dùng logo + công ty + địa chỉ + số điện thoại + email + Facebook + Google Maps từ WordPress Info theo locale; nền xanh ocean, đường sóng trắng ở viền trên, layout responsive ba cột (thu gọn mobile). Footer bỏ form liên hệ tư vấn, bỏ nội dung demo/nguồn website cũ, thay copyright `© 2026 Marine Aqua. Bảo lưu mọi quyền.`
+- **WordPress thật**: `/lien-he` (Page ID 82580, `key=contact`, `action=HomePage`) và `/tin-kien-thuc` (Page ID 82582, `key=knowledge`, `action=HomePage`) được xuất bản có readback và cleanup kiểm tra trong Actions [#43123919314](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43123919314) SUCCESS. Trang tin kiến thức hiện là trang chờ nội dung, không giả bài viết. Bốn liên kết footer là `/lien-he`, `/tin-kien-thuc`, WordPress ACF `googlemaphanoi` và WordPress ACF `facebook`; địa chỉ external thực được đối chiếu với WP. Không hard-code social/map URL vào Astro.
+- **Source tests**: [#43124177120](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43124177120) SUCCESS; **production-equivalent no-deploy build**: [#43124177071](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43124177071) SUCCESS với hai Page thực và bốn link.
+- **Production**: đúng pipeline hiện hữu `marineaqua-production-deploy.yml`, run [#43121040405](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43121040405), attempt **2**, completed SUCCESS; source Astro SHA `4e810079c85db6c2aebbaca47475d0e8ecae77d7`, FTPS_UPLOAD=PASS, SIGNED_UNZIP_SUCCESS.
+- **Post-deploy Playwright**: [#43125305109](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43125305109) SUCCESS; `FOOTER_LIVE_QA=PASS views=4 links=4 issues=0` at mobile **390**, tablet **768**, desktop **1440**, wide **1917**. No horizontal overflow, no JS errors; logo loads after entering viewport, external targets have proper rel/target, local Page URLs HTTP 200, copyright present, no footer form or demo disclaimers. Artifact `marine-aqua-live-home-brands-visual-qa` contains full-page brand screenshots and four footer screenshots.
+- CLS performance audit was deferred by owner and is **outside** this footer delivery.
+
+**Footer task status:** SOURCE_PASS, CMS_PAGES_PASS, BUILD_PASS, DEPLOY_PASS, LIVE_QA_PASS — DONE.
