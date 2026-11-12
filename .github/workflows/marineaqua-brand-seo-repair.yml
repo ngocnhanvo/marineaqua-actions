@@ -1,10 +1,8 @@
 name: Marine Aqua repair verified Yoast SEO metadata
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'scripts/marineaqua-brand-seo-repair.mjs'
-      - '.github/workflows/marineaqua-brand-seo-repair.yml'
+  workflow_run:
+    workflows: ["Marine Aqua restore full verified galleries"]
+    types: [completed]
   workflow_dispatch:
 permissions:
   contents: read
@@ -14,6 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   seo-repair:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     container:
@@ -29,8 +28,9 @@ jobs:
       - name: Require completed successful original gallery import
         env:
           GH_TOKEN: ${{ github.token }}
+          GALLERY_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
-          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/runs/43169467713" -o /tmp/gallery-run.json
+          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/runs/$GALLERY_RUN_ID" -o /tmp/gallery-run.json
           python3 - <<'PY'
           import json
           r=json.load(open('/tmp/gallery-run.json'))
