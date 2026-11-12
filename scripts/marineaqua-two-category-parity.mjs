@@ -4,6 +4,7 @@ const SOURCE="https://marine-aqua.vn",WP="https://admin.marine-aqua.io.vn",DIR="
 await mkdir(DIR,{recursive:true});
 const source=JSON.parse(await readFile("two-category-catalog-evidence/manifest.json","utf8"));
 const mapping=JSON.parse(await readFile("two-category-mapping-evidence/mapping.json","utf8"));
+const oracle=JSON.parse(await readFile("two-category-price-oracle-evidence/oracle.json","utf8"));
 const report={sourceCount:source.products?.length||0,checked:0,matched:0,
  missing:[],duplicates:[],wrongCategory:[],wrongPrice:[],wrongStock:[],wrongMedia:[],
  seoReview:[],catalogCounts:[],errors:[],status:"STARTED"};
@@ -11,6 +12,7 @@ const browser=await chromium.launch({headless:true});
 const valid=(v,m)=>{if(!v)throw Error(m)};
 try{
  valid(mapping.status==="PASS"&&source.details?.length===source.products?.length,"Unverified source");
+ valid(oracle.status==="PASS"&&Object.keys(oracle.prices||{}).length===source.products.length,"Incomplete source archive price oracle");
  const context=await browser.newContext();
  const page=await context.newPage();
  await page.goto(WP+"/wp-login.php",{waitUntil:"domcontentloaded",timeout:45000});
@@ -52,13 +54,15 @@ try{
   const expected=mapping.assignments[item.url]||[];
   if(expected.some(t=>!target.categories?.some(c=>Number(c.id)===Number(t.id))))
    report.wrongCategory.push({slug,expected:expected.map(t=>t.slug),actual:target.categories?.map(c=>c.slug)});
-  const prices=money(item.priceText);
+  const archive=oracle.prices[item.url];
+  valid(Boolean(archive?.priceText),"Missing archive price for "+slug);
+  const prices=money(archive.priceText);
   const regular=prices.length===2?String(prices[0]):prices.length===1?String(prices[0]):"";
   const sale=prices.length===2?String(prices[1]):"";
   if(String(target.regular_price||"")!==regular||String(target.sale_price||"")!==sale)
-   report.wrongPrice.push({slug,regular:target.regular_price,sale:target.sale_price,source:item.priceText});
-  const stock=/hết hàng/i.test(item.stockText)?"outofstock":"instock";
-  if(target.stock_status!==stock)report.wrongStock.push({slug,expected:stock,actual:target.stock_status});
+   report.wrongPrice.push({slug,regular:target.regular_price,sale:target.sale_price,source:archive.priceText});
+  const stock=archive.stock;
+  if(stock&&target.stock_status!==stock)report.wrongStock.push({slug,expected:stock,actual:target.stock_status});
   const media=target.images?.[0]?.src||"";
   if(!media||!(/^\/wp-content\/uploads\//.test(media)||/^https:\/\/admin\.marine-aqua\.io\.vn\/wp-content\/uploads\//.test(media)))
    report.wrongMedia.push({slug,media});
