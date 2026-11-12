@@ -46,7 +46,8 @@ try{
  for(const sourceProduct of source.products){
   const slug=new URL(sourceProduct.url).pathname.split("/").filter(Boolean).at(-1);
   const target=bySlug.get(slug);
-  const expected=[...new Map(sourceProduct.fullImages.map(i=>[i.url,i])).values()].map(i=>filename(i.url));
+  const sourceImages=[...new Map(sourceProduct.fullImages.map(i=>[i.url,i])).values()];
+  const expected=sourceImages.map(i=>filename(i.url));
   const actual=(target?.images||[]).map(i=>filename(i.src||""));
   result.checked++;
   let match=expected.length===actual.length;
@@ -59,7 +60,7 @@ try{
        !/^marine-aqua-original-[a-f0-9]{20}\\.(png|jpe?g|webp)$/i.test(actual[i])){
      match=false;break;
     }
-    const original=sourceProduct.fullImages[i].url;
+    const original=sourceImages[i].url;
     const current=target.images[i]?.src;
     if(!current){match=false;break}
     try{
