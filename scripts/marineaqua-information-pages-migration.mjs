@@ -107,14 +107,14 @@ try {
      const updated=await api('POST','/wp-json/wp/v2/pages/'+old.id,{
        content:newContent,
        status:'publish',
-       acf: { ...(old.acf||{}),action:'InformationPage' },
+       acf: { ...(old.acf||{}),action:'HomePage' },
      });
      assert(updated.id===old.id && updated.status==='publish','Existing Page readback failed');
      row.status='UPDATED';row.id=old.id;
    } else {
      const created=await api('POST','/wp-json/wp/v2/pages',{
        title:entry.title,slug:entry.slug,content:newContent,status:'publish',
-       acf:{key:'information-'+entry.slug,action:'InformationPage',product_lang:'vi'},
+       acf:{key:'information-'+entry.slug,action:'HomePage',product_lang:'vi'},
      });
      assert(created.id && created.slug===entry.slug && created.status==='publish','Created Page readback failed');
      row.status='CREATED';row.id=created.id;
