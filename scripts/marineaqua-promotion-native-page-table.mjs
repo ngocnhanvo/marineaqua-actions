@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 import { mkdir,writeFile } from "node:fs/promises";
 
 const WP="https://admin.marine-aqua.io.vn";
-const TABLE="khuyen_mai_01",PAGE_SLUG="khuyen-mai",PAGE_KEY="promotions",DIR="promotion-page-table-evidence";
+const TABLE="145",PAGE_SLUG="khuyen-mai",PAGE_KEY="promotions",DIR="promotion-page-table-evidence";
 const SLUGS=[
  "muoi-bien-tropic-marin-pro-reef-25-kg-xo-nhua",
  "korallen-zucht-zeofood-plus-500ml-thuc-an-cho-san-ho",
@@ -61,33 +61,13 @@ try{
   return r.json();
  }
  const initial=await readTable(TABLE);
- if(initial){
-  valid(initial.meta?.api==="Product","Existing promotion table source mismatch");
+ if(initial?.meta?.api==="Product"){
   valid(initial.fields?.length===COLS.length&&COLS.every((c,j)=>initial.fields[j]?.key===c),"Existing table field conflict");
   valid(initial.items?.length===8,"Existing table has unexpected item count");
   valid(initial.items.every((item,i)=>String(item.key)===String(products[i].id)),"Existing table product order conflict");
   result.steps.push("existing_table_verified");
  }else{
-  await page.goto(WP+"/wp-admin/admin.php?page=tablepress_add",{waitUntil:"domcontentloaded",timeout:45000});
-  await page.locator('[name="table[name]"]').fill("Khuyến mãi");
-  await page.locator('[name="table[rows]"]').fill("9");
-  await page.locator('[name="table[columns]"]').fill("5");
-  await page.getByRole("button",{name:"Add Table"}).click();
-  await page.waitForURL(/tablepress.*action=edit|table_id=/,{timeout:35000});
-  const generated=new URL(page.url()).searchParams.get("table_id");
-  valid(generated&&/^[a-zA-Z0-9_-]+$/.test(generated),"New table ID missing");
-  result.tableGeneratedId=generated;
-  console.log("PROMOTION_NATIVE_TABLE_CREATED="+generated);
-  await page.locator("#table-id").waitFor({state:"visible",timeout:30000});
-  const field=page.locator("#table-id");
-  result.tableIdControl=await field.evaluate(e=>({disabled:e.disabled,readOnly:e.readOnly,outerHTML:e.outerHTML.slice(0,350)}));
-  valid(!result.tableIdControl.readOnly&&!result.tableIdControl.disabled,"Native TablePress ID cannot be edited");
-  await field.fill(TABLE);
-  await page.getByRole("button",{name:/Save Changes/i}).first().click();
-  await page.waitForTimeout(1800);
-  let renamed=await readTable(TABLE);
-  valid(renamed,"Native TablePress ID rename not persisted from "+generated);
-  valid(renamed?.meta,"New table missing metadata");
+  valid(initial?.id===TABLE && initial?.title==="Khuyến mãi","Expected previously created native table 145; refusing overwrite");
   await page.goto(WP+"/wp-admin/admin.php?page=tablepress&action=edit&table_id="+TABLE,{waitUntil:"domcontentloaded",timeout:45000});
   await page.waitForFunction(()=>Boolean(window.tp?.editor?.setValueFromCoords&&window.tp?.table?.data),null,{timeout:30000});
   const initialGrid=await page.evaluate(()=>window.tp.table.data);
@@ -132,7 +112,7 @@ try{
  const codeBefore=String(before.content?.raw||"");
  const desired="[table id="+TABLE+" /]";
  const already=codeBefore.includes(desired);
- valid(!already||[...codeBefore.matchAll(/\[table id=khuyen_mai_01\s*\/\]/g)].length===1,"Duplicate shortcode in existing page");
+ valid(!already||[...codeBefore.matchAll(/\[table id=145\s*\/\]/g)].length===1,"Duplicate shortcode in existing page");
  if(!already){
   valid(!codeBefore.trim(),"Existing authored Page content conflict: refuse overwrite");
   await page.goto(WP+"/wp-admin/post.php?post="+result.pageId+"&action=edit",{waitUntil:"domcontentloaded",timeout:45000});
@@ -177,7 +157,7 @@ try{
  }
  const verify=await api("GET","/wp-json/wp/v2/pages/"+result.pageId+"?context=edit");
  valid(String(verify.content?.raw||"").includes(desired),"Page native shortcode not persisted");
- const count=[...String(verify.content?.raw||"").matchAll(/\[table id=khuyen_mai_01\s*\/\]/g)].length;
+ const count=[...String(verify.content?.raw||"").matchAll(/\[table id=145\s*\/\]/g)].length;
  valid(count===1,"Page shortcode count not exactly one");
  if(verify.status!=="publish"){
   await api("POST","/wp-json/wp/v2/pages/"+result.pageId,{status:"publish"});
