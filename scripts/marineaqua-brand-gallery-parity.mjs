@@ -56,8 +56,8 @@ try{
     if(expected[i]===actual[i])continue;
     // WordPress normalizes the legacy double-dot filename. The source hash
     // is the only permitted alias, and the uploaded bytes must match it.
-    if(!/\\.\\.(?=[^.]+$)/.test(expected[i]) ||
-       !/^marine-aqua-original-[a-f0-9]{20}\\.(png|jpe?g|webp)$/i.test(actual[i])){
+    if(!/\.\.(?=[^.]+$)/.test(expected[i]) ||
+       !/^marine-aqua-original-[a-f0-9]{20}\.(png|jpe?g|webp)$/i.test(actual[i])){
      match=false;break;
     }
     const original=sourceImages[i].url;
