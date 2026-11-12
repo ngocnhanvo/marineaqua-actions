@@ -33,7 +33,8 @@ try{
  }
  await first.close();
  for(const [name,width,height] of [["mobile",390,844],["tablet",768,1000],["desktop",1440,900],["wide",1917,1080]]){
-  const page=await context.newPage({viewport:{width,height}});
+  const page=await context.newPage();
+  await page.setViewportSize({width,height});
   const errs=[];page.on("pageerror",e=>errs.push(e.message));
   const response=await page.goto(FRONT+"/",{waitUntil:"domcontentloaded",timeout:45000});
   const footer=page.locator("#footer-contact");
