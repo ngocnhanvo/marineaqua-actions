@@ -1,11 +1,15 @@
 name: Marine Aqua import two verified product category trees
 on:
+  workflow_run:
+    workflows: ["Marine Aqua two category verified taxonomy mapping"]
+    types: [completed]
   workflow_dispatch:
 permissions:
   contents: read
   actions: read
 jobs:
   import:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     concurrency:
       group: marine-aqua-woocommerce-brand-import
       cancel-in-progress: false
