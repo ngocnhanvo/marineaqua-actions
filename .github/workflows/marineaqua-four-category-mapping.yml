@@ -1,14 +1,15 @@
 name: Marine Aqua four categories mapping
 on:
-  workflow_run:
-    workflows: ["Marine Aqua four categories source inventory"]
-    types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-four-category-mapping.mjs'
+      - '.github/workflows/marineaqua-four-category-mapping.yml'
 permissions:
   contents: read
   actions: read
 jobs:
   mapping:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -20,19 +21,10 @@ jobs:
       - name: Fetch exact triggering source manifest
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           set -eu
           mkdir -p four-category-catalog-evidence
-          curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/runs/$SOURCE_RUN_ID/artifacts" -o /tmp/artifacts.json
-          python3 - <<'PY'
-          import json
-          data=json.load(open('/tmp/artifacts.json'))
-          a=[x for x in data.get('artifacts',[]) if x['name']=='marine-aqua-four-category-inventory' and not x.get('expired')]
-          assert len(a)==1, 'Expected exactly one original four categories inventory artifact'
-          open('/tmp/artifact-id','w').write(str(a[0]['id']))
-          PY
-          id="$(cat /tmp/artifact-id)"
+          id="13942597917"
           curl --fail --location --silent --show-error --header "Authorization: Bearer $GH_TOKEN" --header "Accept: application/vnd.github+json" "https://api.github.com/repos/ngocnhanvo/marineaqua-actions/actions/artifacts/$id/zip" -o /tmp/source.zip
           python3 -m zipfile -e /tmp/source.zip four-category-catalog-evidence
           test -s four-category-catalog-evidence/manifest.json

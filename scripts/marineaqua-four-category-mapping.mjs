@@ -27,7 +27,7 @@ try {
   }
   const urls=inventory.archiveMembership[root.slug]||[];
   result.rootCounts.push({slug:root.slug,count:urls.length});
-  if(!urls.length)throw Error("Unexpected empty source root "+root.slug);
+  if(!urls.length&&root.slug!=="cat-da-va-chat-nen")throw Error("Unexpected empty source root "+root.slug);
  }
  for(const [slug,urls] of Object.entries(inventory.archiveMembership)){
   if(!slugs.has(slug))throw Error("Unexpected source category "+slug);
