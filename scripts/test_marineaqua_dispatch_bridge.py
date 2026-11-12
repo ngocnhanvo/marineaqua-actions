@@ -5,7 +5,17 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from marineaqua_dispatch_bridge import (BridgeError, execute, new_request_from_push, valid_request)
+import importlib.util
+SPEC = importlib.util.spec_from_file_location(
+    "marineaqua_dispatch_bridge",
+    Path(__file__).with_name("marineaqua-dispatch-bridge.py")
+)
+bridge = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(bridge)
+BridgeError = bridge.BridgeError
+execute = bridge.execute
+new_request_from_push = bridge.new_request_from_push
+valid_request = bridge.valid_request
 
 PHP = {
     "action": "workflow_dispatch",
