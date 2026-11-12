@@ -1,0 +1,37 @@
+name: Marine Aqua migrate verified informational pages
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-information-pages-migration.mjs'
+      - '.github/workflows/marineaqua-information-pages-migration.yml'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-information-pages-migration
+  cancel-in-progress: false
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-information-pages-migration.mjs
+      - name: Import only validated source content, preserve existing authored pages
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-information-pages-migration.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-information-pages-evidence
+          path: information-pages-evidence/
+          retention-days: 10
