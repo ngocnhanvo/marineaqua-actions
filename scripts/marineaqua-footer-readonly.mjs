@@ -39,6 +39,11 @@ try{
   const response=await page.goto(FRONT+"/",{waitUntil:"domcontentloaded",timeout:45000});
   const footer=page.locator("#footer-contact");
   await footer.scrollIntoViewIfNeeded();
+  const logo=footer.locator("#footer-brand-title").locator("..").locator("img").first();
+  if(await logo.count()){
+    await logo.scrollIntoViewIfNeeded();
+    await logo.evaluate(async img => { try { await img.decode(); } catch { /* captured in logoLoaded */ } });
+  }
   await page.waitForTimeout(250);
   const measured=await footer.evaluate(root=>{
     const links=[...root.querySelectorAll("a[data-marine-footer-link]")];
