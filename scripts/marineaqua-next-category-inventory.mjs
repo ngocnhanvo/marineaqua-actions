@@ -16,7 +16,7 @@ const browser = await chromium.launch({ headless: true });
 try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
-  const categoryRoots = [{slug:"may-bom-va-may-tao-song",children:["may-bom","may-tao-song"]},{slug:"muoi-bien",children:[]},{slug:"protein-skimmer",children:[]},{slug:"test-kits",children:[]},{slug:"thiet-bi-do",children:[]},{slug:"vat-lieu-loc",children:[]},{slug:"phu-kien-khac",children:[]}];
+  const categoryRoots = [{slug:"may-bom-va-may-tao-song",children:["may-bom","may-tao-song"]},{slug:"muoi-bien",children:[]},{slug:"protein-skimmer",children:[]},{slug:"test-kits",children:[]},{slug:"thiet-bi-do",children:[]},{slug:"vat-lieu-loc",children:[]},{slug:"phu-kien-be-ca-canh",children:[]}];
   report.archiveMembership = {};
   report.categoryRoots=categoryRoots;
   for(const root of categoryRoots){
