@@ -1,5 +1,14 @@
-# Marine Aqua — GitHub-only dispatch bridge VERIFIED and production PASS (2026-11-13, Vietnam)
+# Marine Aqua — Dispatch Bridge ported to Template / Knowledge (2026-11-13)
 
+## Current completed task
+- User requested: add rules for dispatch bridge to shared Knowledge and move reusable code to project Template so new projects inherit it, WITHOUT MCP.
+- **Template source created and tested** in `ngocnhanvo/template-actions@main` HEAD `5fa1d4964d173847f8c2577d36ec36f01646c1c9`. Files: `.github/workflows/dispatch-bridge.yml`, `scripts/dispatch-bridge.py`, `scripts/test_dispatch_bridge.py`, `dispatch-bridge.config.json`, `docs/dispatch-bridge.md`, plus README. Generic policy reads exact project repo/workflow/source/host from reviewed config. Template ships **disabled by default**, no production dispatch on code changes.
+- Template Actions [run #43281251745](https://github.com/ngocnhanvo/template-actions/actions/runs/43281251745) **completed/success**; 11/11 offline tests PASS; dispatch job logged `NO_DISPATCH_REQUEST: workflow/script update only`. Initial test fixture failed then corrected; latest PASS is authoritative.
+- **Knowledge updated:** `ngocnhanvo/knowledge@main` HEAD `bd7a1e82a8b93340749ea025480262618b3afd6f`, files AGENTS.md, README.md, CORE-07, `stacks/github-actions-execution-and-secrets.md`, `stacks/github-actions-dispatch-bridge.md`, `templates/AGENTS.template.md`, CHANGELOG.md. Rules: inherit from `template-actions`, bind exact per-project config and secrets, approve/enable separately; prefer existing GitHub-only bridge when direct POST dispatch missing, no MCP, no dummy commits or alternate pipeline; preserve QA and code mode.
+- **Marine Aqua existing bridge retained unchanged** and functional (both production dispatches/deployments/QA previously PASS), to prevent regression. New projects inherit generic copy; **not automatically enabled or rolled into existing projects**.
+- No production deploy from this template/knowledge change. No pending work in the requested scope.
+
+## Prior completed production evidence
 Project marine-aqua.vn. User explicitly rejected MCP and requested ordinary GitHub connection with a reusable Actions workflow for workflow_dispatch/repository_dispatch.
 
 ## DONE: Remove MCP
