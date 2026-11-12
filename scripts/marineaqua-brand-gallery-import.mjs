@@ -161,7 +161,7 @@ try{
   try{
    const item=bySlug.get(slug);
    valid(item?.id,"Original gallery target product not found "+slug);
-   const sourceImages=product.fullImages;
+   const sourceImages=[...new Map(product.fullImages.map(image=>[image.url,image])).values()];
    const existingImages=(item.images||[]).filter(x=>x.id&&isOwnedMedia(x.src));
    valid(existingImages.length>0,"Product main media missing "+slug);
    const mediaIds=[];
