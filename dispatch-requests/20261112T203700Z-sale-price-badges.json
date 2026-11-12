@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "5460a01d2047be92a8ce79e03bab71a69c15fd17",
+  "reason": "Publish product regular prices and verified discount badges",
+  "request_id": "20261112T203700Z-sale-price-badges",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
