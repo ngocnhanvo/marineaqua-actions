@@ -61,6 +61,7 @@ jobs:
       - name: Dispatch and monitor canonical production Astro pipeline
         env:
           GH_TOKEN: ${{ github.token }}
+          SOURCE_REPO_PAT: ${{ secrets.SOURCE_REPO_PAT }}
         run: node scripts/marineaqua-brand-release-trigger.mjs
       - name: Verify live production category UX in browser
         run: node scripts/marineaqua-brand-postdeploy-qa.mjs
