@@ -1179,16 +1179,21 @@ try {
         return {visible, gap:Math.round(b.top - a.bottom),
           centerDelta:Math.round(Math.abs((a.left+a.right)/2 - (b.left+b.right)/2))};
       });
+      const retiredStickyBarAbsent = await page.evaluate(() =>
+        !document.querySelector("#bottom-contact-bar") &&
+        !document.documentElement.classList.contains("header-sticky-active")
+      );
       const linkTypesValid = opened.links.every(link =>
         (link.href.startsWith("tel:") && /^tel:\+?\d{9,15}$/.test(link.href)) ||
         /^https:\/\/(?:www\.)?(?:facebook\.com|m\.facebook\.com|fb\.com|m\.me|zalo\.me|oa\.zalo\.me)\//.test(link.href));
       const result = {width, ...opened, secondClickClosed, secondClickCollapsed, thirdClickOpened,
-        closedByEscape, aiOpened, aiClosed, closedOutside, linkTypesValid, floatingButtons};
+        closedByEscape, aiOpened, aiClosed, closedOutside, linkTypesValid, floatingButtons, retiredStickyBarAbsent};
       result.pass = opened.open && opened.expanded && opened.title === "Kênh tư vấn"
         && opened.inViewport && opened.aiOption && !opened.horizontalOverflow
         && secondClickClosed && secondClickCollapsed && thirdClickOpened
         && closedByEscape && aiOpened && aiClosed && closedOutside && linkTypesValid
-        && floatingButtons.visible && floatingButtons.gap >= 22 && floatingButtons.centerDelta <= 9;
+        && floatingButtons.visible && floatingButtons.gap >= 22 && floatingButtons.centerDelta <= 9
+        && retiredStickyBarAbsent;
       summary.consultationPanel.push(result);
     } catch (error) {
       summary.consultationPanel.push({width, pass:false, error:String(error.message || error).slice(0,350)});
