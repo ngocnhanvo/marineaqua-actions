@@ -120,9 +120,10 @@ try{
      const resp=await fetch("https://marine-aqua.io.vn/san-pham/"+root.slug+"/",{
       headers:{"Cache-Control":"no-cache"},signal:AbortSignal.timeout(15000)});
      const html=resp.ok?await resp.text():"";
+     const visible=html.replace(/<[^>]*>/g," ").replace(/&nbsp;|&#160;/g," ").replace(/\s+/g," ").trim();
      return {slug:root.slug,status:resp.status,count:expected,
       okay:resp.ok&&Number.isInteger(expected)&&expected>0&&
-       html.includes("Tổng "+expected+" sản phẩm")};
+       visible.includes("Tổng "+expected+" sản phẩm")};
     }));
     report.liveCategoryChecks=checks;
     if(checks.length===2&&checks.every(c=>c.okay)){
