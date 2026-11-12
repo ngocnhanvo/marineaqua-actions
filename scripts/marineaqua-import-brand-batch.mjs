@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 const SOURCE="https://marine-aqua.vn", WP="https://admin.marine-aqua.io.vn", DIR="brand-import-batch-evidence";
-const BATCH_LIMIT=12;
+const BATCH_LIMIT=250;
 await mkdir(DIR,{recursive:true});
 const result={batchLimit:BATCH_LIMIT,created:[],reused:[],mediaCreated:[],mediaReused:[],categoriesCreated:[],deferred:[],errors:[],sourceMissingSeo:[],status:"STARTED"};
 const browser=await chromium.launch({headless:true});
