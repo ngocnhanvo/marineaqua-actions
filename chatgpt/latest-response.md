@@ -1,3 +1,9 @@
+# Marine Aqua seven menus DONE checkpoint 2026-11-12
+
+Status: DONE. Source 146 unique products across 7 roots plus 2 empty pump children; 134 reused, 12 created. Source archive price oracle 146/146, 6 prices repaired. Multi-image galleries 29/29, 4 repaired. WooCommerce parity 146/146, no category, price, stock, media errors. Canonical signed production build run 43233160309 SUCCESS. Final acceptance run 43232799464 SUCCESS: 20 desktop/mobile route checks, zero errors. Source inventory 43220740658; independent oracles 43224165055; import 43224629409; price repair 43230561372; gallery repair 43231633217. Source slugs: may-bom-va-may-tao-song (0), may-bom (0), may-tao-song (0), muoi-bien (7), protein-skimmer (6), test-kits (1), thiet-bi-do (5), vat-lieu-loc (22), phu-kien-be-ca-canh (106). Production Astro master SHA 4a3f0dfbe75d5632dd1a3f28d728e6eeb7ba31f3. Do not repeat completed migration. Actions scripts/workflows prefix marineaqua-next-category-. Branch actions main; Astro/PHP master.
+
+---
+
 # Marine Aqua — FOUR PRODUCT CATEGORIES FINAL checkpoint (2026-11-12)
 
 Status: **DONE — original inventory, taxonomy repair, source price parity, galleries, signed Astro production deploy, desktop/mobile live acceptance.** Do not repeat this migration.
