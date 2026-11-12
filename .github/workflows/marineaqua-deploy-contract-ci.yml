@@ -39,6 +39,9 @@ jobs:
           php -l source-php/marineaqua-image-delta.php
           php source-php/tests/marineaqua-image-delta.php
           php source-php/tests/marineaqua-static-delta.php
+          php -l source-php/wp-content/plugins/github-trigger/products/endpoint.php
+          php -l source-php/wp-content/plugins/github-trigger/products/tests/product-log-pagination.php
+          php source-php/wp-content/plugins/github-trigger/products/tests/product-log-pagination.php
       - name: Python packaging, compatibility and ZIP roundtrip contracts
         shell: bash
         env:
