@@ -23,7 +23,12 @@ try{
  valid(process.env.WP_ADMIN_USERNAME&&process.env.WP_ADMIN_PASSWORD,"Missing WP credentials");
  const context=await browser.newContext({viewport:{width:1366,height:900}});
  const page=await context.newPage();
- page.on("dialog",async d=>{if(d.type()==="confirm")await d.accept();else await d.dismiss()});
+ page.on("dialog",async d=>{
+  console.log("PROMOTION_NATIVE_DIALOG="+JSON.stringify({type:d.type(),message:d.message().slice(0,180)}));
+  if(d.type()==="prompt"&&/table|id|bảng/i.test(d.message()))await d.accept(TABLE);
+  else if(d.type()==="confirm")await d.accept();
+  else await d.dismiss();
+ });
  await page.goto(WP+"/wp-login.php",{waitUntil:"domcontentloaded",timeout:45000});
  await page.locator("#user_login").fill(process.env.WP_ADMIN_USERNAME);
  await page.locator("#user_pass").fill(process.env.WP_ADMIN_PASSWORD);
@@ -148,9 +153,13 @@ try{
    .map(e=>({tag:e.tagName,id:e.id,cls:String(e.className).slice(0,95),value:String(e.value||"").slice(0,80),text:String(e.textContent||"").trim().slice(0,95)}))
    .filter(x=>/tablepress|insert|table|code|khuyen|chèn/i.test(x.text+" "+x.cls+" "+x.id+" "+x.value)).slice(-85));
   console.log("PROMOTION_NATIVE_INSERT_DIALOG="+JSON.stringify(result.insertDialog));
+  const insertedDirectly=(await page.locator("#content").inputValue()).includes(desired);
+  if(insertedDirectly)console.log("PROMOTION_NATIVE_QUICKTAG_INSERTED="+desired);
   const nativeInsert=page.getByRole("button",{name:/Insert Code/i});
   const nativeRows=page.locator('[data-table-id="'+TABLE+'"]');
-  if(await nativeRows.count()){
+  if(insertedDirectly){
+    // Classic Editor Quicktags invokes the native TablePress prompt.
+  }else if(await nativeRows.count()){
    const row=nativeRows.first();
    const btn=row.getByRole("button",{name:/Insert|Chèn/i});
    if(await btn.count())await btn.first().click();
