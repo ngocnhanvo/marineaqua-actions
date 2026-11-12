@@ -1,0 +1,52 @@
+name: Marine Aqua dispatch existing GitHub Actions workflows
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-dispatch-bridge.yml'
+      - 'scripts/marineaqua-dispatch-bridge.py'
+      - 'scripts/test_marineaqua_dispatch_bridge.py'
+      - 'dispatch-requests/*.json'
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: marineaqua-dispatch-approved-requests
+  cancel-in-progress: false
+
+jobs:
+  check:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    name: Syntax and offline allowlist regression tests (NO DEPLOY)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Python syntax
+        run: |
+          python3 -m py_compile scripts/marineaqua-dispatch-bridge.py
+          python3 -m py_compile scripts/test_marineaqua_dispatch_bridge.py
+      - name: Bridge contract tests (NO REAL API CALLS)
+        run: python3 -m unittest discover -s scripts -p 'test_marineaqua_dispatch_bridge.py' -v
+
+  dispatch:
+    needs: [check]
+    if: github.repository == 'ngocnhanvo/marineaqua-actions' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    name: Send the exact approved event to existing production pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check push contains exactly one new approved dispatch request
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REPO_PAT: ${{ secrets.SOURCE_REPO_PAT }}
+        run: |
+          set -euo pipefail
+          python3 scripts/marineaqua-dispatch-bridge.py
