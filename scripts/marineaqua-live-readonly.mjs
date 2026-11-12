@@ -1063,8 +1063,25 @@ try {
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
-      await page.goto(frontend.origin + "/", { waitUntil: "domcontentloaded", timeout: 45000 });
+      const client = await page.context().newCDPSession(page);
+      const browserIssues = [];
+      client.on("Audits.issueAdded", ({ issue }) => {
+        if (browserIssues.length < 15) browserIssues.push({
+          type: String(issue?.code || "unknown").slice(0, 100),
+          violation: String(issue?.details?.contentSecurityPolicyIssueDetails?.violationType || "").slice(0, 80),
+          source: String(issue?.details?.contentSecurityPolicyIssueDetails?.sourceCodeLocation?.url || "").slice(0, 200)
+        });
+      });
+      await client.send("Audits.enable");
+      const homeResponse = await page.goto(frontend.origin + "/", { waitUntil: "domcontentloaded", timeout: 45000 });
       await page.waitForTimeout(900);
+      const policy = homeResponse?.headers()["content-security-policy"] || "";
+      const cspAudit = { pageCspPresent: Boolean(policy),
+        scriptUnsafeInline: /script-src[^;]*'unsafe-inline'/.test(policy),
+        scriptStrictDynamic: /script-src[^;]*'strict-dynamic'/.test(policy),
+        issues: browserIssues };
+      summary.browserCsp = cspAudit;
+      console.log("MARINEAQUA_CSP_BROWSER_AUDIT=" + JSON.stringify(cspAudit));
       const audit = await page.evaluate(() => {
         const actions = [...document.querySelectorAll("#header-contacts > span[data-header-action]")];
         const rolesValid = actions.length === 2 && actions.every(el =>
