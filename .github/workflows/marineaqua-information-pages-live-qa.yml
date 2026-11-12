@@ -7,6 +7,30 @@ on:
 permissions:
   contents: write
 jobs:
+  deploy-record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Persist canonical production deployment result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DEPLOY_RUN: ${{ github.event.workflow_run.id }}
+          DEPLOY_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          DEPLOY_HEAD: ${{ github.event.workflow_run.head_sha }}
+          DEPLOY_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          node --input-type=module <<'NODE'
+          const payload={run_id:process.env.DEPLOY_RUN,conclusion:process.env.DEPLOY_CONCLUSION,actions_head_sha:process.env.DEPLOY_HEAD,url:process.env.DEPLOY_URL,workflow:'Marine Aqua Astro deployment (WordPress Build Website only)'};
+          const endpoint='https://api.github.com/repos/'+process.env.GH_REPO+'/contents/docs/information-pages-deploy-latest.json';
+          const headers={Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};
+          const old=await fetch(endpoint,{headers}).then(r=>r.ok?r.json():null);
+          const body={message:'Record production deployment '+payload.run_id,content:Buffer.from(JSON.stringify(payload,null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
+          if(old?.sha)body.sha=old.sha;
+          const reply=await fetch(endpoint,{method:'PUT',headers,body:JSON.stringify(body)});
+          if(!reply.ok)throw Error('Deploy record HTTP '+reply.status);
+          console.log('MARINEAQUA_INFORMATION_DEPLOY_RECORD='+JSON.stringify(payload));
+          NODE
   verify:
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
