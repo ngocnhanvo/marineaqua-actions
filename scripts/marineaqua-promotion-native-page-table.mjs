@@ -6,7 +6,6 @@ const TABLE="khuyen_mai_01",PAGE_SLUG="khuyen-mai",PAGE_KEY="promotions",DIR="pr
 const SLUGS=[
  "muoi-bien-tropic-marin-pro-reef-25-kg-xo-nhua",
  "korallen-zucht-zeofood-plus-500ml-thuc-an-cho-san-ho",
- "den-cho-thuy-cung-ho-lon-zetlight-zet-200w-b-w",
  "korallen-zucht-coral-system-component-4-500ml",
  "korallen-zucht-coral-system-component-3-500ml",
  "korallen-zucht-coral-system-component-2-500ml",
@@ -50,7 +49,7 @@ try{
   valid(exact.length===1,"Expected exactly one published target product for "+slug+"; actual="+exact.length);
   products.push({id:exact[0].id,slug,title:exact[0].name});
  }
- valid(new Set(products.map(x=>x.id)).size===9,"Product ID duplicates");
+ valid(products.length===8&&new Set(products.map(x=>x.id)).size===8,"Active source catalog product IDs must be exactly eight and unique");
  result.products=products;
  console.log("PROMOTION_VERIFIED_IDS="+JSON.stringify(products));
  result.steps.push("target_product_ids_verified");
@@ -65,13 +64,13 @@ try{
  if(initial){
   valid(initial.meta?.api==="Product","Existing promotion table source mismatch");
   valid(initial.fields?.length===COLS.length&&COLS.every((c,j)=>initial.fields[j]?.key===c),"Existing table field conflict");
-  valid(initial.items?.length===9,"Existing table has unexpected item count");
+  valid(initial.items?.length===8,"Existing table has unexpected item count");
   valid(initial.items.every((item,i)=>String(item.key)===String(products[i].id)),"Existing table product order conflict");
   result.steps.push("existing_table_verified");
  }else{
   await page.goto(WP+"/wp-admin/admin.php?page=tablepress_add",{waitUntil:"domcontentloaded",timeout:45000});
   await page.locator('[name="table[name]"]').fill("Khuyến mãi");
-  await page.locator('[name="table[rows]"]').fill("10");
+  await page.locator('[name="table[rows]"]').fill("9");
   await page.locator('[name="table[columns]"]').fill("5");
   await page.getByRole("button",{name:"Add Table"}).click();
   await page.waitForURL(/tablepress.*action=edit|table_id=/,{timeout:35000});
@@ -93,7 +92,7 @@ try{
   await page.waitForFunction(()=>Boolean(window.tp?.editor?.setValueFromCoords&&window.tp?.table?.data),null,{timeout:30000});
   const initialGrid=await page.evaluate(()=>window.tp.table.data);
   console.log("PROMOTION_NATIVE_TABLE_GRID="+JSON.stringify({rows:initialGrid.length,columns:initialGrid[0]?.length}));
-  valid(initialGrid.length===10&&initialGrid.every(x=>x.length===5),"Unexpected native table dimensions; refuse mutation");
+  valid(initialGrid.length===9&&initialGrid.every(x=>x.length===5),"Unexpected native table dimensions; refuse mutation");
   await page.evaluate(({products,cols,paths})=>{
    for(let j=0;j<cols.length;j++)window.tp.editor.setValueFromCoords(j,0,cols[j]);
    for(let i=0;i<products.length;i++){
@@ -109,7 +108,7 @@ try{
   const after=await readTable(TABLE);
   valid(after?.meta?.api==="Product","TablePress source was not saved");
   valid(after.fields?.length===5&&COLS.every((c,j)=>after.fields[j]?.key===c),"TablePress field mapping missing");
-  valid(after.items?.length===9&&after.items.every((item,i)=>String(item.key)===String(products[i].id)),"TablePress nine product IDs mismatch");
+  valid(after.items?.length===8&&after.items.every((item,i)=>String(item.key)===String(products[i].id)),"TablePress eight product IDs mismatch");
   result.steps.push("native_table_saved_verified");
   await page.screenshot({path:DIR+"/promotion-esc-table.png"});
  }
