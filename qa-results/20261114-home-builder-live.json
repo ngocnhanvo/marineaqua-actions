@@ -1,12 +1,12 @@
 {
   "status": "FAIL",
-  "sourceSha": "2954c59725a1774ece1da5ef766a114ba93931e9",
+  "sourceSha": "6f713e284a18f576e6463891b196ecfaff8cc508",
   "production": {
-    "status": "PASS",
-    "run_id": 43473871267,
-    "url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43473871267",
+    "status": "FAIL",
+    "run_id": 43475503614,
+    "url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43475503614",
     "attempt": 1,
-    "conclusion": "success",
+    "conclusion": null,
     "signedActivation": true,
     "sourceVerified": true
   },
@@ -66,14 +66,15 @@
     "status": "FAIL",
     "selectedField": "heading",
     "headingText": "Chạm gần hơn với",
-    "editorVisible": false,
-    "editorValue": null,
-    "pageSnippet": "ác thiết bị trong bể cá (đèn, skimmer, máy bơm...)\nThời gian bán hàng\nHướng dẫn mua hàng tại nhà\nHướng dẫn mua hàng ở xa\nPhí ship hàng\nChính sách đổi trả hàng\nTin kiến thức\nLiên hệ\nSản phẩm\nTrang chủ\nMở trang\nGiao diện:\nDesktop\nMobile\n\nBuilder tải dữ liệu mới nhất từ WordPress. Bấm vào chữ hoặc hình ảnh trong trang xem trước để chỉnh sửa. Thay đổi hiển thị ngay trong Builder; chỉ ghi vào WordPress khi bấm Lưu WordPress. Kiểm tra hoặc làm mới section không kích hoạt build.\n\nSection đang chọn\n\nChưa chọn section.\n\nXem thông tin kỹ thuật (JSON)\nLàm mới section từ WordPress\nKiểm tra thay đổi\nLàm mới tất cả (0)\n\nBuilder đã kiểm tra WordPress: 6 ESC Table có dữ liệu mới nhất.\n\n2 nguồn đang chờ build. ESC Table: 145, khuyen_mai_01, home_00 (chỉ làm mới khi bấm nút)\n\nChỉnh sửa hình ảnh ESC Table\n\nhome_00 · image · dòng 1 · đang đọc ESC Table...\n\nChọn hoặc tải ảnh lên\nLưu WordPress\nHủy thay đổi\n\nĐang tải thông tin ảnh từ WordPress.\n\nẢnh mới hiện ngay trong Builder, không reload iframe. Chỉ lưu về ESC Table khi bấm Lưu WordPress; production cập nhật sau build.\n\nESC Table · Quản lý item\n\nhome_00 · dòng 1\n\n+ Thêm item\nNhân bản item đang chọn\nXóa item đang chọn\n↕ Sắp xếp item\n\n↔ Hoán đổi section"
+    "editorVisible": true,
+    "editorValue": "",
+    "pageSnippet": " hàng tại nhà\nHướng dẫn mua hàng ở xa\nPhí ship hàng\nChính sách đổi trả hàng\nTin kiến thức\nLiên hệ\nSản phẩm\nTrang chủ\nMở trang\nGiao diện:\nDesktop\nMobile\n\nBuilder tải dữ liệu mới nhất từ WordPress. Bấm vào chữ hoặc hình ảnh trong trang xem trước để chỉnh sửa. Thay đổi hiển thị ngay trong Builder; chỉ ghi vào WordPress khi bấm Lưu WordPress. Kiểm tra hoặc làm mới section không kích hoạt build.\n\nSection đang chọn\n\nhome_00 · Chạm gần hơn với thế giới san hô.\n\nXem thông tin kỹ thuật (JSON)\nLàm mới section từ WordPress\nKiểm tra thay đổi\nLàm mới tất cả (0)\n\nBuilder đã kiểm tra WordPress: 6 ESC Table có dữ liệu mới nhất.\n\n2 nguồn đang chờ build. ESC Table: 145, khuyen_mai_01, home_00 (chỉ làm mới khi bấm nút)\n\nChỉnh sửa chữ trực quan\n\nESC Table home_00 · đang đọc dữ liệu WordPress...\n\nDòng nội dung\nTiêu đề (title)\nLưu WordPress\nHủy thay đổi\n\nChọn chữ trong vùng WordPress Editor để sửa trực tiếp nội dung Page. ESC Table vẫn có trình sửa riêng. Bản xem trước cập nhật tức thì và không tải lại iframe; bản production chỉ đổi sau khi build.\n\nESC Table · Quản lý item\n\nhome_00 · chọn item để nhân bản hoặc xóa\n\n+ Thêm item\nNhân bản item đang chọn\nXóa item đang chọn\n↕ Sắp xếp item\n\n↔ Hoán đổi section"
   },
   "errors": [
-    "BUILDER: Clicking heading did not open Visual Builder text editor"
+    "PRODUCTION: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'in_progress'\n- 'completed'\n",
+    "BUILDER: Builder picked wrong field content\n+ actual - expected\n\n+ ''\n- 'Chạm gần hơn với'\n"
   ],
-  "qa_run_id": 43475010035,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43475010035",
-  "recorded_at": "2026-11-13T17:41:19.888Z"
+  "qa_run_id": 43475488802,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43475488802",
+  "recorded_at": "2026-11-13T17:45:15.329Z"
 }
