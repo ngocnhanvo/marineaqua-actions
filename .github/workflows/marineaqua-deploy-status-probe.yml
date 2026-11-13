@@ -18,6 +18,7 @@ name: Marine Aqua read-only production deployment status probe
 # Track article archive visual redesign release
 # Recheck browser sorting after its production deployment
 # Track unified search and sort toolbar deployment
+# Refresh state after postdeployment single-row layout QA
 # Observe corrected mobile gutter assertion QA run
 # Capture final mobile header QA run and result
 # Final result after GitHub evidence write conflict retry
