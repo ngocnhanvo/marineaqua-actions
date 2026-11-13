@@ -1,23 +1,27 @@
-# Marine Aqua — Phản hồi ChatGPT mới nhất
+# Phản hồi ChatGPT mới nhất
 
-Thời điểm: 2026-11-13 16:48:42 (Asia/Ho_Chi_Minh)
-Project: marine-aqua.vn
-Repository: ngocnhanvo/marineaqua-actions
-Branch: main
-Trạng thái lưu: SAVED
-Trạng thái công việc: DONE — xác minh lại phạm vi giỏ hàng / checkout đã hoàn tất; không còn workflow cần chờ.
+- Thời điểm: 2026-11-13 19:38:20 +07:00 (Asia/Ho_Chi_Minh)
+- Project: marine-aqua.vn
+- Repository: ngocnhanvo/marineaqua-actions
+- Branch: main
+- Lưu phản hồi: SAVED
+- Trạng thái công việc đã xác minh: DONE — hover Header và badge số lượng giỏ hàng
+- Source: ngocnhanvo/marineaqua-astro@master — 22fb44109065c23bff817faa9341e03f9cef8932
+- Production deploy: 43425939749 — SUCCESS
+- Live Header QA: 43426486215 — SUCCESS; screenshots reviewed
+- Checkpoint: docs/header-hover-badge-checkpoint.md (80d83ef41bafd9a3e3a79efe3ed976c223eca59c)
 
-## Nội dung phản hồi gửi người dùng
+## Phản hồi nguyên văn
 
-Mình đã đối chiếu lại repo và Actions: **luồng chọn hàng → giỏ hàng → checkout đã hoàn tất và được triển khai production**.
+Đã sửa và đưa lên [website](https://marine-aqua.io.vn).
 
-- [CI](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43382064682/attempts/5): **288 kiểm thử PASS**.
-- Triển khai [PHP](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43397488195) và [Astro](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43397778900): **SUCCESS**.
-- [QA desktop/mobile](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43398960442): **22/22 PASS**, đã kiểm tra ảnh và dọn sạch giỏ thử nghiệm.
+- **Hover:** hai nút tài khoản/giỏ hàng đồng bộ viền và nền xanh nhạt; không còn mảng xanh đậm sau icon hoặc hiện tượng nhảy nút.
+- **Số lượng giỏ hàng:** nằm sát góc trên bên phải nút, có viền trắng; ẩn khi bằng 0 và hiển thị gọn `99+` khi vượt 99.
+- **Đã kiểm tra:** desktop, mobile, header khi cuộn và thao tác Tab; không tràn hoặc hiển thị trùng nút.
 
-**Không còn bước triển khai hoặc QA đang chờ trong phạm vi này.** Kiểm thử không phát sinh đơn hàng, thanh toán hay email thật.
+[Triển khai PASS](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43425939749) · [Kiểm tra giao diện PASS](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43426486215).
 
-[Checkpoint hoàn tất](https://github.com/ngocnhanvo/marineaqua-actions/blob/main/docs/cart-checkout-checkpoint.md) đã có đầy đủ bằng chứng; bản ghi phản hồi mới nhất đã lưu **SAVED**.
+Đã lưu checkpoint và phản hồi mới nhất.
 
 Chế độ code: auto-build  
 Cổng ghi source: bypass  
