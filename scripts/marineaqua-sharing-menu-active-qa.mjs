@@ -1,3 +1,4 @@
+// Postdeploy verification after canonical active-menu release 43360262840.
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
 const SITE='https://marine-aqua.io.vn',OUT='sharing-nav-active-evidence';
