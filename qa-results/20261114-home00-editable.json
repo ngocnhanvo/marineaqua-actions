@@ -1,18 +1,25 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "table": "home_00",
   "writeScope": [
     "home_00"
   ],
-  "changes": 0,
+  "changes": 1,
   "skippedUnchanged": 0,
   "temporaryCreated": 0,
   "cleanupRemaining": 0,
-  "checks": [],
-  "errors": [
-    "page.evaluate: Error: Expected exactly four populated banner rows; found 5 at 1,2,3,4,5; row-shapes=[{\"i\":0,\"filled\":4,\"hasImage\":false,\"titlePresent\":true},{\"i\":1,\"filled\":4,\"hasImage\":false,\"titlePresent\":true},{\"i\":2,\"filled\":3,\"hasImage\":true,\"titlePresent\":true},{\"i\":3,\"filled\":3,\"hasImage\":true,\"titlePresent\":true},{\"i\":4,\"filled\":3,\"hasImage\":true,\"titlePresent\":true},{\"i\":5,\"filled\":3,\"hasImage\":true,\"titlePresent\":true}]\n    at eval (eval at evaluate (:370:30), <anonymous>:12:34)\n    at UtilityScript.evaluate (<anonymous>:372:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at /__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-home00-add-editable-fields.mjs:52:29"
+  "checks": [
+    "Preserved all existing native banner cells before save",
+    "Native ESC Table Save and REST read-after-write PASS"
   ],
-  "run_id": 43473183537,
-  "run_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43473183537",
-  "recorded_at": "2026-11-13T17:29:46.676Z"
+  "errors": [],
+  "layout": {
+    "beforeColumns": 4,
+    "afterColumns": 11,
+    "populatedRows": 4,
+    "rows": 6
+  },
+  "run_id": 43473397315,
+  "run_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43473397315",
+  "recorded_at": "2026-11-13T17:31:40.959Z"
 }
