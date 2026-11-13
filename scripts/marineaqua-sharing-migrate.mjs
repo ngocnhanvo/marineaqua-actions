@@ -1,5 +1,6 @@
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 const SOURCE='https://marine-aqua.vn', WP='https://admin.marine-aqua.io.vn';
 const OUT='sharing-migration-evidence';
 const EXPECTED={
@@ -131,36 +132,101 @@ try{
   must(Array.isArray(rows),'Target Post inventory malformed');
   existingPosts.push(...rows);if(rows.length<100)break;
  }
+ // Reuse existing Media by verified file identity; REST binary uploads can
+ // fail at the upstream proxy, so use WordPress's own native media uploader.
  const mediaMemo=new Map();
+ const mediaByName=new Map();
+ for(let pageNumber=1;pageNumber<=50;pageNumber++){
+   let batch;
+   try{
+    batch=await api('GET','/wp-json/wp/v2/media?context=edit&per_page=100&page='+pageNumber+'&_fields=id,source_url');
+   }catch(error){
+    if(pageNumber>1&&/ 400 |rest_post_invalid_page_number/.test(String(error)))break;
+    throw error;
+   }
+   must(Array.isArray(batch),'Media inventory invalid');
+   for(const media of batch){
+    const url=String(media?.source_url||'');
+    if(!url)continue;
+    try{
+      const name=decodeURIComponent(new URL(url,WP).pathname.split('/').pop());
+      if(name)mediaByName.set(name,media);
+    }catch{}
+   }
+   if(batch.length<100)break;
+ }
+ const getRecent=async()=>{
+   const list=await api('GET','/wp-json/wp/v2/media?context=edit&per_page=35&orderby=date&order=desc&_fields=id,source_url');
+   must(Array.isArray(list),'Recent WordPress media invalid');
+   return list;
+ };
  async function copyFeatured(id){
    if(!id)return 0;
    if(mediaMemo.has(id))return mediaMemo.get(id);
    const source=await read(SOURCE+'/wp-json/wp/v2/media/'+id+'?_fields=id,source_url,alt_text,slug');
    const original=String(source?.source_url||'');
-   must(original.startsWith(SOURCE+'/wp-content/uploads/'),'Unsafe source media URL '+original);
-   const filename=decodeURIComponent(new URL(original).pathname.split('/').pop());
-   must(/\.(?:jpe?g|png|webp|gif)$/i.test(filename),'Unsupported featured image '+filename);
-   // Search target media by deterministic original file name; never overwrite existing media.
-   const found=await api('GET','/wp-json/wp/v2/media?search='+encodeURIComponent(filename)+'&per_page=30&_fields=id,source_url');
-   const identical=found.filter(item=>{const url=String(item?.source_url||'');if(!url)return false;try{return decodeURIComponent(new URL(url,WP).pathname.split('/').pop())===filename}catch{return false}});
-   must(identical.length<=1,'Ambiguous existing media '+filename);
-   let mediaId=identical[0]?.id;
-   if(!mediaId){
-    const response=await ctx.request.get(original,{timeout:45000,failOnStatusCode:false});
-    must(response.ok(),'Source image download HTTP '+response.status()+' '+filename);
-    const bytes=await response.body();
-    must(bytes.length>100&&bytes.length<16*1024*1024,'Invalid media bytes '+filename);
-    const kind=filename.toLowerCase().endsWith('.png')?'image/png':filename.toLowerCase().endsWith('.webp')?'image/webp':filename.toLowerCase().endsWith('.gif')?'image/gif':'image/jpeg';
-    const uploaded=await api('POST','/wp-json/wp/v2/media',new Uint8Array(bytes),{
-      'Content-Disposition':'attachment; filename="'+filename.replace(/[^A-Za-z0-9._-]/g,'_')+'"',
-      'Content-Type':kind
-    });
-    must(uploaded.id&&uploaded.source_url,'Media upload failed '+filename);
-    mediaId=uploaded.id;
+   must(original.startsWith(SOURCE+'/wp-content/uploads/'),'Unsafe original media '+original);
+   const src=new URL(original);
+   const filename=decodeURIComponent(src.pathname.split('/').pop());
+   must(/^[^\\/\\\\\\x00-\\x1f]{1,170}\\.(?:jpe?g|png|webp|gif)$/i.test(filename),'Unsafe featured image filename '+filename);
+   const response=await ctx.request.get(original,{timeout:45000,failOnStatusCode:false});
+   must(response.ok(),'Source image HTTP '+response.status()+' '+filename);
+   const bytes=await response.body();
+   must(bytes.length>500&&bytes.length<16*1024*1024,'Invalid featured image bytes '+filename);
+   const sha=createHash('sha256').update(bytes).digest('hex');
+   const ext=filename.split('.').pop().toLowerCase();
+   let name=filename;
+   const existing=mediaByName.get(name);
+   if(existing){
+     const stored=await ctx.request.get(new URL(existing.source_url,WP).href,{timeout:45000,failOnStatusCode:false});
+     must(stored.ok(),'Existing media verification HTTP '+stored.status()+' '+name);
+     const storedSha=createHash('sha256').update(await stored.body()).digest('hex');
+     if(storedSha!==sha){
+       name='marine-aqua-sharing-'+sha.slice(0,24)+'.'+ext;
+     }
    }
-   mediaMemo.set(id,mediaId);
-   report.media.push({source:id,target:mediaId,filename});
-   return mediaId;
+   let media=mediaByName.get(name);
+   if(media){
+     const verify=await ctx.request.get(new URL(media.source_url,WP).href,{timeout:45000,failOnStatusCode:false});
+     must(verify.ok(),'Reused media HTTP '+verify.status()+' '+name);
+     must(createHash('sha256').update(await verify.body()).digest('hex')===sha,'Reused media hash mismatch '+name);
+   }else{
+     const mime=ext==='png'?'image/png':ext==='webp'?'image/webp':ext==='gif'?'image/gif':'image/jpeg';
+     await page.goto(WP+'/wp-admin/media-new.php',{waitUntil:'domcontentloaded',timeout:45000});
+     await page.waitForFunction(()=>document.querySelector('input[type="file"][id^="html5_"]')||document.querySelector('#file-form input[type="file"]'),null,{timeout:20000});
+     const html5=page.locator('input[type="file"][id^="html5_"]').first();
+     const useHtml5=await html5.count()>0;
+     const input=useHtml5?html5:page.locator('#async-upload');
+     must(await input.count()>0,'WordPress native upload input missing');
+     await input.setInputFiles({name,mimeType:mime,buffer:bytes});
+     if(!useHtml5){
+       await page.evaluate(()=>{
+         const input=document.querySelector('#async-upload');
+         const form=input?.form;
+         if(!form||form.method.toLowerCase()!=='post'||form.enctype!=='multipart/form-data'||!form.action.startsWith(location.origin+'/wp-admin/'))throw Error('Native upload form invalid');
+         const submit=form.querySelector('input[type="submit"],button[type="submit"]');
+         if(!submit)throw Error('Native upload submit unavailable');
+         form.requestSubmit(submit);
+       });
+       await page.waitForLoadState('domcontentloaded',{timeout:45000}).catch(()=>{});
+     }
+     for(let attempt=0;attempt<20;attempt++){
+       await pause(900);
+       const recent=await getRecent();
+       media=recent.find(item=>{
+         try{return decodeURIComponent(new URL(String(item.source_url||''),WP).pathname.split('/').pop())===name}catch{return false}
+       });
+       if(media)break;
+     }
+     must(media?.id,'Native WordPress media upload not persisted '+name);
+     const stored=await ctx.request.get(new URL(media.source_url,WP).href,{timeout:45000,failOnStatusCode:false});
+     must(stored.ok(),'Uploaded media HTTP '+stored.status()+' '+name);
+     must(createHash('sha256').update(await stored.body()).digest('hex')===sha,'Uploaded media checksum mismatch '+name);
+     mediaByName.set(name,media);
+   }
+   mediaMemo.set(id,media.id);
+   report.media.push({source:id,target:media.id,filename:name,sha256:sha});
+   return media.id;
  }
  const stopAt=Number(process.env.MIGRATE_POST_LIMIT||'133');
  let processed=0;
