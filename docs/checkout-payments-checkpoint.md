@@ -73,12 +73,27 @@ Future settings changes must preserve **unique numeric positions for every regis
 
 No customer order/account or payment was created by configuration. Native WooCommerce gateway-setting hooks were left intact; potential administrative notification delivery from enabling/disabling a gateway was not inspected or suppressed. Do not claim zero emails for the settings mutation.
 
+## Verified live QA and visual review
+
+- QA source: `e8fae7d57c7244c66173c5a2000aaaa5c3233a97`; existing cart/checkout workflow scope `--scope=checkout-payments`, with other scopes retained.
+- [QA 43447691761](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43447691761), job `131961354710`: **SUCCESS, 24/24 checks**, desktop 1366 × 900 and mobile 390 × 844.
+- Report checked at `2026-11-13T14:58:04.790Z`; final PASS logged at `2026-11-13T14:59:57.3850412Z`.
+- Live payment metadata and rendered controls agree: exactly COD followed by BACS; exact requested COD title; COD selected by default; OnePayUS absent. Both methods remain mutually selectable.
+- Required billing/email/terms validation and optional account-password guards pass. Rejected submission preserves the cart; duplicate submission is blocked. An uncertain response locks retry and retains the cart; reload restores the cart.
+- Successful mocked COD submission sends the expected server contract without client totals, clears browser cart storage, updates both Header badges to hidden zero, strips cart keys from both Header cart links, and navigates to the same-origin synthetic receipt.
+- All checkout POSTs and synthetic receipt documents were intercepted: three mocked checkout POSTs per viewport, **zero real orders, accounts, payment transactions or order emails**. Native backend processing is separately covered by the nine actual-vendored-COD contract groups; browser QA does not claim a live placed-order transaction.
+- Both owned transient carts were cleaned using their retained fixture identities. Cleanup PASS: desktop removed 1 / remaining 0; mobile removed 1 / remaining 0. No cleanup remains. User screenshot cart key was never reused.
+- No horizontal overflow or report errors. Payment metadata retries: 0 on both viewports.
+- Artifact `14049236319` (`cart-checkout-live-qa`), 1,771,224 bytes, expires 2026-11-27: downloaded ZIP SHA256 **verified** as `7da8d1811155689e9ff7256be63994952a2ded0ede115a64c0bea3b48bb65190`.
+- All six screenshots visually accepted: desktop/mobile payment-section crops, desktop/mobile full checkout, desktop/mobile uncertain response. Root inspected both crops and desktop checkout; an independent reviewer inspected mobile checkout and both uncertain states. Pink input masks are deliberate QA redaction. The existing consultation widget remains outside this task's scope.
+- Final QA script SHA256: `6d5d37c4f3f9b152c3d9a998ea7d20ffa7f00ec4dcbd42d546ecdb0c3bf2a483`; workflow SHA256: `ac08100c8516eb265a8091a39fd45788d81925fa5f62baadf6e73f0d8e6ee9c3`.
+
 ## Current checkpoint
 
-**IN PROGRESS — PHP deployed and WooCommerce configuration verified; final browser QA pending.**
+**DONE — native COD deployed, OnePayUS disabled, production gateway settings and desktop/mobile checkout verified.**
 
-- QA source: `e8fae7d57c7244c66173c5a2000aaaa5c3233a97`.
-- Existing cart/checkout workflow scope: `--scope=checkout-payments`; other scopes retained.
-- QA [43447691761](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43447691761), desktop 1366 × 900 and mobile 390 × 844.
-- Every checkout POST and synthetic receipt is intercepted. Test COD/default/order/title, BACS selection, validation, rejected/uncertain/successful client behavior, Header/storage reset, and owned transient-cart cleanup.
-- Next: wait for QA result, review screenshots, verify cleanup, then save final checkpoint and exact latest response.
+- Final source heads rechecked at 2026-11-13 15:02:20 UTC: Astro `0002be54d57405c08ad819b66ed4882fdeedeb9e` unchanged; PHP `d1361c8f5abeae239cea70fb09dc57693acd0c2d`.
+- Accepted terminal runs: bridge `43445147676`, PHP release `43445193201`, settings recovery `43447409305`, browser QA `43447691761` — all SUCCESS. Earlier guarded/partial settings runs are resolved as documented above.
+- Native contract 9/9 groups and live browser QA 24/24 pass. Screenshot review accepted; both fixture carts have zero remaining items; no pending source, deployment, settings recovery, QA or cleanup work.
+- No Astro rebuild was required because this checkout reads the current real WooCommerce payment configuration at request time.
+- Final handoff response is saved separately in `chatgpt/latest-response.md`. Continue from this DONE state on the next user request; do not repeat prior completed checkout/Header work.
