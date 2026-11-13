@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T185715Z-product-builder-preview-links",
+  "reason": "Publish verified Product ESC Table reference cards with correct preview product URL",
+  "source_sha": "8727dea2a950744a0728187b0ea064dd45068e7f",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
