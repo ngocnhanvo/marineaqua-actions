@@ -18,6 +18,8 @@
         "height": 44
       },
       "sortValue": "latest",
+      "sortDefaultLabel": "Mới nhất",
+      "sortSelectedLabel": "Mới nhất",
       "totalLabel": false,
       "scrollWidth": 1366,
       "pass": true
@@ -39,6 +41,8 @@
         "height": 44
       },
       "sortValue": "latest",
+      "sortDefaultLabel": "Mới nhất",
+      "sortSelectedLabel": "Mới nhất",
       "totalLabel": false,
       "scrollWidth": 1366,
       "pass": true
@@ -60,6 +64,8 @@
         "height": 44
       },
       "sortValue": "latest",
+      "sortDefaultLabel": "Mới nhất",
+      "sortSelectedLabel": "Mới nhất",
       "totalLabel": false,
       "scrollWidth": 1366,
       "pass": true
@@ -81,6 +87,8 @@
         "height": 44
       },
       "sortValue": "latest",
+      "sortDefaultLabel": "Mới nhất",
+      "sortSelectedLabel": "Mới nhất",
       "totalLabel": false,
       "scrollWidth": 390,
       "pass": true
@@ -102,6 +110,8 @@
         "height": 44
       },
       "sortValue": "latest",
+      "sortDefaultLabel": "Mới nhất",
+      "sortSelectedLabel": "Mới nhất",
       "totalLabel": false,
       "scrollWidth": 390,
       "pass": true
@@ -123,11 +133,13 @@
         "height": 44
       },
       "sortValue": "latest",
+      "sortDefaultLabel": "Mới nhất",
+      "sortSelectedLabel": "Mới nhất",
       "totalLabel": false,
       "scrollWidth": 390,
       "pass": true
     }
   ],
   "errors": [],
-  "run_id": "43358689175"
+  "run_id": "43366015516"
 }
