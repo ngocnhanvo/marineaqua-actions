@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "22b926aa954239cfbd662fbe05c8f330da77d8a9",
+  "reason": "Publish verified WordPress Header menu links for five informational pages",
+  "request_id": "20261113T002400Z-header-information-five-links",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
