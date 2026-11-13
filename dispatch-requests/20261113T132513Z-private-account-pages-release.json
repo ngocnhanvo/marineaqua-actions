@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T132513Z-private-account-pages-release",
+  "reason": "Deploy the verified private no-store response headers for customer cart, checkout and receipt pages.",
+  "source_sha": "ae45df69316e554f125e6f3d4aae5d66d429694b",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
