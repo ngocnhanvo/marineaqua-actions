@@ -3,10 +3,15 @@
   "source_sha": "94388d16a37f632c376cf2358fb38ba452f0afb8",
   "target": "marineaqua-php-release.yml",
   "trigger": "workflow_dispatch",
-  "status": "FAIL",
-  "checks": [],
-  "errors": [
-    "Not Found"
+  "status": "PASS",
+  "checks": [
+    "Exact PHP master SHA verified by protected checkout",
+    "Called existing manual PHP release, not another deploy pipeline",
+    "Existing PHP-only FTPS release and readback PASS"
   ],
-  "checked_at": "2026-11-13T18:10:06.622Z"
+  "errors": [],
+  "run_id": 43480093709,
+  "run_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43480093709",
+  "conclusion": "success",
+  "checked_at": "2026-11-13T18:12:03.025Z"
 }
