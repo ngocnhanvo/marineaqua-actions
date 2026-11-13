@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "checks": [
     {
       "viewport": 1366,
@@ -51,7 +51,7 @@
       "headingBox": {
         "x": 51.21875,
         "y": 304,
-        "width": 424.296875,
+        "width": 422.59375,
         "height": 40
       },
       "searchBox": {
@@ -86,7 +86,7 @@
       "headingBox": {
         "x": 51.21875,
         "y": 304,
-        "width": 409.078125,
+        "width": 409.59375,
         "height": 40
       },
       "searchBox": {
@@ -191,7 +191,7 @@
       "headingBox": {
         "x": 51.21875,
         "y": 304,
-        "width": 620.765625,
+        "width": 622.828125,
         "height": 40
       },
       "searchBox": {
@@ -226,7 +226,7 @@
       "headingBox": {
         "x": 51.21875,
         "y": 304,
-        "width": 803.96875,
+        "width": 802.53125,
         "height": 40
       },
       "searchBox": {
@@ -279,7 +279,7 @@
       "topLevelText": [],
       "document": 390,
       "cards": 27,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 390,
@@ -314,7 +314,7 @@
       "topLevelText": [],
       "document": 390,
       "cards": 10,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 390,
@@ -349,7 +349,7 @@
       "topLevelText": [],
       "document": 390,
       "cards": 8,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 390,
@@ -384,7 +384,7 @@
       "topLevelText": [],
       "document": 390,
       "cards": 28,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 390,
@@ -419,7 +419,7 @@
       "topLevelText": [],
       "document": 390,
       "cards": 28,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 390,
@@ -454,7 +454,7 @@
       "topLevelText": [],
       "document": 390,
       "cards": 27,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 390,
@@ -489,291 +489,10 @@
       "topLevelText": [],
       "document": 390,
       "cards": 28,
-      "pass": false
+      "pass": true
     }
   ],
-  "errors": [
-    {
-      "viewport": "mobile",
-      "slug": "tin-kien-thuc",
-      "reason": "archive-hero-layout",
-      "row": {
-        "viewport": 390,
-        "slug": "tin-kien-thuc",
-        "http": 200,
-        "heading": "Tin kiến thức",
-        "h1Count": 1,
-        "hero": {
-          "x": 0,
-          "y": 87,
-          "width": 390,
-          "height": 255
-        },
-        "headingBox": {
-          "x": 14.625,
-          "y": 175,
-          "width": 360.75,
-          "height": 30
-        },
-        "searchBox": {
-          "x": 14.625,
-          "y": 358,
-          "width": 360.75,
-          "height": 44
-        },
-        "grid": {
-          "x": 0,
-          "y": 419,
-          "width": 390,
-          "height": 5343.5625
-        },
-        "topLevelText": [],
-        "document": 390,
-        "cards": 27,
-        "pass": false
-      }
-    },
-    {
-      "viewport": "mobile",
-      "slug": "tong-quan-ve-be-ca",
-      "reason": "archive-hero-layout",
-      "row": {
-        "viewport": 390,
-        "slug": "tong-quan-ve-be-ca",
-        "http": 200,
-        "heading": "Tổng quan về bể cá biển",
-        "h1Count": 1,
-        "hero": {
-          "x": 0,
-          "y": 87,
-          "width": 390,
-          "height": 255
-        },
-        "headingBox": {
-          "x": 14.625,
-          "y": 175,
-          "width": 360.75,
-          "height": 30
-        },
-        "searchBox": {
-          "x": 14.625,
-          "y": 358,
-          "width": 360.75,
-          "height": 44
-        },
-        "grid": {
-          "x": 0,
-          "y": 419,
-          "width": 390,
-          "height": 2238.984375
-        },
-        "topLevelText": [],
-        "document": 390,
-        "cards": 10,
-        "pass": false
-      }
-    },
-    {
-      "viewport": "mobile",
-      "slug": "set-up-be-ca-bien-mini",
-      "reason": "archive-hero-layout",
-      "row": {
-        "viewport": 390,
-        "slug": "set-up-be-ca-bien-mini",
-        "http": 200,
-        "heading": "Set up bể cá biển mini",
-        "h1Count": 1,
-        "hero": {
-          "x": 0,
-          "y": 87,
-          "width": 390,
-          "height": 227
-        },
-        "headingBox": {
-          "x": 14.625,
-          "y": 175,
-          "width": 360.75,
-          "height": 30
-        },
-        "searchBox": {
-          "x": 14.625,
-          "y": 330,
-          "width": 360.75,
-          "height": 44
-        },
-        "grid": {
-          "x": 0,
-          "y": 391,
-          "width": 390,
-          "height": 1851.1875
-        },
-        "topLevelText": [],
-        "document": 390,
-        "cards": 8,
-        "pass": false
-      }
-    },
-    {
-      "viewport": "mobile",
-      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
-      "reason": "archive-hero-layout",
-      "row": {
-        "viewport": 390,
-        "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
-        "http": 200,
-        "heading": "Kinh nghiệm xử lý vấn đề trong bể cá (rêu hại, tảo hại, bệnh cá, san hô...)",
-        "h1Count": 1,
-        "hero": {
-          "x": 0,
-          "y": 87,
-          "width": 390,
-          "height": 331
-        },
-        "headingBox": {
-          "x": 14.625,
-          "y": 191,
-          "width": 360.75,
-          "height": 90
-        },
-        "searchBox": {
-          "x": 14.625,
-          "y": 434,
-          "width": 360.75,
-          "height": 44
-        },
-        "grid": {
-          "x": 0,
-          "y": 495,
-          "width": 390,
-          "height": 5391.5625
-        },
-        "topLevelText": [],
-        "document": 390,
-        "cards": 28,
-        "pass": false
-      }
-    },
-    {
-      "viewport": "mobile",
-      "slug": "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
-      "reason": "archive-hero-layout",
-      "row": {
-        "viewport": 390,
-        "slug": "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
-        "http": 200,
-        "heading": "Cách chọn muối, vi sinh và hóa chất tốt nhất cho bể cá",
-        "h1Count": 1,
-        "hero": {
-          "x": 0,
-          "y": 87,
-          "width": 390,
-          "height": 301
-        },
-        "headingBox": {
-          "x": 14.625,
-          "y": 191,
-          "width": 360.75,
-          "height": 60
-        },
-        "searchBox": {
-          "x": 14.625,
-          "y": 404,
-          "width": 360.75,
-          "height": 44
-        },
-        "grid": {
-          "x": 0,
-          "y": 465,
-          "width": 390,
-          "height": 5391.5625
-        },
-        "topLevelText": [],
-        "document": 390,
-        "cards": 28,
-        "pass": false
-      }
-    },
-    {
-      "viewport": "mobile",
-      "slug": "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
-      "reason": "archive-hero-layout",
-      "row": {
-        "viewport": 390,
-        "slug": "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
-        "http": 200,
-        "heading": "Cách chọn thức ăn tốt cho cá và san hô",
-        "h1Count": 1,
-        "hero": {
-          "x": 0,
-          "y": 87,
-          "width": 390,
-          "height": 285
-        },
-        "headingBox": {
-          "x": 14.625,
-          "y": 175,
-          "width": 360.75,
-          "height": 60
-        },
-        "searchBox": {
-          "x": 14.625,
-          "y": 388,
-          "width": 360.75,
-          "height": 44
-        },
-        "grid": {
-          "x": 0,
-          "y": 449,
-          "width": 390,
-          "height": 5391.5625
-        },
-        "topLevelText": [],
-        "document": 390,
-        "cards": 27,
-        "pass": false
-      }
-    },
-    {
-      "viewport": "mobile",
-      "slug": "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
-      "reason": "archive-hero-layout",
-      "row": {
-        "viewport": 390,
-        "slug": "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
-        "http": 200,
-        "heading": "Các thiết bị trong bể cá (đèn, skimmer, máy bơm...)",
-        "h1Count": 1,
-        "hero": {
-          "x": 0,
-          "y": 87,
-          "width": 390,
-          "height": 301
-        },
-        "headingBox": {
-          "x": 14.625,
-          "y": 191,
-          "width": 360.75,
-          "height": 60
-        },
-        "searchBox": {
-          "x": 14.625,
-          "y": 404,
-          "width": 360.75,
-          "height": 44
-        },
-        "grid": {
-          "x": 0,
-          "y": 465,
-          "width": 390,
-          "height": 5343.5625
-        },
-        "topLevelText": [],
-        "document": 390,
-        "cards": 28,
-        "pass": false
-      }
-    }
-  ],
-  "run_id": "43355154651",
-  "outcome": "failure"
+  "errors": [],
+  "run_id": "43355621002",
+  "outcome": "success"
 }
