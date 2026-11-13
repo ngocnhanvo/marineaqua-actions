@@ -134,9 +134,10 @@ try{
  }
  // Reuse existing Media by verified file identity; REST binary uploads can
  // fail at the upstream proxy, so use WordPress's own native media uploader.
+ const importFeatured=process.env.MIGRATE_FEATURED_MEDIA==='true';
  const mediaMemo=new Map();
  const mediaByName=new Map();
- for(let pageNumber=1;pageNumber<=50;pageNumber++){
+ if(importFeatured)for(let pageNumber=1;pageNumber<=50;pageNumber++){
    let batch;
    try{
     batch=await api('GET','/wp-json/wp/v2/media?context=edit&per_page=100&page='+pageNumber+'&_fields=id,source_url');
@@ -241,9 +242,19 @@ try{
     continue;
   }
   if(processed>=stopAt)break;
-  const featured=await copyFeatured(post.featured_media||0);
+  const featured=importFeatured?await copyFeatured(post.featured_media||0):0;
+  let postContent=post.content.rendered;
+  if(!featured && post.featured_media && !/<img\\b/i.test(postContent)){
+    // Preserve the real featured photo in article HTML when native upload is
+    // queued separately. Do not fabricate media or product photos.
+    const sourceMedia=await read(SOURCE+'/wp-json/wp/v2/media/'+post.featured_media+'?_fields=source_url');
+    const src=String(sourceMedia?.source_url||'');
+    must(src.startsWith(SOURCE+'/wp-content/uploads/'),'Article source image origin mismatch '+post.slug);
+    const alt=String(post.title.rendered||'').replace(/<[^>]+>/g,'').replace(/[&"<>]/g,'');
+    postContent='<figure class="wp-block-image"><img src="'+src+'" alt="'+alt+'" loading="lazy" decoding="async"></figure>'+postContent;
+  }
   const created=await api('POST','/wp-json/wp/v2/posts',{
-    slug:post.slug,title:post.title.rendered,content:post.content.rendered,
+    slug:post.slug,title:post.title.rendered,content:postContent,
     excerpt:post.excerpt?.rendered||'',date:post.date,
     categories:categoriesOut,featured_media:featured,status:'publish',
     acf:{action:'PostDetails',product_lang:'vi'}
