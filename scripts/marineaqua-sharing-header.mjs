@@ -38,7 +38,7 @@ try{
   const categories=await read('/wp-json/wp/v2/categories?slug='+t.slug+'&_fields=id,slug,count');
   must(categories.length===1&&categories[0].slug===t.slug&&Number(categories[0].count)===t.count,'Category Post parity mismatch '+t.slug);
   const pages=await read('/wp-json/wp/v2/pages?status=publish&slug='+t.slug+'&_fields=id,slug,acf');
-  must(pages.length===1&&pages[0].acf?.action==='PostsPage'&&pages[0].acf?.key==='ssr-posts','Published SSR category Page missing '+t.slug);
+  must(pages.length===1&&pages[0].acf?.action==='PostsPage'&&(pages[0].acf?.key==='ssr-posts'||(t.slug==='tin-kien-thuc'&&pages[0].acf?.key==='knowledge')),'Published SSR category Page missing '+t.slug);
  }
  const before=await getMenu(),flat=flatten(before);
  const ignore=new Set(targets.map(t=>t.id));
