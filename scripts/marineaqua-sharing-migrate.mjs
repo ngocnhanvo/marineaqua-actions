@@ -168,7 +168,7 @@ try{
    must(original.startsWith(SOURCE+'/wp-content/uploads/'),'Unsafe original media '+original);
    const src=new URL(original);
    const filename=decodeURIComponent(src.pathname.split('/').pop());
-   must(/^[^\\/\\\\\\x00-\\x1f]{1,170}\\.(?:jpe?g|png|webp|gif)$/i.test(filename),'Unsafe featured image filename '+filename);
+   must(filename.length>0&&filename.length<=170&&/\.(?:jpe?g|png|webp|gif)$/i.test(filename)&&!filename.includes('/')&&!filename.includes('\\'),'Unsafe featured image filename '+filename);
    const response=await ctx.request.get(original,{timeout:45000,failOnStatusCode:false});
    must(response.ok(),'Source image HTTP '+response.status()+' '+filename);
    const bytes=await response.body();
