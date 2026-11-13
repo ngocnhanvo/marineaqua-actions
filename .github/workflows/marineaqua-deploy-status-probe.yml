@@ -20,6 +20,7 @@ name: Marine Aqua read-only production deployment status probe
 # Capture final mobile header QA run and result
 # Final result after GitHub evidence write conflict retry
 # Observe deployment after removing article archive eyebrow label
+# Track final eyebrow removal browser verification
 on:
   push:
     branches: [main]
