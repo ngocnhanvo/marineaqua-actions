@@ -1,0 +1,11 @@
+{
+  "action": "workflow_dispatch",
+  "request_id": "20261113T085154Z-checkout-validation-php-release",
+  "reason": "Release reviewed checkout validation and BACS REST account fix after PHP regression tests",
+  "source_sha": "c43d8796ca43bab944fff67aac577d51f9854a43",
+  "workflow": "marineaqua-php-release.yml",
+  "ref": "main",
+  "inputs": {
+    "confirm": "DEPLOY_PHP"
+  }
+}
