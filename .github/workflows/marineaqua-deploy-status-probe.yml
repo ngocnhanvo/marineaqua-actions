@@ -17,6 +17,7 @@ name: Marine Aqua read-only production deployment status probe
 # Observe explicit production sharing browser QA
 # Track article archive visual redesign release
 # Observe corrected mobile gutter assertion QA run
+# Capture final mobile header QA run and result
 on:
   push:
     branches: [main]
