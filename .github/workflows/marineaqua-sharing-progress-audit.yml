@@ -26,7 +26,11 @@ jobs:
           };
           const source=await fetchTotal('https://marine-aqua.vn');
           const target=await fetchTotal('https://admin.marine-aqua.io.vn');
-          const payload={run_id:process.env.GH_RUN_ID,source,target,expected:133,complete:target===133};
+          const sampleResponse=await fetch('https://admin.marine-aqua.io.vn/wp-json/wp/v2/posts?status=publish&per_page=1&_fields=id,slug,acf,featured_media,content');
+          if(!sampleResponse.ok)throw Error('Post readback '+sampleResponse.status);
+          const examples=await sampleResponse.json();
+          const sample=examples[0]?{id:examples[0].id,slug:examples[0].slug,acf:examples[0].acf,featured_media:examples[0].featured_media,content_length:String(examples[0].content?.rendered||'').length}:null;
+          const payload={run_id:process.env.GH_RUN_ID,source,target,expected:133,complete:target===133,sample};
           const endpoint='https://api.github.com/repos/'+process.env.GH_REPO+'/contents/docs/sharing-progress-latest.json';
           const headers={Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};
           const previous=await fetch(endpoint,{headers}).then(r=>r.ok?r.json():null);
