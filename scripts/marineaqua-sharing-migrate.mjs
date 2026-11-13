@@ -105,9 +105,12 @@ try{
   let targetPage=matches[0];
   if(targetPage){
    const key=targetPage.acf?.key,action=targetPage.acf?.action;
-   must((!key||key==='ssr-posts')&&(!action||action==='PostsPage'),'Existing Page conflicts: '+category.slug+' key='+key+' action='+action+' contentLength='+String(targetPage.content?.raw||'').length);
-   if(key!=='ssr-posts'||action!=='PostsPage'){
-    targetPage=await api('POST','/wp-json/wp/v2/pages/'+targetPage.id,{acf:{key:'ssr-posts',action:'PostsPage',product_lang:'vi'}});
+   // The pre-existing Knowledge landing page is authored WordPress content.
+   // Retain its stable key and content; change only its rendering action.
+   const legacyKnowledge=category.slug==='tin-kien-thuc'&&key==='knowledge'&&action==='HomePage';
+   must(legacyKnowledge||((!key||key==='ssr-posts')&&(!action||action==='PostsPage')),'Existing Page conflicts: '+category.slug+' key='+key+' action='+action+' contentLength='+String(targetPage.content?.raw||'').length);
+   if((!legacyKnowledge&&key!=='ssr-posts')||action!=='PostsPage'){
+    targetPage=await api('POST','/wp-json/wp/v2/pages/'+targetPage.id,{acf:{key:legacyKnowledge?'knowledge':'ssr-posts',action:'PostsPage',product_lang:'vi'}});
    }
   }else{
    targetPage=await api('POST','/wp-json/wp/v2/pages',{
