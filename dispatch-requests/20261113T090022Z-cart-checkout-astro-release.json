@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T090022Z-cart-checkout-astro-release",
+  "reason": "Build and deploy verified cart and checkout fixes after PHP release and 288 passing Astro tests.",
+  "source_sha": "af8e12b2402768de31a39f214ac16f9e5f33aa61",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
