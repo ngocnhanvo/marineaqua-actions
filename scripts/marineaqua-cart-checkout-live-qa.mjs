@@ -6,7 +6,7 @@ const HOST = 'https://marine-aqua.io.vn';
 const DIR = 'cart-checkout-evidence';
 const STORAGE_KEY = 'esc-cart-storage';
 const args = process.argv.slice(2);
-assert.ok(args.length === 0 || (args.length === 1 && ['--scope=shipping-fee', '--scope=account-cart', '--scope=checkout-readiness', '--scope=checkout-billing', '--scope=commerce-header'].includes(args[0])), 'Supported scopes: shipping-fee, account-cart, checkout-readiness, checkout-billing, commerce-header; omit the flag for the full suite');
+assert.ok(args.length === 0 || (args.length === 1 && ['--scope=shipping-fee', '--scope=account-cart', '--scope=checkout-readiness', '--scope=checkout-billing', '--scope=commerce-header', '--scope=checkout-payments'].includes(args[0])), 'Supported scopes: shipping-fee, account-cart, checkout-readiness, checkout-billing, commerce-header, checkout-payments; omit the flag for the full suite');
 const QA_SCOPE = args.length ? args[0].split('=')[1] : 'full';
 const QA_VIEWPORTS = [
   ...(QA_SCOPE === 'commerce-header' ? [{ name: 'desktop-wide', width: 1920, height: 1080 }] : []),
@@ -59,7 +59,7 @@ async function navigate(page, url, check, click) {
     diagnostic.http = response?.status() ?? null;
     diagnostic.url = safeUrl(response?.url() || page.url());
     diagnostic.contentType = response?.headers()['content-type'] || '';
-    if (['account-cart', 'checkout-billing', 'commerce-header'].includes(QA_SCOPE) && response) {
+    if (['account-cart', 'checkout-billing', 'commerce-header', 'checkout-payments'].includes(QA_SCOPE) && response) {
       const actualUrl = new URL(response.url());
       if (actualUrl.origin === HOST && ['/gio-hang', '/thanh-toan'].includes(actualUrl.pathname.replace(/\/+$/, ''))) {
         diagnostic.stage = 'RESPONSE_CACHE_POLICY';
@@ -1007,6 +1007,179 @@ async function checkoutBillingQA(page, scope, saved) {
   report.checks.push({ type: 'checkout-billing-payload-and-rejection', viewport: scope.name, simulated: true, fieldsMapped: record.billingProjection, duplicateGuard: true, valuesPreserved: true, cartPreserved: true, interceptedPosts: 1, liveOrders: 0, ok: true });
   report.checks.push({ type: 'checkout-billing-safety', viewport: scope.name, liveAuthenticationRequests: 0, orderRequests: 0, realOrders: 0, realAccounts: 0, checkoutPostsMocked: 1, ok: true });
 }
+async function installCheckoutPaymentsGuard(scope) {
+  scope.payments = { blocked: [], interceptedCheckoutPosts: 0, receiptDocuments: 0, receiptUrl: '', receiptPath: '', cartKey: '', successState: null };
+  for (const value of [...Object.values(VALID_BILLING), BILLING_PASSWORD]) privateValues.add(value);
+  await scope.page.exposeBinding('__marineQaObserveCodCartReset', (_source, snapshot) => { scope.payments.successState = snapshot; });
+  await scope.context.route('**/*', async route => {
+    const request = route.request(), url = new URL(request.url()), method = request.method(), path = url.pathname;
+    const block = async reason => {
+      scope.payments.blocked.push({ method, url: safeUrl(url.href), reason });
+      report.errors.push(scope.name + ': payment QA blocked an unexpected request: ' + method + ' ' + safeUrl(url.href));
+      await route.abort('blockedbyclient');
+    };
+    // A synthetic receipt is fulfilled here before WordPress/Astro can look up
+    // an order. Never let a fabricated order ID/key reach the real receipt route.
+    const receipt = path.replace(/\/+$/, '') === '/dat-hang-thanh-cong' || /\/order-received(?:\/|$)/.test(path) || url.searchParams.has('order_key');
+    if (receipt) {
+      if (url.href !== scope.payments.receiptUrl || method !== 'GET' || !request.isNavigationRequest() || scope.mock.status !== 200) {
+        await block('Only the exact mocked COD receipt document is permitted'); return;
+      }
+      scope.payments.receiptDocuments++;
+      await route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', headers: { 'Cache-Control': 'private, no-store' },
+        body: '<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>COD QA receipt fixture</title></head><body><main data-qa-mocked-cod-receipt>Điều hướng COD giả lập — không tạo đơn hàng</main></body></html>' });
+      return;
+    }
+    const sensitive = /^\/api\/(?:user|orders?)(?:\/|$)/.test(path) ||
+      /^\/wp-json\/.*\/(?:login|logout|users?|customers?|orders?)(?:\/|$)/.test(path);
+    const ownCartWrite = url.origin === HOST && method === 'POST' && ['/api/cart/add', '/api/cart/update', '/api/cart/del'].includes(path);
+    const mockedCheckout = url.origin === HOST && method === 'POST' && path === '/api/cart/checkout';
+    if (sensitive || (request.isNavigationRequest() && url.origin !== HOST) ||
+        (!['GET', 'HEAD', 'OPTIONS'].includes(method) && !ownCartWrite && !mockedCheckout)) {
+      await block('Only storefront reads, owned cart mutations and locally mocked checkout are permitted'); return;
+    }
+    if (mockedCheckout) scope.payments.interceptedCheckoutPosts++;
+    await route.fallback();
+  });
+}
+function checkoutPaymentPayloadProjection(payload, scope) {
+  const billing = payload?.billing || {};
+  let receiptPathMatches = false;
+  try {
+    const url = new URL(payload?.slugDone, HOST);
+    receiptPathMatches = url.origin === HOST && url.pathname === scope.payments.receiptPath && !url.search && !url.hash;
+  } catch { /* a malformed destination must fail the assertion */ }
+  return {
+    cartMatches: payload?.cartKey === scope.payments.cartKey,
+    terms: payload?.terms === true,
+    guest: payload?.create_account === false && payload?.account_password === '',
+    name: billing.first_name === VALID_BILLING.billing_tenchuthe,
+    phone: billing.phone === VALID_BILLING.billing_sodienthoai,
+    email: billing.email === VALID_BILLING.billing_email,
+    address: billing.address_1 === VALID_BILLING.billing_diachi,
+    country: billing.country === 'VN',
+    receiptPathMatches,
+    noClientTotals: ['total', 'subtotal', 'amount', 'total_tax', 'shipping_total', 'discount_total', 'line_items'].every(key => !Object.hasOwn(payload || {}, key)),
+  };
+}
+async function checkoutPaymentsQA(page, scope, saved) {
+  await clickNavigation(page, '#btn-proceed-checkout', scope.name + '-payments-cart-checkout');
+  await checkoutReady(page, scope);
+  const form = page.locator('#checkout-form'), submit = page.locator('#submit-checkout-btn');
+  let methods = await form.evaluate(node => JSON.parse(node.dataset.paymentMethods || '[]'));
+  let paymentRetry = false;
+  if (!methods.length) {
+    const messages = await form.evaluate(node => JSON.parse(node.dataset.checkoutMessages || '{}'));
+    const warning = page.locator('#checkout-cart-container + div [role="status"]').filter({ hasText: messages.payment_unavailable });
+    assert.equal(await warning.count(), 1, 'Missing methods must have an explicit unavailable state');
+    assert.equal(await warning.isVisible(), true, 'Payment unavailable state must be visible');
+    paymentRetry = true;
+    await navigate(page, page.url(), scope.name + '-payments-fresh-get');
+    await checkoutReady(page, scope);
+    methods = await form.evaluate(node => JSON.parse(node.dataset.paymentMethods || '[]'));
+  }
+  assert.deepEqual(methods, ['cod', 'bacs'], 'Checkout methods must be COD first, then the existing BACS method');
+  const radios = await form.locator('input[name="payment_method"]').evaluateAll(inputs => inputs.map(input => ({
+    id: input.value, title: input.closest('label')?.textContent?.normalize('NFC').replace(/\s+/g, ' ').trim(),
+    checked: input.checked, enabled: input.matches(':enabled'), visible: Boolean(input.getClientRects().length),
+  })));
+  assert.deepEqual(radios.map(radio => radio.id), methods, 'Rendered payment controls differ from allowed server metadata');
+  assert.equal(radios[0].title, 'Thanh toán khi nhận hàng', 'COD must have the requested Vietnamese label');
+  assert.equal(radios[1].title, 'Chuyển khoản ngân hàng trực tiếp', 'Existing bank transfer label changed');
+  assert.ok(radios.every(radio => radio.enabled && radio.visible), 'A configured payment option is hidden or disabled');
+  assert.deepEqual(radios.map(radio => radio.checked), [true, false], 'COD must be selected by default in the former OnePayUS position');
+  assert.equal(await page.locator('input[name="payment_method"][value="onepayus"]').count(), 0, 'OnePayUS remains in checkout');
+  assert.doesNotMatch(normalizedText(await page.locator('#checkout-cart-container + div').textContent()), /onepayus/i, 'OnePayUS label remains visible');
+  scope.payments.cartKey = saved.cartKey;
+  const receiptPath = new URL(await page.locator('#checkout-data-bridge').getAttribute('data-slug-done'), HOST);
+  assert.equal(receiptPath.origin, HOST, 'Receipt must stay on the storefront origin');
+  assert.equal(receiptPath.pathname.replace(/\/+$/, ''), '/dat-hang-thanh-cong', 'Receipt route differs from the published commerce Page');
+  assert.ok(!receiptPath.search && !receiptPath.hash, 'Configured receipt must not contain an order identifier');
+  scope.payments.receiptPath = receiptPath.pathname;
+  report.checks.push({ type: 'checkout-payment-options', viewport: scope.name, methods, labels: radios.map(radio => radio.title), codDefault: true, onepayAbsent: true, bacsPreserved: true, freshGetRetries: Number(paymentRetry), ok: true });
+  await checkLayout(page, scope.name, 'checkout-payments');
+  await screenshot(page, scope.name + '-checkout-payments.png');
+  const paymentImage = scope.name + '-checkout-payments-section.png';
+  await page.locator('#checkout-cart-container + div').screenshot({ path: DIR + '/' + paymentImage, animations: 'disabled', timeout: 5000 });
+  report.screenshots.push(paymentImage);
+
+  const cod = form.locator('input[name="payment_method"][value="cod"]');
+  const bacs = form.locator('input[name="payment_method"][value="bacs"]');
+  await bacs.check();
+  assert.ok(await bacs.isChecked() && !(await cod.isChecked()), 'Bank transfer cannot be selected independently');
+  assert.equal(await submit.isDisabled(), true, 'Changing payment method bypassed the terms guard');
+  await cod.check();
+  assert.ok(await cod.isChecked() && !(await bacs.isChecked()), 'COD cannot be selected again');
+  report.checks.push({ type: 'checkout-payment-selection', viewport: scope.name, bacsSelectable: true, codSelectable: true, mutuallyExclusive: true, termsGuardPreserved: true, ok: true });
+
+  const serverBefore = await readCart(scope.context, saved.cartKey);
+  // Existing helper exercises required/email/terms validation, a held 422 with
+  // duplicate-submit protection and 502 uncertainty. All POSTs remain mocked.
+  await formValidation(page, scope);
+  assertCartUnchanged(serverBefore, await readCart(scope.context, saved.cartKey), 'Mocked COD rejection and uncertainty');
+  assert.equal(scope.mock.records.length, 2, 'Expected exactly the mocked rejection and uncertainty requests');
+  assert.deepEqual(scope.mock.records.map(record => record.paymentMethod), ['cod', 'cod'], 'COD payload sent a different payment gateway');
+  for (const record of scope.mock.records) {
+    for (const [field, matches] of Object.entries(record.paymentProjection)) assert.equal(matches, true, 'COD payload failed: ' + field);
+  }
+  report.checks.push({ type: 'checkout-cod-payload', viewport: scope.name, simulated: true, paymentMethod: 'cod', guest: true, fieldsMapped: true, clientTotalsOmitted: true, localReceiptDestination: true, rejectionPreservesServerCart: true, ok: true });
+
+  const account = page.locator('#createaccount'), password = page.locator('#account_password');
+  await account.check();
+  await page.locator('#create-account-fields').waitFor({ state: 'visible' });
+  assert.equal(await password.evaluate(input => input.required && input.validity.valueMissing), true, 'Account creation must still require its password');
+  await submit.click();
+  assert.equal(scope.mock.records.length, 2, 'Account creation without password attempted checkout');
+  await password.fill(BILLING_PASSWORD);
+  await account.uncheck();
+  assert.equal(await password.inputValue(), '', 'Returning to guest checkout must clear the account password');
+  assert.equal(await password.evaluate(input => input.required), false, 'Guest COD must not require an account password');
+  assert.equal(await form.evaluate(node => node.checkValidity()), true, 'Guest COD fixture must remain valid');
+  report.checks.push({ type: 'checkout-cod-account-guard', viewport: scope.name, conditionalPasswordRequired: true, guestPasswordCleared: true, accountRequests: 0, ok: true });
+
+  // Observe production's cart:updated listener before its confirmed-success
+  // navigation. No test code clears storage or adjusts the Header itself.
+  await page.evaluate(key => {
+    window.addEventListener('cart:updated', () => {
+      if (localStorage.getItem(key) !== null) return;
+      const badges = [...document.querySelectorAll('.marine-header-cart-count')];
+      const links = [...document.querySelectorAll('a[data-header-action="cart"]')];
+      window.__marineQaObserveCodCartReset({
+        storageRemoved: true, badgeCount: badges.length,
+        badgesReset: badges.every(badge => badge.textContent === '0' && badge.classList.contains('hidden')),
+        cartLinkCount: links.length,
+        cartLinksReset: links.every(link => !new URL(link.href).searchParams.has('cart_key')),
+      }).catch(() => {});
+    });
+  }, STORAGE_KEY);
+  const receipt = new URL(scope.payments.receiptPath, HOST);
+  receipt.searchParams.set('order_id', '2147483647');
+  receipt.searchParams.set('order_key', 'wc_order_marine_qa_mock_only');
+  privateValues.add('wc_order_marine_qa_mock_only');
+  scope.payments.receiptUrl = receipt.href;
+  scope.mock.expected = true;
+  scope.mock.status = 200;
+  scope.mock.held = Promise.resolve();
+  await navigate(page, receipt.href, scope.name + '-mocked-cod-success-navigation', () => submit.click());
+  await page.locator('[data-qa-mocked-cod-receipt]').waitFor();
+  assert.equal(page.url(), receipt.href, 'Confirmed COD did not navigate to the safe local receipt');
+  assert.equal(await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY), null, 'Confirmed COD did not clear persisted browser cart');
+  await until(() => Boolean(scope.payments.successState), 'Confirmed COD did not emit a cart reset before navigation');
+  const reset = scope.payments.successState;
+  assert.ok(reset.storageRemoved && reset.badgeCount > 0 && reset.badgesReset && reset.cartLinkCount > 0 && reset.cartLinksReset, 'Confirmed COD left the old Header badge or cart links');
+  assert.equal(scope.payments.receiptDocuments, 1, 'Mocked receipt navigation must occur exactly once');
+  assert.equal(scope.mock.records.length, 3, 'Confirmed COD submitted an unexpected number of requests');
+  assert.deepEqual(scope.mock.records.map(record => record.mockHttp), [422, 502, 200], 'Unexpected mock response sequence');
+  assert.ok(scope.mock.records.every(record => record.paymentMethod === 'cod' && record.createAccount === false), 'A mocked COD submission used another method or attempted an account');
+  for (const [field, matches] of Object.entries(scope.mock.records.at(-1).paymentProjection)) assert.equal(matches, true, 'Confirmed COD payload failed: ' + field);
+  // A browser mock cannot claim server-side COD completion. The actual owned
+  // fixture still exists here and is removed using its retained identity in finally.
+  assertCartUnchanged(serverBefore, await readCart(scope.context, saved.cartKey), 'Browser-only mocked COD success');
+  report.checks.push({ type: 'checkout-cod-confirmed-client-success', viewport: scope.name, simulated: true, safeLocalReceipt: true, receiptDocumentMocked: true, serverOrderLookup: false, ...reset, ownedFixtureRetainedForCleanup: true, ok: true });
+  assert.equal(scope.payments.blocked.length, 0, 'Unexpected auth/order/payment request occurred');
+  assert.equal(scope.payments.interceptedCheckoutPosts, 3, 'Not all checkout requests passed through the safety guard');
+  report.checks.push({ type: 'checkout-payments-safety', viewport: scope.name, mockedCheckoutPosts: 3, liveCheckoutPosts: 0, realOrders: 0, realAccounts: 0, authenticationRequests: 0, payments: 0, emails: 0, receiptDocumentsMocked: 1, ok: true });
+}
 async function installCheckoutReadinessGuard(scope) {
   scope.readiness = { blocked: [], documentRequests: 0 };
   await scope.context.route('**/*', async route => {
@@ -1254,7 +1427,7 @@ await mkdir(DIR, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 try {
   for (const viewport of QA_VIEWPORTS) {
-    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, serviceWorkers: 'block', ...(viewport.name === 'mobile' && ['checkout-readiness', 'checkout-billing', 'commerce-header'].includes(QA_SCOPE) ? { isMobile: true, hasTouch: true } : {}) });
+    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, serviceWorkers: 'block', ...(viewport.name === 'mobile' && ['checkout-readiness', 'checkout-billing', 'commerce-header', 'checkout-payments'].includes(QA_SCOPE) ? { isMobile: true, hasTouch: true } : {}) });
     const page = await context.newPage();
     page.setDefaultTimeout(DOM_TIMEOUT);
     const scope = { name: viewport.name, context, page, carts: new Map(), mock: { records: [], expected: false, status: 422, held: Promise.resolve(), release: () => {}, dialogs: 0 } };
@@ -1265,21 +1438,26 @@ try {
       if (route.request().method() !== 'POST') { await route.continue(); return; }
       let payload;
       try { payload = route.request().postDataJSON(); } catch { payload = {}; }
-      const mockHttp = scope.mock.status === 502 ? 502 : 422;
+      const mockHttp = QA_SCOPE === 'checkout-payments' && scope.mock.status === 200 ? 200 : scope.mock.status === 502 ? 502 : 422;
       const marker = mockHttp === 502 ? MOCK_UNCERTAIN : MOCK_REJECTION;
       scope.mock.records.push({ cartKeyPresent: Boolean(payload?.cartKey), createAccount: payload?.create_account === true, paymentMethod: String(payload?.payment_method || ''), mockHttp,
         ...(QA_SCOPE === 'checkout-billing' ? { billingProjection: billingPayloadProjection(payload) } : {}),
+        ...(QA_SCOPE === 'checkout-payments' ? { paymentProjection: checkoutPaymentPayloadProjection(payload, scope) } : {}),
       });
       if (!scope.mock.expected) report.errors.push(viewport.name + ': unexpected checkout POST was safely intercepted');
       let timer;
       await Promise.race([scope.mock.held, new Promise(resolve => { timer = setTimeout(resolve, 10000); })]);
       clearTimeout(timer);
-      await route.fulfill({ status: mockHttp, contentType: 'application/json', headers: { 'Cache-Control': 'no-store' }, body: JSON.stringify({ ok: false, msg: marker }) });
+      const body = mockHttp === 200
+        ? { ok: true, data: { result: 'success', status: 'processing', redirect: scope.payments.receiptUrl } }
+        : { ok: false, msg: marker };
+      await route.fulfill({ status: mockHttp, contentType: 'application/json', headers: { 'Cache-Control': 'no-store' }, body: JSON.stringify(body) });
     });
     if (QA_SCOPE === 'account-cart') await installAccountGuards(scope);
     if (QA_SCOPE === 'checkout-readiness') await installCheckoutReadinessGuard(scope);
     if (QA_SCOPE === 'checkout-billing') await installBillingGuards(scope);
     if (QA_SCOPE === 'commerce-header') await installCommerceHeaderGuards(scope);
+    if (QA_SCOPE === 'checkout-payments') await installCheckoutPaymentsGuard(scope);
     page.on('response', response => {
       const request = response.request();
       const url = safeUrl(response.url());
@@ -1333,6 +1511,8 @@ try {
         await checkoutBillingQA(page, scope, saved);
       } else if (QA_SCOPE === 'commerce-header') {
         await commerceHeaderQA(page, scope, saved);
+      } else if (QA_SCOPE === 'checkout-payments') {
+        await checkoutPaymentsQA(page, scope, saved);
       } else {
       await clickMutation(page, '#cart-list-container .btn-qty-plus', '/api/cart/update');
       await until(async () => quantity((await state(page))?.items?.[0]) === 2, 'Cart quantity did not increase to two');
