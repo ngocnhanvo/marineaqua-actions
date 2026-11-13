@@ -18,7 +18,7 @@
     "lastSelection": {
       "tableId": "home_04",
       "context": "home_04 · chọn item để nhân bản hoặc xóa",
-      "status": "Đang xác định đúng dòng ESC Table của sản phẩm 82530...",
+      "status": "Tên cột trùng hoặc không an toàn.",
       "panelVisible": true,
       "inspector": "",
       "tag": {
@@ -33,67 +33,73 @@
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595259500
+        "time": 1794595384255
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/",
-        "time": 1794595260376
+        "time": 1794595385712
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/yoast/v1/statistics",
-        "time": 1794595260385
+        "time": 1794595385723
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595261830
+        "time": 1794595387168
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/yoast/v1/statistics",
-        "time": 1794595262430
+        "time": 1794595387867
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/",
-        "time": 1794595262463
+        "time": 1794595387920
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/changes",
-        "time": 1794595263903
+        "time": 1794595389328
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595264336
+        "time": 1794595389824
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/changes",
-        "time": 1794595265997
+        "time": 1794595391523
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595266390
+        "time": 1794595391926
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595280407
+        "time": 1794595393804
+      },
+      {
+        "event": "response",
+        "status": 422,
+        "path": "/wp-json/esc-builder/v1/item-schema",
+        "time": 1794595396511
       }
     ]
   },
@@ -101,9 +107,9 @@
   "temporaryCreated": 0,
   "cleanupRemaining": 0,
   "errors": [
-    "AssertionError [ERR_ASSERTION]: Card selection did not map to native ESC Table: {\"tableId\":\"home_04\",\"context\":\"home_04 · chọn item để nhân bản hoặc xóa\",\"status\":\"Đang xác định đúng dòng ESC Table của sản phẩm 82530...\",\"panelVisible\":true,\"inspector\":\"\",\"tag\":{\"id\":\"82530\",\"row\":\"0\",\"parent\":\"home_04\",\"source\":\"home_04\"}}\n    at file:///__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:91:12"
+    "AssertionError [ERR_ASSERTION]: Card selection did not map to native ESC Table: {\"tableId\":\"home_04\",\"context\":\"home_04 · chọn item để nhân bản hoặc xóa\",\"status\":\"Tên cột trùng hoặc không an toàn.\",\"panelVisible\":true,\"inspector\":\"\",\"tag\":{\"id\":\"82530\",\"row\":\"0\",\"parent\":\"home_04\",\"source\":\"home_04\"}}\n    at file:///__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:96:12"
   ],
-  "qa_run_id": 43484850014,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43484850014",
-  "recorded_at": "2026-11-13T18:41:24.226Z"
+  "qa_run_id": 43485151152,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43485151152",
+  "recorded_at": "2026-11-13T18:43:17.814Z"
 }
