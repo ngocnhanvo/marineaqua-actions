@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T140407Z-checkout-billing-astro",
+  "reason": "Release checkout billing card matching approved reference after source and PHP checks",
+  "source_sha": "771d37ef5a3614277f6366aa900bff346f271964",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
