@@ -1,0 +1,11 @@
+{
+  "action": "workflow_dispatch",
+  "request_id": "20261113T085828Z-checkout-uncertainty-php-release",
+  "reason": "Release tested checkout handling: return 502 after attempted order creation to prevent duplicate submission.",
+  "source_sha": "9855763bf7319b18c9e36f86db5430ace39e6d66",
+  "workflow": "marineaqua-php-release.yml",
+  "ref": "main",
+  "inputs": {
+    "confirm": "DEPLOY_PHP"
+  }
+}
