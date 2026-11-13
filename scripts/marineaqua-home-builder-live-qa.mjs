@@ -148,7 +148,7 @@ async function verifyCmsAndBuilder(){
   assert.ok(mediaSize&&mediaSize.width>130&&mediaSize.height>80,'Banner image area unexpectedly small');
   // The split layout intentionally overlaps the left image edge with the text.
   // Hit the unobscured image area instead of the masked left edge.
-  await media.click({position:{x:mediaSize.width-45,y:Math.round(mediaSize.height/2)},timeout:18000});
+  await media.click({position:{x:Math.round(mediaSize.width*0.7),y:Math.round(mediaSize.height*0.65)},timeout:18000});
   await page.locator('#esc-vb-image-choose').waitFor({state:'visible',timeout:18000});
   report.builder.imageEditorVisible=true;
   // Distinct existing Product ESC Table section title should use its own
