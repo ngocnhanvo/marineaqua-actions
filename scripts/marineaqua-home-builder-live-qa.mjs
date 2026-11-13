@@ -41,6 +41,18 @@ async function verifyDeploy(){
  const {run,jobs,logs}=found;
  report.production={status:'FAIL',run_id:run.id,url:run.html_url,attempt:run.run_attempt,
   conclusion:run.conclusion,signedActivation:logs.includes('SIGNED_UNZIP_SUCCESS'),sourceVerified:true};
+ if(run.status!=='completed'){
+   // The bridge can identify a live run before GitHub marks it completed.
+   for(let i=0;i<45;i++){
+     await new Promise(resolve=>setTimeout(resolve,6000));
+     const current=await github('/repos/'+ACTIONS+'/actions/runs/'+run.id);
+     if(current.status==='completed'){
+       run.status=current.status;run.conclusion=current.conclusion;
+       report.production.conclusion=current.conclusion;
+       break;
+     }
+   }
+ }
  assert.equal(run.status,'completed');
  assert.equal(run.conclusion,'success','Production workflow failed');
  assert.ok(jobs.length&&jobs.every(j=>j.conclusion==='success'),'Production workflow jobs not all PASS');
@@ -117,8 +129,10 @@ async function verifyCmsAndBuilder(){
   await target.waitFor({state:'visible',timeout:50000});
   const before=await target.innerText();
   await target.click({timeout:12000});
-  await page.waitForTimeout(1200);
   const box=page.locator('#esc-vb-edit-title');
+  await box.waitFor({state:'visible',timeout:25000});
+  await page.waitForFunction(()=>(document.querySelector('#esc-vb-edit-title')?.value||'').trim().length>0,
+     null,{timeout:25000}).catch(()=>{});
   const editorVisible=await box.isVisible().catch(()=>false);
   const dialog=await page.locator('body').innerText();
   report.builder={status:'FAIL',selectedField:'heading',headingText:before,editorVisible,
@@ -126,6 +140,7 @@ async function verifyCmsAndBuilder(){
     pageSnippet:dialog.slice(-1200)};
   await page.screenshot({path:DIR+'/builder-heading-selection.png',fullPage:false});
   assert.ok(editorVisible,'Clicking heading did not open Visual Builder text editor');
+  report.builder.textFieldSelector=await page.locator('#esc-vb-edit-row').inputValue().catch(()=>null);
   assert.equal((await box.inputValue()).trim(),before.trim(),'Builder picked wrong field content');
   // Image edit must remain independent after selecting a text field.
   const media=frame.locator('section[data-marine-home-variant="desktop"] .marine-hero-media').first();
