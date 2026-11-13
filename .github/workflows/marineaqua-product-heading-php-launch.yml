@@ -1,4 +1,4 @@
-name: Marine Aqua dispatch existing PHP release for product headings
+name: Marine Aqua dispatch verified Visual Builder PHP release
 on:
   push:
     branches: [main]
