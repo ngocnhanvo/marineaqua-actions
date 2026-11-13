@@ -43,9 +43,18 @@ jobs:
           result.run_id=process.env.GH_RUN_ID;result.outcome=process.env.QA_OUTCOME;
           const endpoint='https://api.github.com/repos/'+process.env.GH_REPO+'/contents/docs/sharing-header-visual-qa-latest.json';
           const headers={Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};
-          const old=await fetch(endpoint,{headers}).then(r=>r.ok?r.json():null);
-          const body={message:'Record sharing header visual QA '+result.run_id,content:Buffer.from(JSON.stringify(result,null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
-          if(old?.sha)body.sha=old.sha;
-          const r=await fetch(endpoint,{method:'PUT',headers,body:JSON.stringify(body)});
-          if(!r.ok)throw Error('Evidence write failed '+r.status);
+          const encoded=Buffer.from(JSON.stringify(result,null,2)+String.fromCharCode(10)).toString('base64');
+          let saved=false;
+          for(let attempt=0;attempt<6;attempt++){
+            const oldResponse=await fetch(endpoint,{headers,cache:'no-store'});
+            const old=oldResponse.ok?await oldResponse.json():null;
+            if(!oldResponse.ok&&oldResponse.status!==404)throw Error('Evidence lookup HTTP '+oldResponse.status);
+            const body={message:'Record sharing header visual QA '+result.run_id,content:encoded,branch:'main'};
+            if(old?.sha)body.sha=old.sha;
+            const response=await fetch(endpoint,{method:'PUT',headers,body:JSON.stringify(body)});
+            if(response.ok){saved=true;break;}
+            if(response.status!==409&&response.status!==422)throw Error('Evidence write HTTP '+response.status);
+            await new Promise(resolve=>setTimeout(resolve,800*(attempt+1)));
+          }
+          if(!saved)throw Error('Evidence write exhausted conflict retries');
           NODE
