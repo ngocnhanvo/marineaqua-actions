@@ -63,6 +63,9 @@ try{
     const section=frame.locator('section[data-tablepress-preview="'+tableId+'"]');
     const track=section.locator('[data-esc-builder-product-track][data-esc-source-table="'+tableId+'"]');
     const cards=track.locator(':scope > [data-esc-builder-product-card][data-esc-builder-product-id]');
+    assert.ok(await track.locator('template[data-esc-builder-product-template]').evaluate(
+      element=>Boolean(element.content?.querySelector('[data-esc-builder-product-link]'))),
+      'Deployed native Product preview template must retain the real product link');
     const count=await cards.count();
     assert.ok(count>=2,'Product card references missing for '+tableId);
     assert.equal(await track.getAttribute('data-esc-builder-product-partial'),null,'Unexpected partial Product grid '+tableId);
