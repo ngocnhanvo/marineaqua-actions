@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T052000Z-post-category-submenu-active",
+  "reason": "Deploy WordPress article taxonomy mapping to sharing submenu active state",
+  "source_sha": "5ac249d340833fc133b7a0a0cef5a2fe772d95db",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
