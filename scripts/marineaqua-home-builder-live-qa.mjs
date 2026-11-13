@@ -146,9 +146,22 @@ async function verifyCmsAndBuilder(){
   const media=frame.locator('section[data-marine-home-variant="desktop"] .marine-hero-media').first();
   const mediaSize=await media.boundingBox();
   assert.ok(mediaSize&&mediaSize.width>130&&mediaSize.height>80,'Banner image area unexpectedly small');
-  // The split layout intentionally overlaps the left image edge with the text.
-  // Hit the unobscured image area instead of the masked left edge.
-  await media.click({position:{x:Math.round(mediaSize.width*0.7),y:Math.round(mediaSize.height*0.65)},timeout:18000});
+  // The split layout masks its left edge and navigation controls cover corners.
+  // Locate a genuinely clickable point in the image using hit-testing, without
+  // force-clicking through text or slider controls.
+  const hitPoint=await media.evaluate((element)=>{
+    const r=element.getBoundingClientRect();
+    for(const y of [.3,.45,.6,.75,.85]){
+      for(const x of [.38,.5,.62,.72,.82,.9]){
+        const node=document.elementFromPoint(r.left+r.width*x,r.top+r.height*y);
+        if(node&&element.contains(node))return {x:Math.round(r.width*x),y:Math.round(r.height*y)};
+      }
+    }
+    return null;
+  });
+  report.builder.imageHitPoint=hitPoint;
+  assert.ok(hitPoint,'Visible banner image has no independently clickable point');
+  await media.click({position:hitPoint,timeout:18000});
   await page.locator('#esc-vb-image-choose').waitFor({state:'visible',timeout:18000});
   report.builder.imageEditorVisible=true;
   // Distinct existing Product ESC Table section title should use its own
