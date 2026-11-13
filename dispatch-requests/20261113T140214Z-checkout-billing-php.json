@@ -1,0 +1,11 @@
+{
+  "action": "workflow_dispatch",
+  "request_id": "20261113T140214Z-checkout-billing-php",
+  "reason": "Release optional checkout locality profile fields and verified login projection",
+  "source_sha": "f7d63f5b0b83c779f7ffd3f05c7185e5e806a3f6",
+  "workflow": "marineaqua-php-release.yml",
+  "ref": "main",
+  "inputs": {
+    "confirm": "DEPLOY_PHP"
+  }
+}
