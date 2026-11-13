@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T175758Z-home00-image-selection",
+  "reason": "Restore image editing on native banner image elements while preserving corrected text editing",
+  "source_sha": "3f31fdf39226cd713b38d4dcb3b2f1125e731e1a",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
