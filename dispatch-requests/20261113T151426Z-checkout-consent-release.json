@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T151426Z-checkout-consent-release",
+  "reason": "Release reviewed checkout consent wording and return-policy link",
+  "source_sha": "5c2af48b8d02c789f19c53e0e6194798fd40f907",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
