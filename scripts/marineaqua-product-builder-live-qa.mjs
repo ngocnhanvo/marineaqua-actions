@@ -6,7 +6,7 @@ const FRONT='https://marine-aqua.io.vn';
 const TABLES=['home_04','home_05','home_06','home_07','home_08'];
 const DIR='product-builder-live-evidence';
 // QA after native WordPress Product column validation release #43485611524.
-const report={status:'STARTED',sourceSha:'d79e13c3cf9a023b7a165eef390fe11b12e2d7fb',
+const report={status:'STARTED',sourceSha:'8727dea2a950744a0728187b0ea064dd45068e7f',
   public:{status:'NOT_TESTED'},builder:{status:'NOT_TESTED',tables:[]},
   writes:0,temporaryCreated:0,cleanupRemaining:0,errors:[]};
 await mkdir(DIR,{recursive:true});
@@ -109,12 +109,27 @@ try{
     tableId,{timeout:20000});
   await page.locator('#esc-vb-item-new').click();
   await page.locator('#esc-vb-item-dialog').waitFor({state:'visible',timeout:15000});
-  await page.locator('input[aria-label="Tìm sản phẩm WooCommerce đã xuất bản"]').waitFor({state:'visible',timeout:16000});
+  const search=page.locator('input[aria-label="Tìm sản phẩm WooCommerce đã xuất bản"]');
+  await search.waitFor({state:'visible',timeout:16000});
+  const availableProduct=report.builder.tables[1]?.firstProductId;
+  assert.ok(availableProduct&&/^\d+$/.test(availableProduct),'No published Product available for safe search');
+  await search.fill(availableProduct);
+  const result=page.locator('#esc-vb-item-dialog .esc-vb-product-results button')
+    .filter({hasText:'ID '+availableProduct}).first();
+  await result.waitFor({state:'visible',timeout:25000});
+  assert.ok(await result.isEnabled(),'Product picker falsely marks available WooCommerce item as already added');
+  await result.click({timeout:15000});
+  assert.ok(await page.locator('#esc-vb-item-confirm').isEnabled(),'Cannot select genuine Product for insertion');
+  report.builder.addProductLookup='PASS';
   report.builder.addDialog='PASS';
   await page.locator('#esc-vb-item-dismiss').click();
   assert.equal(await page.locator('#esc-vb-item-dialog').isVisible(),false,'Cancel add did not close');
   await page.locator('#esc-vb-item-delete').click();
   await page.locator('#esc-vb-item-delete-dialog').waitFor({state:'visible',timeout:15000});
+  await page.locator('#esc-vb-item-delete-confirm').waitFor({state:'visible',timeout:12000});
+  await page.waitForFunction(()=>!document.querySelector('#esc-vb-item-delete-confirm')?.disabled,
+    null,{timeout:25000});
+  report.builder.deleteReady='PASS';
   report.builder.deleteDialog='PASS';
   await page.locator('#esc-vb-item-delete-dismiss').click();
   assert.equal(await page.locator('#esc-vb-item-delete-dialog').isVisible(),false,'Cancel delete did not close');
