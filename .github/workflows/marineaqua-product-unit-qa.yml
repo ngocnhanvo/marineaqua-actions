@@ -1,0 +1,37 @@
+name: Marine Aqua product unit live QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-product-unit-qa.yml'
+      - 'scripts/marineaqua-product-unit-qa.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-product-unit-live-qa
+  cancel-in-progress: false
+jobs:
+  browser:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check scripts/marineaqua-product-unit-qa.mjs
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Verify quote-price product has no unit label on desktop and mobile
+        run: node scripts/marineaqua-product-unit-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-product-unit
+          path: product-unit-evidence/
+          retention-days: 14
