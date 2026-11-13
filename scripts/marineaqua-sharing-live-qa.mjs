@@ -57,12 +57,24 @@ try{
   }
   await page.close();
  }
- const article=await ctx.newPage();
- for(const slug of samples){
+ for(const view of [{name:'desktop',width:1366,height:900},{name:'mobile',width:390,height:844}]){
+  const article=await ctx.newPage();
+  await article.setViewportSize({width:view.width,height:view.height});
+  for(const slug of samples){
    const r=await article.goto(HOST+'/'+slug,{waitUntil:'domcontentloaded',timeout:60000});
-   const detail=await article.evaluate(()=>({h1:document.querySelector('main h1')?.textContent?.trim()||'',textLength:(document.querySelector('main')?.textContent||'').trim().length}));
+   const detail=await article.evaluate(mobile=>{
+    const root=document.querySelector(mobile?'#mobile-menu-container':'#desktop-menu');
+    const sharing=[...root?.querySelectorAll('button')||[]].find(b=>b.textContent?.replace(/\\s+/g,' ').trim()==='Chia sẻ');
+    return {h1:document.querySelector('main h1')?.textContent?.trim()||'',textLength:(document.querySelector('main')?.textContent||'').trim().length,
+      sharingFound:Boolean(sharing),sharingActive:Boolean(sharing?.classList.contains('text-[#0B5FA5]')||sharing?.querySelector('.is-active')),
+      documentWidth:document.documentElement.scrollWidth};
+   },view.name==='mobile');
    assert(r?.status()===200&&detail.h1&&detail.textLength>250,'Article detail missing '+slug+' '+JSON.stringify(detail));
-   result.articles.push({slug,status:r.status(),...detail});
+   assert(detail.sharingFound&&detail.sharingActive&&detail.documentWidth<=view.width+2,
+     'Article Header sharing menu not active '+view.name+' '+slug+' '+JSON.stringify(detail));
+   result.articles.push({viewport:view.name,slug,status:r.status(),...detail});
+  }
+  await article.close();
  }
  result.status='PASS';
  console.log('SHARING_LIVE_QA_PASS='+JSON.stringify({views:result.views.length,archives:result.pages.length,articles:result.articles.length}));
