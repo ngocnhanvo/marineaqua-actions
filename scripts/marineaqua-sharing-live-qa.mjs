@@ -67,12 +67,27 @@ try{
     const sharing=[...root?.querySelectorAll('button')||[]].find(b=>b.textContent?.replace(/\s+/g,' ').trim()==='Chia sẻ');
     return {h1:document.querySelector('main h1')?.textContent?.trim()||'',textLength:(document.querySelector('main')?.textContent||'').trim().length,
       sharingFound:Boolean(sharing),sharingActive:Boolean(sharing?.classList.contains('text-[#0B5FA5]')||sharing?.querySelector('.is-active')),
+      activeCategoryLinks:[...root?.querySelectorAll('a[aria-current="page"]')||[]]
+        .map(a=>({href:a.getAttribute('href')||'',label:a.textContent?.trim()||''}))
+        .filter(a=>a.href.includes('/cat/')),
       documentWidth:document.documentElement.scrollWidth};
    },view.name==='mobile');
    assert(r?.status()===200&&detail.h1&&detail.textLength>250,'Article detail missing '+slug+' '+JSON.stringify(detail));
    assert(detail.sharingFound&&detail.sharingActive&&detail.documentWidth<=view.width+2,
      'Article Header sharing menu not active '+view.name+' '+slug+' '+JSON.stringify(detail));
-   result.articles.push({viewport:view.name,slug,status:r.status(),...detail});
+   const taxonomyResponse=await article.request.get(
+     'https://admin.marine-aqua.io.vn/wp-json/wp/v2/posts?slug='+encodeURIComponent(slug)+'&_embed=wp:term&per_page=1',
+     {timeout:30000}
+   );
+   assert(taxonomyResponse.ok(),'Cannot verify native WordPress taxonomy '+slug+' HTTP '+taxonomyResponse.status());
+   const sourcePosts=await taxonomyResponse.json();
+   const sourcePost=sourcePosts.find(p=>p.slug===slug);
+   const categories=(sourcePost?._embedded?.['wp:term']||[]).flat().filter(t=>t.taxonomy==='category').map(t=>t.slug);
+   const activeCategories=detail.activeCategoryLinks.map(x=>new URL(x.href,HOST).pathname.split('/').filter(Boolean).pop());
+   const expectedCategory=categories.find(x=>targets.some(([,menuSlug])=>menuSlug===x));
+   if(expectedCategory)assert(activeCategories.includes(expectedCategory),
+     'Article category submenu not active '+view.name+' '+slug+' expected='+expectedCategory+' actual='+JSON.stringify(detail.activeCategoryLinks));
+   result.articles.push({viewport:view.name,slug,status:r.status(),expectedCategory:expectedCategory||null,...detail});
   }
   await article.close();
  }
