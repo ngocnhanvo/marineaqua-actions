@@ -40,7 +40,7 @@ try{
     {waitUntil:'domcontentloaded',timeout:45000});
   assert.equal(wpPage?.status(),200,'Builder page unavailable');
   const frame=page.frameLocator('#esc-vb-frame');
-  await frame.locator('[data-tablepress-preview="home_04"]').waitFor({state:'visible',timeout:50000});
+  await frame.locator('section[data-tablepress-preview="home_04"]').waitFor({state:'visible',timeout:50000});
   for(const tableId of TABLES){
     const section=frame.locator('section[data-tablepress-preview="'+tableId+'"]');
     const track=section.locator('[data-esc-builder-product-track][data-esc-source-table="'+tableId+'"]');
