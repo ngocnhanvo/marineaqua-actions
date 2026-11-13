@@ -1,4 +1,4 @@
-name: Marine Aqua bootstrap WooCommerce cart and checkout Pages
+name: Marine Aqua bootstrap approved business Pages
 on:
   push:
     branches: [main]
@@ -26,11 +26,11 @@ jobs:
           node-version: '24'
       - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
       - run: node --check scripts/marineaqua-checkout-pages-bootstrap.mjs
-      - name: Create only missing WordPress cart and checkout Pages with readback
+      - name: Create only missing Pages in the selected scope with readback
         env:
           WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
           WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
-        run: node scripts/marineaqua-checkout-pages-bootstrap.mjs
+        run: node scripts/marineaqua-checkout-pages-bootstrap.mjs --scope=account
       - uses: actions/upload-artifact@v4
         if: always()
         with:
