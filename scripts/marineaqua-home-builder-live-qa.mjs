@@ -5,8 +5,8 @@ import { mkdir,writeFile } from 'node:fs/promises';
 const WP='https://admin.marine-aqua.io.vn';
 const FRONT='https://marine-aqua.io.vn';
 const ACTIONS='ngocnhanvo/marineaqua-actions';
-const SHA='2954c59725a1774ece1da5ef766a114ba93931e9';
-const RELEASE_AT=Date.parse('2026-11-13T17:32:39Z')-15000;
+const SHA='6f713e284a18f576e6463891b196ecfaff8cc508';
+const RELEASE_AT=Date.parse('2026-11-13T17:42:23Z')-15000;
 const DIR='home-builder-live-evidence';
 const report={status:'STARTED',sourceSha:SHA,production:{status:'PENDING'},cms:{status:'NOT_TESTED'},
   public:{status:'NOT_TESTED',views:[]},builder:{status:'NOT_TESTED'},errors:[]};
@@ -127,6 +127,12 @@ async function verifyCmsAndBuilder(){
   await page.screenshot({path:DIR+'/builder-heading-selection.png',fullPage:false});
   assert.ok(editorVisible,'Clicking heading did not open Visual Builder text editor');
   assert.equal((await box.inputValue()).trim(),before.trim(),'Builder picked wrong field content');
+  // Image edit must remain independent after selecting a text field.
+  const media=frame.locator('section[data-marine-home-variant="desktop"] .marine-hero-media').first();
+  await media.click({position:{x:20,y:20},timeout:12000});
+  await page.waitForTimeout(500);
+  report.builder.imageEditorVisible=await page.locator('#esc-vb-image-choose').isVisible().catch(()=>false);
+  assert.ok(report.builder.imageEditorVisible,'Image editing was broken when detaching image click target');
   report.builder.status='PASS';
  }finally{await ctx.close();}
 }
