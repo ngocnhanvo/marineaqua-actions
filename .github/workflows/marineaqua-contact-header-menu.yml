@@ -1,0 +1,40 @@
+name: Marine Aqua connect contact Header menu
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-contact-header-menu.mjs'
+      - '.github/workflows/marineaqua-contact-header-menu.yml'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-header-information-links
+  cancel-in-progress: false
+jobs:
+  bind:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check scripts/marineaqua-contact-header-menu.mjs
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Update only WordPress Contact Header link and verify readback
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-contact-header-menu.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: contact-header-menu-evidence
+          path: contact-header-evidence/
+          retention-days: 14
