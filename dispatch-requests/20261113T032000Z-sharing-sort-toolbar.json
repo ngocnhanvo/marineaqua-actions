@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "68ae5097bf43c325de3770006db04c662a3fd0e1",
+  "reason": "Deploy WordPress-backed sharing article sort toolbar",
+  "request_id": "20261113T032000Z-sharing-sort-toolbar",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
