@@ -1,0 +1,89 @@
+{
+  "status": "PASS",
+  "origin": "https://marine-aqua.io.vn",
+  "checks": [
+    {
+      "viewport": "desktop",
+      "httpStatus": 200,
+      "links": [
+        {
+          "label": "Chính sách đổi trả hàng",
+          "expected": "/chinh-sach-doi-tra-hang",
+          "actual": "/chinh-sach-doi-tra-hang",
+          "pass": true
+        },
+        {
+          "label": "Phí ship hàng",
+          "expected": "/thong-bao",
+          "actual": "/thong-bao",
+          "pass": true
+        },
+        {
+          "label": "Hướng dẫn mua hàng ở xa",
+          "expected": "/huong-dan-mua-hang-o-xa",
+          "actual": "/huong-dan-mua-hang-o-xa",
+          "pass": true
+        },
+        {
+          "label": "Hướng dẫn mua hàng tại nhà",
+          "expected": "/huong-dan-mua-hang-tai-nha",
+          "actual": "/huong-dan-mua-hang-tai-nha",
+          "pass": true
+        },
+        {
+          "label": "Thời gian bán hàng",
+          "expected": "/thoi-gian-ban-hang",
+          "actual": "/thoi-gian-ban-hang",
+          "pass": true
+        }
+      ],
+      "width": {
+        "viewport": 1280,
+        "document": 1280
+      }
+    },
+    {
+      "viewport": "mobile",
+      "httpStatus": 200,
+      "links": [
+        {
+          "label": "Chính sách đổi trả hàng",
+          "expected": "/chinh-sach-doi-tra-hang",
+          "actual": "/chinh-sach-doi-tra-hang",
+          "pass": true
+        },
+        {
+          "label": "Phí ship hàng",
+          "expected": "/thong-bao",
+          "actual": "/thong-bao",
+          "pass": true
+        },
+        {
+          "label": "Hướng dẫn mua hàng ở xa",
+          "expected": "/huong-dan-mua-hang-o-xa",
+          "actual": "/huong-dan-mua-hang-o-xa",
+          "pass": true
+        },
+        {
+          "label": "Hướng dẫn mua hàng tại nhà",
+          "expected": "/huong-dan-mua-hang-tai-nha",
+          "actual": "/huong-dan-mua-hang-tai-nha",
+          "pass": true
+        },
+        {
+          "label": "Thời gian bán hàng",
+          "expected": "/thoi-gian-ban-hang",
+          "actual": "/thoi-gian-ban-hang",
+          "pass": true
+        }
+      ],
+      "width": {
+        "viewport": 1280,
+        "document": 1280
+      }
+    }
+  ],
+  "errors": [],
+  "run_id": "43336814220",
+  "outcome": "success"
+}
