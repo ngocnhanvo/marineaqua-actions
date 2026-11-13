@@ -152,8 +152,8 @@
   "bridgeRuns": [
     {
       "id": 43352993029,
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "created_at": "2026-11-13T02:33:26Z",
       "html_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43352993029"
     },
@@ -264,5 +264,13 @@
       "html_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43352394338"
     }
   ],
-  "sharingQaRuns": []
+  "sharingQaRuns": [
+    {
+      "id": 43353305198,
+      "status": "in_progress",
+      "conclusion": null,
+      "created_at": "2026-11-13T02:36:05Z",
+      "html_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43353305198"
+    }
+  ]
 }
