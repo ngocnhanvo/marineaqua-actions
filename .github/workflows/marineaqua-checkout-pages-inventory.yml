@@ -1,0 +1,37 @@
+name: Marine Aqua read-only checkout Pages inventory
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-checkout-pages-inventory.yml'
+      - 'scripts/marineaqua-checkout-pages-inventory.mjs'
+permissions:
+  contents: read
+jobs:
+  inventory:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-checkout-pages-inventory.mjs
+      - name: Read WordPress Page action, key and slug without modifying records
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-checkout-pages-inventory.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-checkout-pages-inventory
+          path: checkout-pages-inventory-evidence/
+          retention-days: 7
