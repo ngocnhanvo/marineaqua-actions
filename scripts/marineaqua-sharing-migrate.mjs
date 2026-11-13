@@ -142,7 +142,7 @@ try{
    must(/\.(?:jpe?g|png|webp|gif)$/i.test(filename),'Unsupported featured image '+filename);
    // Search target media by deterministic original file name; never overwrite existing media.
    const found=await api('GET','/wp-json/wp/v2/media?search='+encodeURIComponent(filename)+'&per_page=30&_fields=id,source_url');
-   const identical=found.filter(item=>decodeURIComponent(new URL(item.source_url).pathname.split('/').pop())===filename);
+   const identical=found.filter(item=>{const url=String(item?.source_url||'');if(!url)return false;try{return decodeURIComponent(new URL(url,WP).pathname.split('/').pop())===filename}catch{return false}});
    must(identical.length<=1,'Ambiguous existing media '+filename);
    let mediaId=identical[0]?.id;
    if(!mediaId){
