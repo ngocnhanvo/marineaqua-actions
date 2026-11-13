@@ -113,6 +113,34 @@
         "col",
         "historyProcessRow",
         "historyProcessColumn"
+      ],
+      "insertColumnSignature": "function(e,o,t,n){if(1==obj.options.allowInsertColumn){var r=[];if(e>0)var l=e;else l=1,e&&(r=e);t=!!t;var s=obj.options.columns.length-1;if((null==o||o>=parseInt(s)||o<0)&&(o=s),!1===obj.dispatch(\"onbeforeinsertcolumn\",el,o,l,t))return!1;if(Object.keys(obj.options.mergeCells).length>0&&obj.isColMerged(o,t).length){if(!confirm(obj.options.text.thisActionWillDestroyAnyExistingMergedCellsAreYouSure))return!1;obj.destroyMerged()}n||(n=[]);for(var i=0;i<l;i++)n[i]||(n[i]={type:\"text\",source:[],options:[],width:obj.options.defaultColWidth,align:obj.options.defaultColAlign});var a=t?o:o+1;obj.options.columns=jexcel.injectArray(obj.options.columns,a,n);for(var c=obj.headers.splice(a),u=obj.colgroup.splice(a),d=[],j=[],b=[],p=[],h=[],g=a;g<l+a;g++)obj.createCellHeader(g),obj.headerContainer.insertBefore(obj.headers[g],obj.headerContainer.children[g+1]),obj.colgroupContainer.insertBefore(obj.colgroup[g],obj.colgroupContainer.children[g+1]),d.push(obj.headers[g]),j.push(obj.colgroup[g]);if(obj.options.footers)for(var f=0;f<obj.options.footers.length;f++){for(h[f]=[],i=0;i<l;i++)h[f].push(\"\");obj.options.footers[f].splice(a,0,h[f])}for(var m=0;m<obj.options.data.length;m++){var C=obj.options.data[m].splice(a),x=obj.records[m].splice(a);for(p[m]=[],b[m]=[],g=a;g<l+a;g++){var y=r[m]?r[m]:\"\";obj.options.data[m][g]=y;var v=obj.createCell(g,m,obj.options.data[m][g]);obj.records[m][g]=v,obj.rows[m]&&obj.rows[m].insertBefore(v,obj.rows[m].children[g+1]),p[m].push(y),b[m].push(v)}Array.prototype.push.apply(obj.options.data[m],C),Array.prototype.push.apply(obj.records[m],x)}if(Array.prototype.push.apply(obj.headers,c),Array.prototype.push.apply(obj.colgroup,u),obj.options.nestedHeaders&&obj.options.nestedHeaders.length>0)if(obj.options.nestedHeaders[0]&&obj.options.nestedHeaders[0][0])for(f=0;f<obj.options.nestedHeaders.length;f++){var w=parseInt(obj.options.nestedHeaders[f][obj.options.nestedHeaders[f].length-1].colspan)+l;obj.options.nestedHeaders[f][obj.options.nestedHeaders[f].length-1].colspan=w,obj.thead.children[f].children[obj.thead.children[f].children.length-1].setAttribute(\"colspan\",w);var A=obj.thead.children[f].children[obj.thead.children[f].children.length-1].getAttri",
+      "getSelectedColumnsSignature": "function(){for(var e=[],o=0;o<obj.headers.length;o++)obj.headers[o].classList.contains(\"selected\")&&e.push(o);return e}",
+      "tableControls": [
+        {
+          "text": "Insert Link",
+          "outer": "<button type=\"button\" class=\"components-button is-secondary is-compact\">Insert Link</button>"
+        },
+        {
+          "text": "Insert Image",
+          "outer": "<button type=\"button\" class=\"components-button is-secondary is-compact\">Insert Image</button>"
+        },
+        {
+          "text": "Insert",
+          "outer": "<button type=\"button\" class=\"components-button is-secondary is-compact\">Insert</button>"
+        },
+        {
+          "text": "Delete",
+          "outer": "<button type=\"button\" class=\"components-button is-secondary is-compact\">Delete</button>"
+        },
+        {
+          "text": "Insert",
+          "outer": "<button type=\"button\" class=\"components-button is-secondary is-compact\">Insert</button>"
+        },
+        {
+          "text": "Delete",
+          "outer": "<button type=\"button\" class=\"components-button is-secondary is-compact\">Delete</button>"
+        }
       ]
     }
   },
@@ -470,7 +498,7 @@
     ]
   },
   "errors": [],
-  "run_id": 43472343242,
-  "run_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43472343242",
-  "recorded_at": "2026-11-13T17:24:38.719Z"
+  "run_id": 43472633558,
+  "run_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43472633558",
+  "recorded_at": "2026-11-13T17:26:16.551Z"
 }
