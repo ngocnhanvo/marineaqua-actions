@@ -72,6 +72,7 @@ try {
 } catch (error) {
   report.status = 'FAIL';
   report.errors.push(String(error?.message || error).slice(0, 1000));
+  console.error('MARINEAQUA_CART_CHECKOUT_DIAGNOSTIC', JSON.stringify({ checks:report.checks, currentUrl:context?.pages()[0]?.url() || '', transientCart: Boolean(transient?.cartKey) }));
   process.exitCode = 1;
   console.error('MARINEAQUA_CART_CHECKOUT_LIVE_QA=FAIL', report.errors.at(-1));
 } finally {
