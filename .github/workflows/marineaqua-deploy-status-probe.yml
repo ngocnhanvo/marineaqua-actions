@@ -40,9 +40,13 @@ jobs:
           if(!menuRunResponse.ok)throw Error('Header workflow run lookup failed '+menuRunResponse.status);
           const menuData=await menuRunResponse.json();
           const menuRuns=(menuData.workflow_runs||[]).map(x=>({id:x.id,status:x.status,conclusion:x.conclusion,created_at:x.created_at,html_url:x.html_url}));
+          const bridgeResponse=await fetch('https://api.github.com/repos/'+repo+'/actions/workflows/marineaqua-dispatch-bridge.yml/runs?per_page=5',{headers});
+          if(!bridgeResponse.ok)throw Error('Bridge workflow lookup failed '+bridgeResponse.status);
+          const bridgeData=await bridgeResponse.json();
+          const bridgeRuns=(bridgeData.workflow_runs||[]).map(x=>({id:x.id,status:x.status,conclusion:x.conclusion,created_at:x.created_at,html_url:x.html_url}));
           const endpoint='https://api.github.com/repos/'+repo+'/contents/docs/information-pages-production-runs.json';
           const previous=await fetch(endpoint,{headers}).then(r=>r.ok?r.json():null);
-          const body={message:'Record read-only canonical production run statuses',content:Buffer.from(JSON.stringify({runs,qaRuns,menuRuns},null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
+          const body={message:'Record read-only canonical production run statuses',content:Buffer.from(JSON.stringify({runs,qaRuns,menuRuns,bridgeRuns},null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
           if(previous?.sha)body.sha=previous.sha;
           const saved=await fetch(endpoint,{method:'PUT',headers,body:JSON.stringify(body)});
           if(!saved.ok)throw Error('Status evidence write failed '+saved.status+' '+(await saved.text()).slice(0,140));
