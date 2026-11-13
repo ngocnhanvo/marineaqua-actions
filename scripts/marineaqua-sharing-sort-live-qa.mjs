@@ -1,3 +1,4 @@
+// Run after canonical sort-toolbar production deployment 43357439414.
 import { chromium } from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
 const ROOT='https://marine-aqua.io.vn',OUT='sharing-sort-evidence';
