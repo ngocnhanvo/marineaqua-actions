@@ -197,12 +197,14 @@ async function verifyCmsAndBuilder(){
   // original production display and unchanged canonical WordPress table.
   const draft=brandValue+' [QA preview only]';
   await page.locator('#esc-vb-edit-title').fill(draft);
-  await brand.getByText(draft,{exact:true}).waitFor({state:'visible',timeout:12000});
+  await brand.filter({hasText:draft}).waitFor({state:'visible',timeout:12000});
+  assert.equal((await brand.innerText()).trim(),draft,'Draft did not update the visible product title');
   report.builder.productTitleDraftVisible=true;
   await page.locator('#esc-vb-edit-cancel').click();
   await page.waitForFunction(expected=>
      document.querySelector('#esc-vb-edit-title')?.value===expected,brandValue,{timeout:10000});
-  await brand.getByText(brandValue,{exact:true}).waitFor({state:'visible',timeout:12000});
+  await page.waitForTimeout(400);
+  assert.equal((await brand.innerText()).trim(),brandValue,'Cancel did not restore the visible product title');
   const brandSource=await ctx.request.get(WP+'/wp-json/tablepress/v1/table/home_04',{timeout:30000});
   assert.equal(brandSource.status(),200,'Source Product ESC Table unavailable');
   const canonical=await brandSource.json();
