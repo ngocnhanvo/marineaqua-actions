@@ -1,4 +1,4 @@
-name: Marine Aqua dispatch verified Visual Builder PHP release
+name: Marine Aqua dispatch Product ESC Table schema PHP release
 on:
   push:
     branches: [main]
@@ -25,14 +25,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git -C source-php rev-parse HEAD)" = "94388d16a37f632c376cf2358fb38ba452f0afb8"
+          test "$(git -C source-php rev-parse HEAD)" = "ae3eb0184661da89419a84348c6a3cde045c7158"
       - name: Dispatch the existing PHP-only release
         uses: actions/github-script@v7
         with:
           script: |
             const owner=context.repo.owner,repo=context.repo.repo;
-            const expected='94388d16a37f632c376cf2358fb38ba452f0afb8';
-            const path='qa-results/20261114-product-heading-php-release.json';
+            const expected='ae3eb0184661da89419a84348c6a3cde045c7158';
+            const path='qa-results/20261114-product-items-php-release.json';
             const results={source_repo:'ngocnhanvo/marineaqua-php',source_sha:expected,
               target:'marineaqua-php-release.yml',trigger:'workflow_dispatch',
               status:'STARTED',checks:[],errors:[]};
