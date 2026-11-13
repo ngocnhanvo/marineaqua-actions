@@ -137,6 +137,8 @@ try{
   report.builder.visualSwapSelection='PASS';
   await page.screenshot({path:DIR+'/product-swap-red-blue.png',fullPage:false});
   await page.locator('#esc-vb-item-sort-cancel').click();
+  await track.locator('[data-esc-vb-item-source],[data-esc-vb-item-target]')
+    .first().waitFor({state:'detached',timeout:12000}).catch(()=>{});
   assert.equal(await track.locator('[data-esc-vb-item-source],[data-esc-vb-item-target]').count(),0,'Cancel left visual item marks');
   const finalIds=await cards.evaluateAll(nodes=>nodes.map(node=>node.getAttribute('data-esc-builder-product-id')));
   assert.deepEqual(finalIds,originalIds,'Cancel changed rendered Product order');
