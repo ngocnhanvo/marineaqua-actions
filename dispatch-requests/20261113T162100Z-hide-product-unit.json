@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T162100Z-hide-product-unit",
+  "reason": "Remove display-only unit label beneath product detail price; preserve WooCommerce pricing",
+  "source_sha": "2815ca052eda6c99979f67009eba045271393e5e",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
