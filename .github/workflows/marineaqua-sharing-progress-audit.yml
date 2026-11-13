@@ -1,5 +1,6 @@
 name: Marine Aqua sharing Posts progress audit (read only)
 # Recheck content-only migration count after stopping the superseded image importer
+# Verify article count while the final source-backed migration completes
 on:
   push:
     branches: [main]
