@@ -1,10 +1,10 @@
 # Checkpoint — Tài khoản và tên sản phẩm trong giỏ hàng
 
 - Project: marine-aqua.vn
-- Updated: 2026-11-13 20:34 +07:00 (Asia/Ho_Chi_Minh)
+- Updated: 2026-11-13 20:38:43 +07:00 (Asia/Ho_Chi_Minh)
 - Code mode: auto-build
 - Source write gate: bypass
-- Status: PARTIAL — production và main live QA 28/28 PASS; đang kiểm tra riêng một trạng thái payment unavailable trên mobile.
+- Status: DONE — tên sản phẩm, tài khoản, triển khai và xác minh trong phạm vi yêu cầu đã hoàn tất.
 - Frontend: https://marine-aqua.io.vn
 - WordPress: https://admin.marine-aqua.io.vn
 
@@ -22,6 +22,7 @@ Hover/badge và dòng “Phí giao hàng: Thỏa thuận” đã DONE ở các c
 | ngocnhanvo/marineaqua-astro / master | ae45df69316e554f125e6f3d4aae5d66d429694b | HEAD production cuối; private/no-store và Vary Cookie cho dispatcher SSR giỏ hàng/thanh toán/receipt |
 | ngocnhanvo/marineaqua-php / master | 073ecf89d30243625d8433ec5f386b44e5bd12e3 | Chuyển đăng ký login ra khỏi module chỉ nạp cho CoCart, kiểm tra credentials qua WordPress |
 | ngocnhanvo/marineaqua-actions / main | ef2b863ef9d24da6422d321bebf25cd568c73299 | QA scope account-cart, bảo toàn full/shipping-fee scopes |
+| ngocnhanvo/marineaqua-actions / main | 6cb8d252a15e5eb20f8562aa020c80e359531330 | Kiểm tra riêng payment configuration trên mobile, chỉ đọc |
 
 Source ASTRO trước task: 2668d2876f29775e5f552c05aa595daa15903f25. PHP trước task: 9855763bf7319b18c9e36f86db5430ace39e6d66.
 
@@ -53,7 +54,7 @@ Không sửa các Page Cart/Checkout/Done hoặc WordPress Menu. Không cần na
 
 ## Kiểm thử và phát hành đã PASS
 
-- Astro CI: run [43382064682](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43382064682), job 131912131541; source ae45df69316e554f125e6f3d4aae5d66d429694b. 346 tests / 38 files PASS, Astro check 0 errors, 0 warnings. Có 58 auth/session regression cases mới.
+- Astro CI: run [43382064682](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43382064682), attempt 7, job 131912131541; source ae45df69316e554f125e6f3d4aae5d66d429694b. 346 tests / 38 files PASS, Astro check 0 errors, 0 warnings. Có 58 auth/session regression cases mới.
 - PHP release: run [43432346687](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43432346687), job 131908712236 — SUCCESS. Login 10 nhóm mock PASS; checkout/payment regression PASS. FTPS chỉ thay hai file PHP liên quan, hash readback PASS, 12 files checked. Bridge 43432303874 SUCCESS.
 - Initial Astro release d5a3ec0: run 43432981117 / bridge 43432948583 — SUCCESS. Không chạy lại checkpoint này.
 - Final Astro release ae45df6: run [43433564180](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43433564180), job 131912829745 / bridge 43433521485 — SUCCESS. ASTRO_BUILD_COMPLETE, ASTRO_OUTPUT_VALIDATION, FTPS_UPLOAD và SIGNED_UNZIP_SUCCESS đều PASS.
@@ -69,15 +70,27 @@ Cleanup: hai giỏ tạm, mỗi giỏ xóa 1 item và readback remainingItems=0.
 
 Artifact14043125444, cart-checkout-live-qa, SHA256 dda50014f305f6ebed8e7621b3430b152fa1ed8fa394bee82282458a5a773a55. Đã download và đối chiếu digest. Tám ảnh đã được xem, không thấy lỗi tên/layout/profile trong phạm vi thay đổi.
 
-## Điểm tiếp tục — payment readiness riêng trên mobile
+## Kiểm tra lại phương thức thanh toán trên mobile — PASS
 
-Ảnh mobile-account-checkout.png có cảnh báo không tải được phương thức thanh toán, trong khi desktop có onepayUS và chuyển khoản. Main QA kiểm tên/privacy/shipping nhưng không assert gateway readiness; vì vậy KHÔNG suy main QA28 PASS thành payment-ready.
+Ảnh mobile-account-checkout.png của main QA có cảnh báo không tải được phương thức thanh toán; desktop có onepayUS và chuyển khoản. Main28 kiểm tên/privacy/shipping, không được diễn giải thành payment readiness khi ảnh thể hiện unavailable.
 
-Đã so sánh source trước/sau: CheckoutPage, paymentMethods.ts, PHP payment-gateways.php không đổi. Loader server-side chỉ nhận avas, không nhận cart, cookie, UA hay viewport; GET Woo payment_gateways có timeout10s và cache:no-store từ trước. Auth module chỉ áp dụng login route; private HTML headers không đổi outbound gateway request. Timing phù hợp lỗi upstream tạm thời nhưng chưa chứng minh nguyên nhân timeout.
+Đã đối chiếu source trước/sau: CheckoutPage, paymentMethods.ts và PHP payment-gateways.php không đổi. Loader server-side chỉ nhận avas, không nhận cart, cookie, UA hay viewport; timeout10s/cache:no-store đã có từ trước. Timing phù hợp lỗi upstream tạm thời nhưng không có log chứng minh nguyên nhân timeout. Không sửa cấu hình gateway hoặc production để ép kiểm tra xanh.
 
-Actions agent đang chuẩn bị scope checkout-readiness trong workflow QA hiện hữu: mobile GET /thanh-toan chỉ đọc, không tạo cart, không auth/order/mutation. Empty-cart submit disabled là đúng; chỉ chứng minh gateway configuration hiển thị. Cho phép tối đa một GET mới khi trạng thái unavailable rõ ràng, ghi cả lần đầu và outcome.
+Scope checkout-readiness chạy qua workflow QA hiện hữu:
+- Run [43435255223](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43435255223), job 131918554824 — SUCCESS, 2/2 named checks PASS.
+- QA source: 6cb8d252a15e5eb20f8562aa020c80e359531330.
+- Mobile390×844, GET /thanh-toan, không cart_key hoặc customer session.
+- FIRST_GET_READY: HTTP200, document response1856ms, DOM loaded4622ms; không dùng lượt retry được cho phép.
+- Hai phương thức thực tế: onepayus / onepayUS và bacs / Chuyển khoản ngân hàng trực tiếp; controls hiển thị và enabled, một mặc định được chọn, warningCount=0.
+- Giỏ trống hiển thị đúng và submit disabled. Đây là kiểm tra tải cấu hình, không chứng nhận tạo đơn hoặc thanh toán thật.
+- Created carts, cart mutations, auth requests, order requests và checkout POST đều0; remainingItems=0.
+- Artifact14043591701, SHA256 883fb83cad3cfa58095e56aef23e9329b095bf92e70aba13c55e00a33bcdf3d3 đã đối chiếu. Đã xem ảnh riêng vùng payment; hai lựa chọn rõ ràng, không còn warning.
 
-Bước tiếp theo:
-1. Review/commit scope QA hẹp này, chờ run hoàn tất; không chạy lại main28 hoặc production nếu không có lỗi source thật.
-2. Xác nhận radio payment methods hiển thị/khớp cấu hình và warning không còn; xem ảnh, ghi hạn chế nếu không phục hồi.
-3. Cập nhật checkpoint DONE với run/artifact mới và ghi nguyên văn phản hồi cuối vào chatgpt/latest-response.md; verify SHA/content trước khi kết thúc.
+Main QA không bị chạy lại và không cần thêm production release sau ae45df69316e554f125e6f3d4aae5d66d429694b.
+
+## Giới hạn kiểm chứng và trạng thái tiếp tục
+
+- Positive login/profile/logout được kiểm tra bằng synthetic fixtures; không dùng tài khoản khách hàng thật hoặc tạo đơn/giao dịch/email thật.
+- Tên/quantity controls được kiểm tra với simple product. Dữ liệu và selector variation giữ nguyên source; nhánh variation ghi N/A trong live QA này.
+- Trạng thái payment unavailable từng được quan sát đã được giữ trong bằng chứng; lượt GET độc lập sau đó xác nhận hai phương thức tải bình thường, không kết luận chắc chắn nguyên nhân sự cố trước đó.
+- Không còn bước dở của yêu cầu tên sản phẩm và tương tác tài khoản. Đọc chatgpt/latest-response.md rồi đối chiếu HEAD khi nhận việc mới; không tạo lại Page83459 hoặc lặp các checkpoint đã DONE.
