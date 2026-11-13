@@ -1,0 +1,42 @@
+name: Marine Aqua checkout payment settings (no orders)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-checkout-payments.yml'
+      - 'scripts/marineaqua-checkout-payments.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-checkout-payment-settings
+  cancel-in-progress: false
+jobs:
+  configure-gateways:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check settings script syntax
+        run: node --check scripts/marineaqua-checkout-payments.mjs
+      - name: Install matching Playwright driver
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Replace OnePayUS with native COD and verify scoped settings
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-checkout-payments.mjs --apply
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-checkout-payments
+          path: checkout-payments-evidence/
+          retention-days: 14
