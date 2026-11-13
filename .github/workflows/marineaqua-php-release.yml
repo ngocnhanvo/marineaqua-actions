@@ -37,6 +37,9 @@ jobs:
           php -l source-php/marineaqua-unzip.php
           php source-php/tests/marineaqua-image-delta.php
           php source-php/tests/marineaqua-static-delta.php
+          php -l source-php/wp-content/plugins/esc-visual-builder/includes/site-config.php
+          php -l source-php/tests/visual-builder-product-section-title.test.php
+          php source-php/tests/visual-builder-product-section-title.test.php
           php -l source-php/wp-content/plugins/github-trigger/vcs-build-trigger.php
           php -l source-php/wp-content/mu-plugins/esc-github-trigger-config.php
           php -l source-php/wp-content/mu-plugins/esc-seo-files.php
