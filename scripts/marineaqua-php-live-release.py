@@ -24,6 +24,7 @@ FILES = (
     "wp-content/mu-plugins/esc-github-trigger-config.php",
     "wp-content/mu-plugins/esc-seo-files.php",
     "wp-content/mu-plugins/marineaqua-product-sale-rest.php",
+    "wp-content/themes/vibe-code-theme/inc/user/account-login.php",
     "wp-content/themes/vibe-code-theme/inc/checkout/checkout_endpoint.php",
     "wp-content/themes/vibe-code-theme/inc/tools/payment-gateways.php",
     "wp-content/plugins/github-trigger/vcs-build-trigger.php",
