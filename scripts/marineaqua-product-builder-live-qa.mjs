@@ -78,9 +78,7 @@ try{
     await cards.first().click({position:{x:45,y:40},timeout:20000});
     await page.waitForFunction(id=>{
       const ctx=document.querySelector('#esc-vb-item-context')?.textContent||'';
-      const status=document.querySelector('#esc-vb-item-status')?.textContent||'';
-      return ctx.startsWith(id+' · dòng 1') ||
-        (status && !status.includes('Đang xác định đúng dòng'));
+      return ctx.startsWith(id+' · dòng 1');
     },tableId,{timeout:55000}).catch(()=>{});
     const selectedInfo={
       tableId,
