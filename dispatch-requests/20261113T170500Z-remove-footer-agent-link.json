@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T170500Z-remove-footer-agent-link",
+  "reason": "Publish removal of redundant Agent link from footer without changing the chat widget",
+  "source_sha": "f243c2c650eb3261251de8f38a7d2ee3737b12e6",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
