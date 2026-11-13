@@ -1,0 +1,33 @@
+name: Marine Aqua stop superseded slow sharing import
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-stop-superseded-sharing-import.yml'
+permissions:
+  contents: read
+  actions: write
+jobs:
+  stop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Cancel only obsolete native-media import after fast content migration is queued
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          node --input-type=module <<'NODE'
+          const oldRun=43349901884;
+          const expectedSha='6bfd737ee2433f8f0c32ec9000014d6099b3b49d';
+          const origin='https://api.github.com/repos/'+process.env.GH_REPO;
+          const headers={Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+          const r=await fetch(origin+'/actions/runs/'+oldRun,{headers});
+          if(!r.ok)throw Error('Cannot verify previous run '+r.status);
+          const run=await r.json();
+          if(run.head_sha!==expectedSha||run.name!=='Marine Aqua migrate 133 sharing posts and seven categories')throw Error('Obsolete run identity mismatch');
+          if(run.status==='completed'){console.log('OLD_RUN_ALREADY_COMPLETED');process.exit(0)}
+          const cancel=await fetch(origin+'/actions/runs/'+oldRun+'/cancel',{method:'POST',headers});
+          if(cancel.status!==202)throw Error('Cancel request rejected HTTP '+cancel.status);
+          console.log('CANCELLED_SUPERSEDED_SHARING_RUN='+oldRun);
+          NODE
