@@ -56,10 +56,23 @@ try{
    const field=page.locator('input[name="esc-menu-item-custom-url['+item.id+']"]');
    const edit=page.locator('#edit-'+item.id);
    assert(await mode.count()===1&&await field.count()===1&&await edit.count()===1,'Native editor fields missing for '+item.label);
-   await edit.click();
-   // Set only the URL/type for the existing item, leaving order, caption and parent intact.
-   await mode.selectOption('custom');
-   await field.fill(item.hrefTarget||target.find(x=>x.label===item.label).href);
+   // The native WP editor can hide its toggle while the selected menu item
+   // is offscreen/inside a collapsed tree. Click through the DOM to preserve
+   // WordPress's native expand handler; then set the real form controls.
+   await edit.evaluate(element=>element.click());
+   const desired=target.find(x=>x.label===item.label).href;
+   await page.evaluate(({id,url})=>{
+     const select=document.querySelector('select[name="esc-menu-item-link-type['+id+']"]');
+     const input=document.querySelector('input[name="esc-menu-item-custom-url['+id+']"]');
+     if(!(select instanceof HTMLSelectElement)||!(input instanceof HTMLInputElement))throw Error('Native menu controls unavailable');
+     if(![...select.options].some(option=>option.value==='custom'))throw Error('Native custom mode unavailable');
+     select.value='custom';
+     select.dispatchEvent(new Event('change',{bubbles:true}));
+     input.value=url;
+     input.dispatchEvent(new Event('input',{bubbles:true}));
+     input.dispatchEvent(new Event('change',{bubbles:true}));
+     if(select.value!=='custom'||input.value!==url)throw Error('Native form value verification failed');
+   },{id:item.id,url:desired});
   }
   const save=page.locator('#save_menu_footer');
   assert(await save.count()===1,'WordPress native save menu button not found');
