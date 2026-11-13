@@ -2,6 +2,7 @@ name: Marine Aqua sharing Posts progress audit (read only)
 # Recheck content-only migration count after stopping the superseded image importer
 # Verify article count while the final source-backed migration completes
 # Refresh read-only migration progress after category Page parity review
+# Check new publishing batch without editing any WordPress record
 on:
   push:
     branches: [main]
