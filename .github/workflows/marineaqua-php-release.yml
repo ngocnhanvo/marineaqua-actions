@@ -47,6 +47,8 @@ jobs:
           php -l source-php/wp-content/themes/vibe-code-theme/inc/tools/payment-gateways.php
           php source-php/tests/checkout-preflight.test.php
           php source-php/tests/payment-gateway-read.test.php
+          php -l scripts/marineaqua-checkout-cod-contract.test.php
+          php scripts/marineaqua-checkout-cod-contract.test.php source-php
           ! grep -Eqi 'nghiencuukhoahoc|EduResearch Hub' source-php/wp-content/mu-plugins/esc-seo-files.php
           php -l source-php/wp-content/plugins/github-trigger/tests/build-status-regression.php
           php source-php/wp-content/plugins/github-trigger/tests/build-status-regression.php
