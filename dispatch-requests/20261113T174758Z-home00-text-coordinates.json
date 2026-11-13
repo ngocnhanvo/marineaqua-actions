@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T174758Z-home00-text-coordinates",
+  "reason": "Deploy direct row and field coordinates for editable homepage banner text",
+  "source_sha": "3ccaee45f8901dfaf0de697a78e565bc11a3bd63",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
