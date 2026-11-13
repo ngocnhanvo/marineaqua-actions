@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "df082d1f32aa52e5210f1ace20e1dea60a19f6d8",
+  "reason": "Deploy improved sharing category heading, description and search bar layout",
+  "request_id": "20261113T025000Z-sharing-archive-header-refresh",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
