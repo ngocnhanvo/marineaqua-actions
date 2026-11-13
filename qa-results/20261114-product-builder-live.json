@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "sourceSha": "d79e13c3cf9a023b7a165eef390fe11b12e2d7fb",
   "public": {
     "status": "PASS",
@@ -13,7 +13,7 @@
     ]
   },
   "builder": {
-    "status": "NOT_TESTED",
+    "status": "PASS",
     "tables": [
       {
         "id": "home_04",
@@ -64,121 +64,121 @@
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595898470
+        "time": 1794596008402
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/",
-        "time": 1794595898947
+        "time": 1794596008843
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/yoast/v1/statistics",
-        "time": 1794595898955
+        "time": 1794596008853
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595900676
+        "time": 1794596010503
+      },
+      {
+        "event": "response",
+        "status": 200,
+        "path": "/wp-json/yoast/v1/statistics",
+        "time": 1794596010936
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/",
-        "time": 1794595901050
-      },
-      {
-        "event": "response",
-        "status": 200,
-        "path": "/wp-json/yoast/v1/statistics",
-        "time": 1794595901056
+        "time": 1794596010947
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/changes",
-        "time": 1794595901816
+        "time": 1794596012046
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595902072
+        "time": 1794596012309
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/changes",
-        "time": 1794595903969
+        "time": 1794596014285
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595904088
+        "time": 1794596014376
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595907080
+        "time": 1794596028502
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595909589
+        "time": 1794596031141
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595910627
+        "time": 1794596032215
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595912645
+        "time": 1794596034316
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595913677
+        "time": 1794596035382
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595915715
+        "time": 1794596037466
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595916778
+        "time": 1794596038549
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595918806
+        "time": 1794596040633
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595919828
+        "time": 1794596041681
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595921864
+        "time": 1794596043703
       }
     ],
     "addDialog": "PASS",
@@ -186,15 +186,14 @@
     "sortStatus": "Item nguồn có viền đỏ. Nhấp item đích trong website để tô viền xanh.",
     "sortSourceText": "1. 82530",
     "sortFallbackVisible": false,
-    "visualSwapSelection": "PASS"
+    "visualSwapSelection": "PASS",
+    "visualSwapCancel": "PASS"
   },
   "writes": 0,
   "temporaryCreated": 0,
   "cleanupRemaining": 0,
-  "errors": [
-    "AssertionError [ERR_ASSERTION]: Cancel left visual item marks\n\n2 !== 0\n\n    at file:///__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:140:10"
-  ],
-  "qa_run_id": 43486527238,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43486527238",
-  "recorded_at": "2026-11-13T18:52:11.558Z"
+  "errors": [],
+  "qa_run_id": 43486831682,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43486831682",
+  "recorded_at": "2026-11-13T18:54:15.881Z"
 }
