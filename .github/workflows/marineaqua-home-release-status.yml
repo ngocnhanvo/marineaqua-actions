@@ -17,7 +17,7 @@ jobs:
         with:
           script: |
             const owner=context.repo.owner,repo=context.repo.repo;
-            const workflows=['marineaqua-dispatch-bridge.yml','marineaqua-production-deploy.yml','marineaqua-home-builder-live-qa.yml','marineaqua-php-release.yml','marineaqua-product-heading-php-launch.yml'];
+            const workflows=['marineaqua-dispatch-bridge.yml','marineaqua-production-deploy.yml','marineaqua-home-builder-live-qa.yml','marineaqua-php-release.yml','marineaqua-product-heading-php-launch.yml','marineaqua-astro-ci.yml'];
             const result={checked_at:new Date().toISOString(),workflows:{}};
             for(const id of workflows){
               const rows=await github.rest.actions.listWorkflowRuns({owner,repo,workflow_id:id,per_page:8});
