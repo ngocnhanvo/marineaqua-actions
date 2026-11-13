@@ -58,8 +58,20 @@ try{
     assert.equal(new Set(ids).size,count,'Duplicate product ID in '+tableId);
     await cards.first().scrollIntoViewIfNeeded();
     await cards.first().click({position:{x:45,y:40},timeout:20000});
-    await page.waitForFunction(id=>document.querySelector('#esc-vb-item-context')?.textContent?.startsWith(id+' · dòng 1'),
-      tableId,{timeout:20000});
+    await page.waitForTimeout(2000);
+    const selectedInfo={
+      tableId,
+      context:await page.locator('#esc-vb-item-context').innerText().catch(()=>null),
+      status:await page.locator('#esc-vb-item-status').innerText().catch(()=>null),
+      panelVisible:await page.locator('#esc-vb-item-panel').isVisible().catch(()=>false),
+      inspector:await page.locator('#esc-vb-inspector').innerText().catch(()=>null),
+      tag:await cards.first().evaluate(el=>({id:el.getAttribute('data-esc-builder-product-id'),
+        row:el.getAttribute('data-esc-source-row'),parent:el.closest('[data-esc-source-table]')?.getAttribute('data-esc-source-table'),
+        source:el.closest('[data-tablepress-preview]')?.getAttribute('data-tablepress-preview')}))
+    };
+    report.builder.lastSelection=selectedInfo;
+    assert.ok(selectedInfo.context?.startsWith(tableId+' · dòng 1'),
+      'Card selection did not map to native ESC Table: '+JSON.stringify(selectedInfo));
     await page.locator('#esc-vb-item-new').waitFor({state:'visible',timeout:15000});
     assert.ok(await page.locator('#esc-vb-item-new').isEnabled(),'Add disabled '+tableId);
     assert.ok(await page.locator('#esc-vb-item-delete').isEnabled(),'Delete disabled '+tableId);
