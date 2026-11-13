@@ -53,9 +53,13 @@ jobs:
           if(!sharingResponse.ok)throw Error('Sharing audit runs HTTP '+sharingResponse.status);
           const sharingData=await sharingResponse.json();
           const sharingRuns=(sharingData.workflow_runs||[]).map(x=>({id:x.id,status:x.status,conclusion:x.conclusion,created_at:x.created_at,html_url:x.html_url}));
+          const sharingMigrationResponse=await fetch('https://api.github.com/repos/'+repo+'/actions/workflows/marineaqua-sharing-migrate.yml/runs?per_page=6',{headers});
+          if(!sharingMigrationResponse.ok)throw Error('Sharing migration run lookup HTTP '+sharingMigrationResponse.status);
+          const sharingMigrationData=await sharingMigrationResponse.json();
+          const sharingMigrationRuns=(sharingMigrationData.workflow_runs||[]).map(x=>({id:x.id,status:x.status,conclusion:x.conclusion,created_at:x.created_at,html_url:x.html_url}));
           const endpoint='https://api.github.com/repos/'+repo+'/contents/docs/information-pages-production-runs.json';
           const previous=await fetch(endpoint,{headers}).then(r=>r.ok?r.json():null);
-          const body={message:'Record read-only canonical production run statuses',content:Buffer.from(JSON.stringify({runs,qaRuns,menuRuns,bridgeRuns,headerQaRuns,sharingRuns},null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
+          const body={message:'Record read-only canonical production run statuses',content:Buffer.from(JSON.stringify({runs,qaRuns,menuRuns,bridgeRuns,headerQaRuns,sharingRuns,sharingMigrationRuns},null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
           if(previous?.sha)body.sha=previous.sha;
           const saved=await fetch(endpoint,{method:'PUT',headers,body:JSON.stringify(body)});
           if(!saved.ok)throw Error('Status evidence write failed '+saved.status+' '+(await saved.text()).slice(0,140));
