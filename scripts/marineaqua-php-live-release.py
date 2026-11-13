@@ -32,6 +32,7 @@ FILES = (
     "wp-content/plugins/github-trigger/vcs-build-trigger.js",
     # Enables editing Product ESC Table display names, never API-backed cells.
     "wp-content/plugins/esc-visual-builder/includes/site-config.php",
+    "wp-content/plugins/esc-visual-builder/includes/item-manager.php",
 )
 raw = os.environ.get("FTP_SERVER", "").strip()
 if "://" not in raw:
