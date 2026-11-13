@@ -14,18 +14,25 @@
   },
   "builder": {
     "status": "NOT_TESTED",
-    "tables": [],
+    "tables": [
+      {
+        "id": "home_04",
+        "count": 4,
+        "firstProductId": "82530",
+        "status": "PASS"
+      }
+    ],
     "lastSelection": {
-      "tableId": "home_04",
-      "context": "home_04 · chọn item để nhân bản hoặc xóa",
-      "status": "Tên cột trùng hoặc không an toàn.",
+      "tableId": "home_05",
+      "context": "home_04 · dòng 1",
+      "status": "Đã chọn sản phẩm 82530 · dòng 1. Bấm Xóa item đang chọn để xác nhận.",
       "panelVisible": true,
       "inspector": "",
       "tag": {
-        "id": "82530",
+        "id": "82542",
         "row": "0",
-        "parent": "home_04",
-        "source": "home_04"
+        "parent": "home_05",
+        "source": "home_05"
       }
     },
     "requestTrace": [
@@ -33,73 +40,79 @@
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595384255
+        "time": 1794595652563
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/",
-        "time": 1794595385712
+        "time": 1794595652685
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/yoast/v1/statistics",
-        "time": 1794595385723
+        "time": 1794595652692
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595387168
+        "time": 1794595654596
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/yoast/v1/statistics",
-        "time": 1794595387867
+        "time": 1794595654771
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/",
-        "time": 1794595387920
+        "time": 1794595654789
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/changes",
-        "time": 1794595389328
+        "time": 1794595655586
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595389824
+        "time": 1794595655860
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/changes",
-        "time": 1794595391523
+        "time": 1794595657737
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595391926
+        "time": 1794595657873
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595393804
+        "time": 1794595671590
       },
       {
         "event": "response",
-        "status": 422,
+        "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595396511
+        "time": 1794595674050
+      },
+      {
+        "event": "start",
+        "method": "POST",
+        "path": "/wp-json/esc-builder/v1/item-schema",
+        "time": 1794595675085
       }
     ]
   },
@@ -107,9 +120,9 @@
   "temporaryCreated": 0,
   "cleanupRemaining": 0,
   "errors": [
-    "AssertionError [ERR_ASSERTION]: Card selection did not map to native ESC Table: {\"tableId\":\"home_04\",\"context\":\"home_04 · chọn item để nhân bản hoặc xóa\",\"status\":\"Tên cột trùng hoặc không an toàn.\",\"panelVisible\":true,\"inspector\":\"\",\"tag\":{\"id\":\"82530\",\"row\":\"0\",\"parent\":\"home_04\",\"source\":\"home_04\"}}\n    at file:///__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:96:12"
+    "AssertionError [ERR_ASSERTION]: Card selection did not map to native ESC Table: {\"tableId\":\"home_05\",\"context\":\"home_04 · dòng 1\",\"status\":\"Đã chọn sản phẩm 82530 · dòng 1. Bấm Xóa item đang chọn để xác nhận.\",\"panelVisible\":true,\"inspector\":\"\",\"tag\":{\"id\":\"82542\",\"row\":\"0\",\"parent\":\"home_05\",\"source\":\"home_05\"}}\n    at file:///__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:97:12"
   ],
-  "qa_run_id": 43485151152,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43485151152",
-  "recorded_at": "2026-11-13T18:43:17.814Z"
+  "qa_run_id": 43485889533,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43485889533",
+  "recorded_at": "2026-11-13T18:47:56.531Z"
 }
