@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T061500Z-product-category-menu-active",
+  "reason": "Deploy active WooCommerce category navigation for product archive and product detail on desktop and mobile",
+  "source_sha": "3776df2e21f12c7cd837de9a2df0f67955e70232",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
