@@ -2,11 +2,11 @@
   "runs": [
     {
       "id": 43360262840,
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "head_sha": "5f38e59cd4dc55456d9ee43e5d86bac4bd8c5267",
       "created_at": "2026-11-13T03:38:00Z",
-      "updated_at": "2026-11-13T03:38:03Z",
+      "updated_at": "2026-11-13T03:39:43Z",
       "html_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43360262840",
       "event": "repository_dispatch"
     },
@@ -152,8 +152,8 @@
   "bridgeRuns": [
     {
       "id": 43360235314,
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "created_at": "2026-11-13T03:37:45Z",
       "html_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43360235314"
     },
@@ -344,9 +344,16 @@
   ],
   "selectedRuns": [
     {
-      "id": 43360273374,
+      "id": 43360480234,
       "status": "in_progress",
       "conclusion": null,
+      "created_at": "2026-11-13T03:40:03Z",
+      "html_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43360480234"
+    },
+    {
+      "id": 43360273374,
+      "status": "completed",
+      "conclusion": "failure",
       "created_at": "2026-11-13T03:38:06Z",
       "html_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43360273374"
     }
