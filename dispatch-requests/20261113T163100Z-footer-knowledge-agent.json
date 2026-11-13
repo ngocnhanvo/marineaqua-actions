@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T163100Z-footer-knowledge-agent",
+  "reason": "Publish footer knowledge archive link and Agent chat action",
+  "source_sha": "7296f28c2d10a62fab78bd768c0866c795ec01e1",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
