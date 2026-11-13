@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T050500Z-post-detail-active-explicit",
+  "reason": "Deploy explicit post detail active sharing menu on desktop and mobile",
+  "source_sha": "e3956cfbe8ae7f949d8bb020d35f6e70a0c276ea",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
