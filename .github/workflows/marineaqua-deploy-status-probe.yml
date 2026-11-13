@@ -1,5 +1,6 @@
 name: Marine Aqua read-only production deployment status probe
 # Read-only verification checkpoint after first informational page production release
+# Observe native Header menu link update attempt
 on:
   push:
     branches: [main]
