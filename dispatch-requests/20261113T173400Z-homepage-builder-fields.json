@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T173400Z-homepage-builder-fields",
+  "reason": "Publish editable homepage banner text and section heading bindings after verified native ESC Table migration",
+  "source_sha": "2954c59725a1774ece1da5ef766a114ba93931e9",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
