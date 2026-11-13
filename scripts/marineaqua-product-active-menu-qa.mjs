@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { chromium } from 'playwright';
+
+const HOST = 'https://marine-aqua.io.vn';
+const DIR = 'product-active-menu-evidence';
+const report = { status: 'STARTED', checkedAt: new Date().toISOString(), checks: [], errors: [] };
+await mkdir(DIR, { recursive: true });
+const browser = await chromium.launch({ headless: true });
+try {
+  for (const viewport of [{name:'desktop',width:1366,height:900},{name:'mobile',width:390,height:844}]) {
+    const page = await browser.newPage({viewport:{width:viewport.width,height:viewport.height}});
+    const categoryPanel = viewport.name === 'desktop'
+      ? '#header-product-catalog-panel'
+      : '#mobile-menu-container .marine-mobile-menu-categories';
+    for (const slug of ['thuong-hieu','korallen-zucht','den-cho-be-ca-bien-san-ho']) {
+      const path = '/san-pham/' + slug;
+      const response = await page.goto(HOST + path, {waitUntil:'domcontentloaded',timeout:60000});
+      const state = await page.evaluate(({selector,slug}) => {
+        const root = document.querySelector(selector);
+        const links = [...(root?.querySelectorAll('a[aria-current="page"]') || [])];
+        const hrefs = links.map(el => new URL(el.getAttribute('href')||'',location.origin).pathname.replace(/\/+$/,''));
+        const target = '/san-pham/' + slug;
+        const selected = links.find(el=>new URL(el.getAttribute('href')||'',location.origin).pathname.replace(/\/+$/,'')===target);
+        const ancestor = selected?.closest('details');
+        return {hrefs,target,active:!!selected,count:links.length,
+          ancestorOpen:ancestor?ancestor.open:true,
+          rootPresent:!!root,overflow:document.documentElement.scrollWidth>innerWidth+2};
+      }, {selector:categoryPanel,slug});
+      const ok = response?.status()===200 && state.rootPresent && state.active && state.count===1 &&
+        state.ancestorOpen && !state.overflow;
+      report.checks.push({viewport:viewport.name,type:'archive',slug,http:response?.status(),...state,ok});
+      assert.ok(ok,'Archive category active mismatch '+JSON.stringify(report.checks.at(-1)));
+      if (slug==='korallen-zucht') {
+        const candidate = await page.locator('article.group a[href*="/san-pham/"]').first().getAttribute('href');
+        assert.ok(candidate,'Missing product detail link in '+path);
+        const detail = await page.goto(new URL(candidate,HOST).href,{waitUntil:'domcontentloaded',timeout:60000});
+        const detailState = await page.evaluate(({selector})=>{
+          const root=document.querySelector(selector);
+          const current=[...(root?.querySelectorAll('a[aria-current="page"]')||[])];
+          const urls=current.map(el=>new URL(el.getAttribute('href')||'',location.origin).pathname.replace(/\/+$/,''));
+          const ancestor=current[0]?.closest('details');
+          return {hrefs:urls,count:current.length,rootPresent:!!root,
+            ancestorOpen:ancestor?ancestor.open:true,overflow:document.documentElement.scrollWidth>innerWidth+2};
+        },{selector:categoryPanel});
+        const detailOk = detail?.status()===200 && detailState.rootPresent && detailState.count===1 &&
+          detailState.hrefs[0]?.startsWith('/san-pham/') && detailState.ancestorOpen && !detailState.overflow;
+        report.checks.push({viewport:viewport.name,type:'detail',sourceCategory:slug,
+          productUrl:new URL(candidate,HOST).pathname,http:detail?.status(),...detailState,ok:detailOk});
+        assert.ok(detailOk,'Product detail category active missing '+JSON.stringify(report.checks.at(-1)));
+        await page.screenshot({path:DIR+'/detail-'+viewport.name+'.png'});
+      }
+    }
+    await page.close();
+  }
+  report.status='PASS';
+  console.log('MARINEAQUA_PRODUCT_ACTIVE_QA=PASS '+JSON.stringify({checks:report.checks.length}));
+} catch(error) {
+  report.status='FAIL';
+  report.errors.push(String(error?.message||error).slice(0,1200));
+  process.exitCode=1;
+  console.error('MARINEAQUA_PRODUCT_ACTIVE_QA=FAIL '+report.errors[0]);
+} finally {
+  await writeFile(DIR+'/report.json',JSON.stringify(report,null,2)+'\n');
+  await browser.close();
+}
