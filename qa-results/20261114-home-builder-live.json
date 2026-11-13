@@ -1,33 +1,17 @@
 {
   "status": "FAIL",
-  "sourceSha": "3ccaee45f8901dfaf0de697a78e565bc11a3bd63",
+  "sourceSha": "3f31fdf39226cd713b38d4dcb3b2f1125e731e1a",
   "production": {
     "status": "PASS",
-    "run_id": 43476445835,
-    "url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43476445835",
+    "run_id": 43478024878,
+    "url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43478024878",
     "attempt": 1,
     "conclusion": "success",
     "signedActivation": true,
     "sourceVerified": true
   },
   "cms": {
-    "status": "PASS",
-    "table": "home_00",
-    "itemCount": 4,
-    "fields": [
-      "title",
-      "image",
-      "link",
-      "mobile",
-      "eyebrow",
-      "heading",
-      "heading_emphasis",
-      "description",
-      "cta_text",
-      "cta_url",
-      "footnote"
-    ],
-    "source": "WordPress native TablePress REST"
+    "status": "NOT_TESTED"
   },
   "public": {
     "status": "PASS",
@@ -63,22 +47,12 @@
     ]
   },
   "builder": {
-    "status": "FAIL",
-    "selectedField": "heading",
-    "headingText": "Chạm gần hơn với",
-    "editorVisible": true,
-    "editorValue": "Chạm gần hơn với",
-    "pageSnippet": " lựa dễ dàng hơn cho\nDòng 3 · Nội dung giới thiệu — Thiết bị, vật tư và phụ kiện cho hồ cá cảnh biển — chọn lựa dễ dàng hơn cho\nDòng 4 · Nội dung giới thiệu — Thiết bị, vật tư và phụ kiện cho hồ cá cảnh biển — chọn lựa dễ dàng hơn cho\nDòng 1 · cta_text — Khám phá danh mục\nDòng 2 · cta_text — Khám phá danh mục\nDòng 3 · cta_text — Khám phá danh mục\nDòng 4 · cta_text — Khám phá danh mục\nDòng 1 · cta_url — /san-pham\nDòng 2 · cta_url — /san-pham\nDòng 3 · cta_url — /san-pham\nDòng 4 · cta_url — /san-pham\nDòng 1 · footnote — Marine Aqua • Thiết bị & phụ kiện cá cảnh biển\nDòng 2 · footnote — Marine Aqua • Thiết bị & phụ kiện cá cảnh biển\nDòng 3 · footnote — Marine Aqua • Thiết bị & phụ kiện cá cảnh biển\nDòng 4 · footnote — Marine Aqua • Thiết bị & phụ kiện cá cảnh biển\nDòng 1 · heading\nLưu WordPress\nHủy thay đổi\n\nĐang chỉnh bản nháp. Chỉ lưu khi bấm Lưu WordPress.\n\nChọn chữ trong vùng WordPress Editor để sửa trực tiếp nội dung Page. ESC Table vẫn có trình sửa riêng. Bản xem trước cập nhật tức thì và không tải lại iframe; bản production chỉ đổi sau khi build.\n\nESC Table · Quản lý item\n\nhome_00 · dòng 1\n\n+ Thêm item\nNhân bản item đang chọn\nXóa item đang chọn\n↕ Sắp xếp item\n\n↔ Hoán đổi section",
-    "textFieldSelector": "0:heading",
-    "imageHitPoint": {
-      "x": 442,
-      "y": 90
-    }
+    "status": "FAIL"
   },
   "errors": [
-    "BUILDER: locator.waitFor: Timeout 18000ms exceeded.\nCall log:\n  - waiting for locator('#esc-vb-image-choose') to be visible\n    40 × locator resolved to hidden <button type=\"button\" class=\"button\" id=\"esc-vb-image-choose\">Chọn hoặc tải ảnh lên</button>\n"
+    "BUILDER: WordPress session failed"
   ],
-  "qa_run_id": 43477517522,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43477517522",
-  "recorded_at": "2026-11-13T17:57:01.796Z"
+  "qa_run_id": 43477997590,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43477997590",
+  "recorded_at": "2026-11-13T18:00:14.753Z"
 }
