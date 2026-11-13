@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T161000Z-home-category-cta",
+  "reason": "Route homepage discover categories CTA to product listing",
+  "source_sha": "45e27c9e188ce87fe6e5a2038be802162508842d",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
