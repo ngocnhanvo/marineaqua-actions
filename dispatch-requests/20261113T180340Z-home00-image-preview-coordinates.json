@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T180340Z-home00-image-preview-coordinates",
+  "reason": "Restore Home_00 image selection and draft preview with image markers on IMG while retaining editable banner text",
+  "source_sha": "c20902aef19e62281271915afd235e273ac641ce",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
