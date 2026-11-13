@@ -1,0 +1,610 @@
+{
+  "status": "PASS_READ_ONLY",
+  "site": "https://marine-aqua.io.vn",
+  "tables": [
+    {
+      "id": "home_00",
+      "status": 200,
+      "exists": true,
+      "title": "Banner trang chủ",
+      "api": null,
+      "itemCount": 4,
+      "fields": [
+        {
+          "key": "title",
+          "type": null
+        },
+        {
+          "key": "image",
+          "type": null
+        },
+        {
+          "key": "link",
+          "type": null
+        },
+        {
+          "key": "mobile",
+          "type": null
+        }
+      ],
+      "dataKeys": [
+        "image",
+        "link",
+        "mobile",
+        "title"
+      ],
+      "hasMeta": true
+    },
+    {
+      "id": "home_01",
+      "status": 404,
+      "exists": false,
+      "title": null,
+      "api": null,
+      "itemCount": 0,
+      "fields": [],
+      "dataKeys": [],
+      "hasMeta": false
+    },
+    {
+      "id": "home_02",
+      "status": 404,
+      "exists": false,
+      "title": null,
+      "api": null,
+      "itemCount": 0,
+      "fields": [],
+      "dataKeys": [],
+      "hasMeta": false
+    },
+    {
+      "id": "home_03",
+      "status": 200,
+      "exists": true,
+      "title": "SẢN PHẨM",
+      "api": "ProductCategory",
+      "itemCount": 0,
+      "fields": [
+        {
+          "key": "api-key",
+          "type": null
+        },
+        {
+          "key": "api-name",
+          "type": null
+        },
+        {
+          "key": "api-slug",
+          "type": null
+        },
+        {
+          "key": "api-img",
+          "type": null
+        },
+        {
+          "key": "api-children",
+          "type": null
+        }
+      ],
+      "dataKeys": [],
+      "hasMeta": true
+    },
+    {
+      "id": "home_04",
+      "status": 200,
+      "exists": true,
+      "title": "TROPIC-MARIN",
+      "api": "Product",
+      "itemCount": 4,
+      "fields": [
+        {
+          "key": "key",
+          "type": null
+        },
+        {
+          "key": "api-itemName",
+          "type": null
+        },
+        {
+          "key": "api-itemPrice",
+          "type": null
+        },
+        {
+          "key": "api-slug",
+          "type": null
+        },
+        {
+          "key": "api-itemImage",
+          "type": null
+        }
+      ],
+      "dataKeys": [
+        "api-itemImage",
+        "api-itemName",
+        "api-itemPrice",
+        "api-slug",
+        "key"
+      ],
+      "hasMeta": true
+    },
+    {
+      "id": "home_05",
+      "status": 200,
+      "exists": true,
+      "title": "PRODIBIO",
+      "api": "Product",
+      "itemCount": 4,
+      "fields": [
+        {
+          "key": "key",
+          "type": null
+        },
+        {
+          "key": "api-itemName",
+          "type": null
+        },
+        {
+          "key": "api-itemPrice",
+          "type": null
+        },
+        {
+          "key": "api-slug",
+          "type": null
+        },
+        {
+          "key": "api-itemImage",
+          "type": null
+        }
+      ],
+      "dataKeys": [
+        "api-itemImage",
+        "api-itemName",
+        "api-itemPrice",
+        "api-slug",
+        "key"
+      ],
+      "hasMeta": true
+    },
+    {
+      "id": "home_06",
+      "status": 200,
+      "exists": true,
+      "title": "PRODAC",
+      "api": "Product",
+      "itemCount": 4,
+      "fields": [
+        {
+          "key": "key",
+          "type": null
+        },
+        {
+          "key": "api-itemName",
+          "type": null
+        },
+        {
+          "key": "api-itemPrice",
+          "type": null
+        },
+        {
+          "key": "api-slug",
+          "type": null
+        },
+        {
+          "key": "api-itemImage",
+          "type": null
+        }
+      ],
+      "dataKeys": [
+        "api-itemImage",
+        "api-itemName",
+        "api-itemPrice",
+        "api-slug",
+        "key"
+      ],
+      "hasMeta": true
+    },
+    {
+      "id": "home_07",
+      "status": 200,
+      "exists": true,
+      "title": "RED SEA",
+      "api": "Product",
+      "itemCount": 4,
+      "fields": [
+        {
+          "key": "key",
+          "type": null
+        },
+        {
+          "key": "api-itemName",
+          "type": null
+        },
+        {
+          "key": "api-itemPrice",
+          "type": null
+        },
+        {
+          "key": "api-slug",
+          "type": null
+        },
+        {
+          "key": "api-itemImage",
+          "type": null
+        }
+      ],
+      "dataKeys": [
+        "api-itemImage",
+        "api-itemName",
+        "api-itemPrice",
+        "api-slug",
+        "key"
+      ],
+      "hasMeta": true
+    },
+    {
+      "id": "home_08",
+      "status": 200,
+      "exists": true,
+      "title": "CONTINUUM AQUATICS",
+      "api": "Product",
+      "itemCount": 4,
+      "fields": [
+        {
+          "key": "key",
+          "type": null
+        },
+        {
+          "key": "api-itemName",
+          "type": null
+        },
+        {
+          "key": "api-itemPrice",
+          "type": null
+        },
+        {
+          "key": "api-slug",
+          "type": null
+        },
+        {
+          "key": "api-itemImage",
+          "type": null
+        }
+      ],
+      "dataKeys": [
+        "api-itemImage",
+        "api-itemName",
+        "api-itemPrice",
+        "api-slug",
+        "key"
+      ],
+      "hasMeta": true
+    },
+    {
+      "id": "home_09",
+      "status": 404,
+      "exists": false,
+      "title": null,
+      "api": null,
+      "itemCount": 0,
+      "fields": [],
+      "dataKeys": [],
+      "hasMeta": false
+    },
+    {
+      "id": "home_10",
+      "status": 404,
+      "exists": false,
+      "title": null,
+      "api": null,
+      "itemCount": 0,
+      "fields": [],
+      "dataKeys": [],
+      "hasMeta": false
+    },
+    {
+      "id": "home_11",
+      "status": 404,
+      "exists": false,
+      "title": null,
+      "api": null,
+      "itemCount": 0,
+      "fields": [],
+      "dataKeys": [],
+      "hasMeta": false
+    },
+    {
+      "id": "home_12",
+      "status": 404,
+      "exists": false,
+      "title": null,
+      "api": null,
+      "itemCount": 0,
+      "fields": [],
+      "dataKeys": [],
+      "hasMeta": false
+    },
+    {
+      "id": "home_13",
+      "status": 404,
+      "exists": false,
+      "title": null,
+      "api": null,
+      "itemCount": 0,
+      "fields": [],
+      "dataKeys": [],
+      "hasMeta": false
+    }
+  ],
+  "home": {
+    "http": 200,
+    "title": "Trang chủ",
+    "sections": [
+      {
+        "table": "home_00",
+        "titles": [
+          "Chạm gần hơn với thế giới san hô.",
+          "Chạm gần hơn với thế giới san hô.",
+          "Chạm gần hơn với thế giới san hô."
+        ],
+        "mappedFields": {
+          "image": 4
+        },
+        "sections": 2,
+        "items": 0,
+        "textNodes": 5,
+        "imageNodes": 4,
+        "mappedImages": 4
+      },
+      {
+        "table": "home_00",
+        "titles": [
+          "Chạm gần hơn với thế giới san hô.",
+          "Chạm gần hơn với thế giới san hô.",
+          "Chạm gần hơn với thế giới san hô."
+        ],
+        "mappedFields": {
+          "image": 3
+        },
+        "sections": 0,
+        "items": 0,
+        "textNodes": 4,
+        "imageNodes": 3,
+        "mappedImages": 3
+      },
+      {
+        "table": "home_04",
+        "titles": [
+          "TROPIC-MARIN"
+        ],
+        "mappedFields": {},
+        "sections": 1,
+        "items": 0,
+        "textNodes": 9,
+        "imageNodes": 4,
+        "mappedImages": 4
+      },
+      {
+        "table": "home_04",
+        "titles": [
+          "TROPIC-MARIN"
+        ],
+        "mappedFields": {},
+        "sections": 0,
+        "items": 0,
+        "textNodes": 9,
+        "imageNodes": 4,
+        "mappedImages": 4
+      },
+      {
+        "table": "home_05",
+        "titles": [
+          "PRODIBIO"
+        ],
+        "mappedFields": {},
+        "sections": 1,
+        "items": 0,
+        "textNodes": 9,
+        "imageNodes": 4,
+        "mappedImages": 4
+      },
+      {
+        "table": "home_05",
+        "titles": [
+          "PRODIBIO"
+        ],
+        "mappedFields": {},
+        "sections": 0,
+        "items": 0,
+        "textNodes": 9,
+        "imageNodes": 4,
+        "mappedImages": 4
+      },
+      {
+        "table": "home_06",
+        "titles": [
+          "PRODAC"
+        ],
+        "mappedFields": {},
+        "sections": 1,
+        "items": 0,
+        "textNodes": 9,
+        "imageNodes": 4,
+        "mappedImages": 4
+      },
+      {
+        "table": "home_06",
+        "titles": [
+          "PRODAC"
+        ],
+        "mappedFields": {},
+        "sections": 0,
+        "items": 0,
+        "textNodes": 9,
+        "imageNodes": 4,
+        "mappedImages": 4
+      },
+      {
+        "table": "home_07",
+        "titles": [
+          "RED SEA"
+        ],
+        "mappedFields": {},
+        "sections": 1,
+        "items": 0,
+        "textNodes": 9,
+        "imageNodes": 4,
+        "mappedImages": 4
+      },
+      {
+        "table": "home_07",
+        "titles": [
+          "RED SEA"
+        ],
+        "mappedFields": {},
+        "sections": 0,
+        "items": 0,
+        "textNodes": 9,
+        "imageNodes": 4,
+        "mappedImages": 4
+      },
+      {
+        "table": "home_08",
+        "titles": [
+          "CONTINUUM AQUATICS"
+        ],
+        "mappedFields": {},
+        "sections": 1,
+        "items": 0,
+        "textNodes": 9,
+        "imageNodes": 4,
+        "mappedImages": 4
+      },
+      {
+        "table": "home_08",
+        "titles": [
+          "CONTINUUM AQUATICS"
+        ],
+        "mappedFields": {},
+        "sections": 0,
+        "items": 0,
+        "textNodes": 9,
+        "imageNodes": 4,
+        "mappedImages": 4
+      }
+    ],
+    "visibleOrder": [
+      "home_00",
+      "home_00",
+      "home_04",
+      "home_04",
+      "home_05",
+      "home_05",
+      "home_06",
+      "home_06",
+      "home_07",
+      "home_07",
+      "home_08",
+      "home_08"
+    ]
+  },
+  "cms": {
+    "editPageUrlAccessible": true,
+    "pageEditTitle": "Sửa trang “Trang chủ” ‹ marine-aqua.vn — WordPress",
+    "builderControls": [
+      {
+        "tag": "A",
+        "text": "Visual Builder",
+        "id": "",
+        "href": "edit.php?post_type=page&page=esc-visual-builder",
+        "className": ""
+      },
+      {
+        "tag": "A",
+        "text": "ESC Table",
+        "id": "",
+        "href": "admin.php?page=tablepress",
+        "className": "wp-has-submenu wp-not-current-submenu menu-top toplevel_page_tablepress"
+      },
+      {
+        "tag": "A",
+        "text": "Group ESC Table",
+        "id": "",
+        "href": "admin.php?page=tablepress-group-manager",
+        "className": ""
+      },
+      {
+        "tag": "A",
+        "text": "ESC Table",
+        "id": "",
+        "href": "https://admin.marine-aqua.io.vn/wp-admin/admin.php?page=tablepress_add",
+        "className": "ab-item"
+      },
+      {
+        "tag": "A",
+        "text": "Mở Visual Builder ↗",
+        "id": "",
+        "href": "https://admin.marine-aqua.io.vn/wp-admin/edit.php?post_type=page&page=esc-visual-builder&esc_vb_page=82454",
+        "className": "page-title-action esc-vb-page-shortcut"
+      },
+      {
+        "tag": "INPUT",
+        "text": "Table",
+        "id": "qt_content_tablepress_quicktags_button",
+        "href": null,
+        "className": "ed_button button button-small"
+      },
+      {
+        "tag": "INPUT",
+        "text": "Table",
+        "id": "qt_acf_content_tablepress_quicktags_button",
+        "href": null,
+        "className": "ed_button button button-small"
+      }
+    ],
+    "homePage": {
+      "id": 82454,
+      "status": 200,
+      "slug": "trang-chu",
+      "action": "HomePage",
+      "key": "home",
+      "shortcodes": [
+        "home_00",
+        "home_04",
+        "home_05",
+        "home_06",
+        "home_07",
+        "home_08"
+      ]
+    },
+    "tablePressUi": 8,
+    "builderActionCandidate": {
+      "tag": "A",
+      "text": "Visual Builder",
+      "id": "",
+      "href": "edit.php?post_type=page&page=esc-visual-builder",
+      "className": ""
+    },
+    "iframes": [
+      {
+        "id": "content_ifr",
+        "title": "Khó khăn khi sử dụng? Hãy nhấn Alt-Shift-H để giúp đỡ",
+        "src": ""
+      },
+      {
+        "id": "acf-editor-52_ifr",
+        "title": "Khó khăn khi sử dụng? Hãy nhấn Alt-Shift-H để giúp đỡ",
+        "src": ""
+      },
+      {
+        "id": "acf_content_ifr",
+        "title": "Khó khăn khi sử dụng? Hãy nhấn Alt-Shift-H để giúp đỡ",
+        "src": ""
+      }
+    ]
+  },
+  "preview": {},
+  "issues": [],
+  "run_id": 43471945763,
+  "run_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43471945763",
+  "completed_at": "2026-11-13T17:22:48.422Z"
+}
