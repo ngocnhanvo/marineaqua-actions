@@ -1,7 +1,23 @@
 {
-  "run_id": "43350886747",
+  "run_id": "43351063958",
   "source": 133,
-  "target": 17,
+  "target": 31,
   "expected": 133,
-  "complete": false
+  "complete": false,
+  "sample": {
+    "id": 83302,
+    "slug": "muoi-bien-cho-be-ca-canh-tropic-marin-pro-reef-20-kg-box",
+    "acf": {
+      "action": "PostDetails",
+      "key": "",
+      "product_lang": {
+        "value": "vi",
+        "label": "Tiếng Việt"
+      },
+      "origin_page_id": null,
+      "cssmore": ""
+    },
+    "featured_media": 83301,
+    "content_length": 2342
+  }
 }
