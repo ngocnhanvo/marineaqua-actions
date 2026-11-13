@@ -5,6 +5,7 @@ const WP='https://admin.marine-aqua.io.vn';
 const FRONT='https://marine-aqua.io.vn';
 const TABLES=['home_04','home_05','home_06','home_07','home_08'];
 const DIR='product-builder-live-evidence';
+// QA after native WordPress Product column validation release #43485611524.
 const report={status:'STARTED',sourceSha:'d79e13c3cf9a023b7a165eef390fe11b12e2d7fb',
   public:{status:'NOT_TESTED'},builder:{status:'NOT_TESTED',tables:[]},
   writes:0,temporaryCreated:0,cleanupRemaining:0,errors:[]};
