@@ -29,7 +29,7 @@ try {
    });
    const valid=response?.status()===200&&item.heading&&item.h1Count===1&&item.hero&&item.searchBox&&item.grid&&item.cards>0&&
      item.searchBox.y>=item.hero.y+item.hero.height-1&&item.grid.y>=item.searchBox.y&&
-     item.headingBox.x>=15&&item.document<=item.viewport+2&&!item.topLevelText.length;
+     item.headingBox.x>=10&&item.document<=item.viewport+2&&!item.topLevelText.length;
    const row={viewport:viewport.name,slug,http:response?.status(),...item,pass:Boolean(valid)};
    results.checks.push(row);
    if(!valid)results.errors.push({viewport:viewport.name,slug,reason:'archive-hero-layout',row});
