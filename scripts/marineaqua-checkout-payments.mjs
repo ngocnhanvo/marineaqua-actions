@@ -11,7 +11,7 @@ const apply = process.argv.slice(2).join(' ') === '--apply';
 assert.ok(apply || process.argv.length === 2, 'Only --apply or read-only inspection is supported');
 const result = {
   mode: apply ? 'apply' : 'inspect',
-  write_scope: { gateways: { cod: ['enabled', 'title', 'order'], onepayus: ['enabled'] }, max_records: 2 },
+  write_scope: { gateways: { cod: ['enabled', 'title', 'order', 'settings.enable_for_methods'], onepayus: ['enabled'] }, max_records: 2 },
   changed: 0, skipped_unchanged: 0, temporary_created: 0, cleanup_remaining: [],
   before: [], after: [], requests: [], rollback: [], errors: [],
 };
@@ -29,13 +29,28 @@ function protectedView(gateway) {
   const copy = stableView(gateway);
   const allowed = result.write_scope.gateways[gateway.id] || [];
   for (const key of allowed) {
+    if (key === 'settings.enable_for_methods') {
+      if (copy.settings?.enable_for_methods) delete copy.settings.enable_for_methods.value;
+      continue;
+    }
     delete copy[key];
     // WooCommerce mirrors its title/enabled options in the settings projection.
     if (copy.settings?.[key]) delete copy.settings[key].value;
   }
   return copy;
 }
-const selectedFields = (gateway, keys) => Object.fromEntries(keys.map(key => [key, key === 'order' ? Number(gateway[key]) : gateway[key]]));
+function shippingMethods(gateway) {
+  const value = gateway.settings?.enable_for_methods?.value;
+  // The native V3 controller projects an empty stored multiselect array as ''.
+  // Nonempty strings are never decoded as if they were valid Woo settings.
+  if (value == null || value === '') return [];
+  assert.ok(Array.isArray(value) && value.every(item => typeof item === 'string'), 'Invalid native COD shipping-method option');
+  return value;
+}
+const selectedFields = (gateway, keys) => Object.fromEntries(keys.map(key => [key,
+  key === 'order' ? Number(gateway[key]) : key === 'settings'
+    ? { enable_for_methods: shippingMethods(gateway) } : gateway[key],
+]));
 const safeError = error => {
   let text = String(error?.message || error);
   for (const secret of [process.env.WP_ADMIN_USERNAME, process.env.WP_ADMIN_PASSWORD]) {
@@ -68,10 +83,15 @@ try {
     if (method !== 'GET') {
       assert.ok(apply && method === 'PUT' && ['cod', 'onepayus'].includes(id), 'Mutation outside WRITE_SCOPE');
       const allowed = result.write_scope.gateways[id];
-      assert.ok(body && Object.keys(body).every(key => allowed.includes(key)), 'Gateway field outside WRITE_SCOPE');
+      assert.ok(body && Object.keys(body).every(key => allowed.includes(key) ||
+        (id === 'cod' && key === 'settings' && allowed.includes('settings.enable_for_methods'))), 'Gateway field outside WRITE_SCOPE');
       if ('enabled' in body) assert.equal(typeof body.enabled, 'boolean');
       if ('title' in body) assert.equal(typeof body.title, 'string');
       if ('order' in body) assert.ok(Number.isSafeInteger(body.order));
+      if ('settings' in body) {
+        assert.deepEqual(Object.keys(body.settings), ['enable_for_methods'], 'Only COD shipping eligibility may change');
+        assert.ok(Array.isArray(body.settings.enable_for_methods) && body.settings.enable_for_methods.every(value => typeof value === 'string'), 'COD shipping eligibility must be a native multiselect array');
+      }
     }
     const path = '/wp-json/wc/v3/payment_gateways' + (id ? '/' + id : '');
     const entry = { method, path, status: null };
@@ -109,10 +129,10 @@ try {
     : restrictions == null ? null : '[unsupported option shape]';
   result.cod_shipping_restrictions = { type: Array.isArray(restrictions) ? 'array' : typeof restrictions, value: restrictionValue };
   result.cod_accept_virtual = String(cod.settings?.enable_for_virtual?.value ?? '').slice(0, 20);
-  if (apply) assert.ok(restrictions == null || restrictions === '' || (Array.isArray(restrictions) && restrictions.length === 0),
-    'COD has existing shipping restrictions; inspect before enabling it');
+  if (apply) assert.ok([canonical([]), canonical(['free_shipping'])].includes(canonical(shippingMethods(cod))),
+    'COD shipping eligibility differs from the reviewed baseline');
   const plan = [
-    { id: 'cod', payload: { enabled: true, title: COD_TITLE, order: Number(onepay.order) } },
+    { id: 'cod', payload: { enabled: true, title: COD_TITLE, order: Number(onepay.order), settings: { enable_for_methods: [] } } },
     { id: 'onepayus', payload: { enabled: false } },
   ];
   result.plan = plan;
@@ -145,7 +165,10 @@ try {
     const enabled = after.filter(gateway => gateway.enabled === true).sort((a, b) => Number(a.order) - Number(b.order));
     assert.deepEqual(enabled.map(gateway => gateway.id), ['cod', 'bacs'], 'Published payment order differs from the approved choices');
     assert.equal(enabled[0].title, COD_TITLE, 'COD title differs');
+    assert.deepEqual(shippingMethods(enabled[0]), [], 'COD must allow the existing shipping methods');
     assert.equal(hash(stableView(after.find(gateway => gateway.id === 'bacs'))), hash(stableView(bacs)), 'BACS settings changed');
+    result.cod_shipping_restrictions_after = shippingMethods(enabled[0]);
+    result.bacs_unchanged = true;
     result.enabled_order = enabled.map(publicView);
   }
   result.status = 'PASS';
