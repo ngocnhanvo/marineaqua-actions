@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T155000Z-contact-header-link",
+  "reason": "Publish verified WordPress Header contact menu link",
+  "source_sha": "afe994bb2cf47c3da78936d51c20b5c6edeabc84",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
