@@ -17,7 +17,8 @@ const browser=await chromium.launch({headless:true});
 try{
  const context=await browser.newContext();
  for (const viewport of [{name:'desktop',width:1366,height:900},{name:'mobile',width:390,height:844}]){
-  const page=await context.newPage({viewport:{width:viewport.width,height:viewport.height}});
+  const page=await context.newPage();
+  await page.setViewportSize({width:viewport.width,height:viewport.height});
   const r=await page.goto(SITE+'/',{waitUntil:'domcontentloaded',timeout:60000});
   check(r?.status()===200,'Home HTTP status invalid at '+viewport.name);
   await page.waitForTimeout(700);
@@ -49,6 +50,7 @@ try{
    details.push({label,expected:path,actual:navMatches[0].href,pass:true});
   }
   const width=await page.evaluate(()=>({viewport:innerWidth,document:document.documentElement.scrollWidth}));
+  check(width.viewport===viewport.width,viewport.name+': wrong viewport size');
   check(width.document<=width.viewport+2,viewport.name+': horizontal overflow');
   await page.screenshot({path:OUT+'/'+viewport.name+'.png',fullPage:false});
   result.checks.push({viewport:viewport.name,httpStatus:r.status(),links:details,width});
