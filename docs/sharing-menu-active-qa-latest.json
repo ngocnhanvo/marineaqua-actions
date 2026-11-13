@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "checks": [
     {
       "viewport": 1366,
@@ -7,12 +7,12 @@
       "http": 200,
       "hrefOk": true,
       "href": "/cat/tong-quan-ve-be-ca",
-      "classes": "astro-link flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-semibold leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] focus-visible:bg-sky-50 focus-visible:text-[#0B5FA5] focus-visible:outline-none text-slate-700",
-      "active": false,
-      "parentActive": false,
+      "classes": "astro-link flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-semibold leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] focus-visible:bg-sky-50 focus-visible:text-[#0B5FA5] focus-visible:outline-none bg-sky-50 text-[#0B5FA5]",
+      "active": true,
+      "parentActive": true,
       "matchesPath": false,
       "documentWidth": 1366,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 1366,
@@ -20,12 +20,12 @@
       "http": 200,
       "hrefOk": true,
       "href": "/cat/tin-kien-thuc",
-      "classes": "astro-link flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-semibold leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] focus-visible:bg-sky-50 focus-visible:text-[#0B5FA5] focus-visible:outline-none text-slate-700",
-      "active": false,
-      "parentActive": false,
+      "classes": "astro-link flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-semibold leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] focus-visible:bg-sky-50 focus-visible:text-[#0B5FA5] focus-visible:outline-none bg-sky-50 text-[#0B5FA5]",
+      "active": true,
+      "parentActive": true,
       "matchesPath": false,
       "documentWidth": 1366,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 1366,
@@ -33,12 +33,12 @@
       "http": 200,
       "hrefOk": true,
       "href": "/cat/set-up-be-ca-bien-mini",
-      "classes": "astro-link flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-semibold leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] focus-visible:bg-sky-50 focus-visible:text-[#0B5FA5] focus-visible:outline-none text-slate-700",
-      "active": false,
-      "parentActive": false,
+      "classes": "astro-link flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-semibold leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] focus-visible:bg-sky-50 focus-visible:text-[#0B5FA5] focus-visible:outline-none bg-sky-50 text-[#0B5FA5]",
+      "active": true,
+      "parentActive": true,
       "matchesPath": false,
       "documentWidth": 1366,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 390,
@@ -46,12 +46,12 @@
       "http": 200,
       "hrefOk": true,
       "href": "/cat/tong-quan-ve-be-ca",
-      "classes": "astro-link flex min-h-12 w-full items-center rounded-lg px-3 py-2 leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] text-sm font-semibold text-slate-700",
-      "active": false,
-      "parentActive": false,
+      "classes": "astro-link flex min-h-12 w-full items-center rounded-lg px-3 py-2 leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] text-sm font-semibold bg-sky-50 text-[#0B5FA5]",
+      "active": true,
+      "parentActive": true,
       "matchesPath": false,
       "documentWidth": 390,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 390,
@@ -59,12 +59,12 @@
       "http": 200,
       "hrefOk": true,
       "href": "/cat/tin-kien-thuc",
-      "classes": "astro-link flex min-h-12 w-full items-center rounded-lg px-3 py-2 leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] text-sm font-semibold text-slate-700",
-      "active": false,
-      "parentActive": false,
+      "classes": "astro-link flex min-h-12 w-full items-center rounded-lg px-3 py-2 leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] text-sm font-semibold bg-sky-50 text-[#0B5FA5]",
+      "active": true,
+      "parentActive": true,
       "matchesPath": false,
       "documentWidth": 390,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 390,
@@ -72,93 +72,14 @@
       "http": 200,
       "hrefOk": true,
       "href": "/cat/set-up-be-ca-bien-mini",
-      "classes": "astro-link flex min-h-12 w-full items-center rounded-lg px-3 py-2 leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] text-sm font-semibold text-slate-700",
-      "active": false,
-      "parentActive": false,
+      "classes": "astro-link flex min-h-12 w-full items-center rounded-lg px-3 py-2 leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] text-sm font-semibold bg-sky-50 text-[#0B5FA5]",
+      "active": true,
+      "parentActive": true,
       "matchesPath": false,
       "documentWidth": 390,
-      "pass": false
+      "pass": true
     }
   ],
-  "errors": [
-    {
-      "viewport": 1366,
-      "slug": "tong-quan-ve-be-ca",
-      "http": 200,
-      "hrefOk": true,
-      "href": "/cat/tong-quan-ve-be-ca",
-      "classes": "astro-link flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-semibold leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] focus-visible:bg-sky-50 focus-visible:text-[#0B5FA5] focus-visible:outline-none text-slate-700",
-      "active": false,
-      "parentActive": false,
-      "matchesPath": false,
-      "documentWidth": 1366,
-      "pass": false
-    },
-    {
-      "viewport": 1366,
-      "slug": "tin-kien-thuc",
-      "http": 200,
-      "hrefOk": true,
-      "href": "/cat/tin-kien-thuc",
-      "classes": "astro-link flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-semibold leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] focus-visible:bg-sky-50 focus-visible:text-[#0B5FA5] focus-visible:outline-none text-slate-700",
-      "active": false,
-      "parentActive": false,
-      "matchesPath": false,
-      "documentWidth": 1366,
-      "pass": false
-    },
-    {
-      "viewport": 1366,
-      "slug": "set-up-be-ca-bien-mini",
-      "http": 200,
-      "hrefOk": true,
-      "href": "/cat/set-up-be-ca-bien-mini",
-      "classes": "astro-link flex min-h-10 items-center rounded-lg px-3 py-2 text-sm font-semibold leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] focus-visible:bg-sky-50 focus-visible:text-[#0B5FA5] focus-visible:outline-none text-slate-700",
-      "active": false,
-      "parentActive": false,
-      "matchesPath": false,
-      "documentWidth": 1366,
-      "pass": false
-    },
-    {
-      "viewport": 390,
-      "slug": "tong-quan-ve-be-ca",
-      "http": 200,
-      "hrefOk": true,
-      "href": "/cat/tong-quan-ve-be-ca",
-      "classes": "astro-link flex min-h-12 w-full items-center rounded-lg px-3 py-2 leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] text-sm font-semibold text-slate-700",
-      "active": false,
-      "parentActive": false,
-      "matchesPath": false,
-      "documentWidth": 390,
-      "pass": false
-    },
-    {
-      "viewport": 390,
-      "slug": "tin-kien-thuc",
-      "http": 200,
-      "hrefOk": true,
-      "href": "/cat/tin-kien-thuc",
-      "classes": "astro-link flex min-h-12 w-full items-center rounded-lg px-3 py-2 leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] text-sm font-semibold text-slate-700",
-      "active": false,
-      "parentActive": false,
-      "matchesPath": false,
-      "documentWidth": 390,
-      "pass": false
-    },
-    {
-      "viewport": 390,
-      "slug": "set-up-be-ca-bien-mini",
-      "http": 200,
-      "hrefOk": true,
-      "href": "/cat/set-up-be-ca-bien-mini",
-      "classes": "astro-link flex min-h-12 w-full items-center rounded-lg px-3 py-2 leading-snug transition-colors hover:bg-sky-50 hover:text-[#0B5FA5] text-sm font-semibold text-slate-700",
-      "active": false,
-      "parentActive": false,
-      "matchesPath": false,
-      "documentWidth": 390,
-      "pass": false
-    }
-  ],
-  "run_id": "43360480234"
+  "errors": [],
+  "run_id": "43361008528"
 }
