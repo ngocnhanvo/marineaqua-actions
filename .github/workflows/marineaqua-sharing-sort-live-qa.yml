@@ -1,0 +1,58 @@
+name: Marine Aqua sharing sort toolbar production QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-sharing-sort-live-qa.mjs'
+      - '.github/workflows/marineaqua-sharing-sort-live-qa.yml'
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-sharing-sort-live-qa.mjs
+      - id: qa
+        run: node scripts/marineaqua-sharing-sort-live-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sharing-sort-live-qa
+          path: sharing-sort-evidence/
+      - name: Persist sort QA result
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          GH_RUN_ID: ${{ github.run_id }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {existsSync,readFileSync} from 'node:fs';
+          const path='sharing-sort-evidence/result.json';
+          const report=existsSync(path)?JSON.parse(readFileSync(path,'utf8')):{status:'NO_EVIDENCE',errors:['No report']};
+          report.run_id=process.env.GH_RUN_ID;
+          const endpoint='https://api.github.com/repos/'+process.env.GH_REPO+'/contents/docs/sharing-sort-live-qa-latest.json';
+          const headers={Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};
+          const encoded=Buffer.from(JSON.stringify(report,null,2)+String.fromCharCode(10)).toString('base64');
+          for(let i=0;i<6;i++){
+            const oldResponse=await fetch(endpoint,{headers,cache:'no-store'});
+            const old=oldResponse.ok?await oldResponse.json():null;
+            if(!oldResponse.ok&&oldResponse.status!==404)throw Error('Evidence read HTTP '+oldResponse.status);
+            const body={message:'Record sharing sort browser QA '+report.run_id,content:encoded,branch:'main'};
+            if(old?.sha)body.sha=old.sha;
+            const response=await fetch(endpoint,{method:'PUT',headers,body:JSON.stringify(body)});
+            if(response.ok){console.log('SHARING_SORT_EVIDENCE_SAVED='+report.status);process.exit(0)}
+            if(response.status!==409&&response.status!==422)throw Error('Evidence write HTTP '+response.status);
+            await new Promise(resolve=>setTimeout(resolve,(i+1)*800));
+          }
+          throw Error('Evidence write conflict retries exhausted');
+          NODE
