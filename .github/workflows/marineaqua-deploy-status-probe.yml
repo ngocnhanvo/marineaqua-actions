@@ -17,6 +17,7 @@ name: Marine Aqua read-only production deployment status probe
 # Observe explicit production sharing browser QA
 # Track article archive visual redesign release
 # Recheck browser sorting after its production deployment
+# Track unified search and sort toolbar deployment
 # Observe corrected mobile gutter assertion QA run
 # Capture final mobile header QA run and result
 # Final result after GitHub evidence write conflict retry
@@ -93,9 +94,13 @@ jobs:
           if(!sortResponse.ok)throw Error('Sort QA lookup HTTP '+sortResponse.status);
           const sortData=await sortResponse.json();
           const sortRuns=(sortData.workflow_runs||[]).map(x=>({id:x.id,status:x.status,conclusion:x.conclusion,created_at:x.created_at,html_url:x.html_url}));
+          const unifiedResponse=await fetch('https://api.github.com/repos/'+repo+'/actions/workflows/marineaqua-sharing-unified-toolbar-qa.yml/runs?per_page=6',{headers});
+          if(!unifiedResponse.ok)throw Error('Unified toolbar QA HTTP '+unifiedResponse.status);
+          const unifiedData=await unifiedResponse.json();
+          const unifiedRuns=(unifiedData.workflow_runs||[]).map(x=>({id:x.id,status:x.status,conclusion:x.conclusion,created_at:x.created_at,html_url:x.html_url}));
           const endpoint='https://api.github.com/repos/'+repo+'/contents/docs/information-pages-production-runs.json';
           const previous=await fetch(endpoint,{headers}).then(r=>r.ok?r.json():null);
-          const body={message:'Record read-only canonical production run statuses',content:Buffer.from(JSON.stringify({runs,qaRuns,menuRuns,bridgeRuns,headerQaRuns,sharingRuns,sharingMigrationRuns,sharingHeaderRuns,sharingQaRuns,visualRuns,sortRuns},null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
+          const body={message:'Record read-only canonical production run statuses',content:Buffer.from(JSON.stringify({runs,qaRuns,menuRuns,bridgeRuns,headerQaRuns,sharingRuns,sharingMigrationRuns,sharingHeaderRuns,sharingQaRuns,visualRuns,sortRuns,unifiedRuns},null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
           if(previous?.sha)body.sha=previous.sha;
           const saved=await fetch(endpoint,{method:'PUT',headers,body:JSON.stringify(body)});
           if(!saved.ok)throw Error('Status evidence write failed '+saved.status+' '+(await saved.text()).slice(0,140));
