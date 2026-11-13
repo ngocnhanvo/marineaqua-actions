@@ -1,6 +1,6 @@
 {
   "status": "PASS",
-  "sourceSha": "d79e13c3cf9a023b7a165eef390fe11b12e2d7fb",
+  "sourceSha": "8727dea2a950744a0728187b0ea064dd45068e7f",
   "public": {
     "status": "PASS",
     "checks": 1,
@@ -62,126 +62,92 @@
     "requestTrace": [
       {
         "event": "start",
-        "method": "GET",
-        "path": "/wp-json/wp/v2/users/me",
-        "time": 1794596008402
-      },
-      {
-        "event": "start",
-        "method": "GET",
-        "path": "/wp-json/wp/v2/",
-        "time": 1794596008843
-      },
-      {
-        "event": "start",
-        "method": "GET",
-        "path": "/wp-json/yoast/v1/statistics",
-        "time": 1794596008853
-      },
-      {
-        "event": "response",
-        "status": 200,
-        "path": "/wp-json/wp/v2/users/me",
-        "time": 1794596010503
-      },
-      {
-        "event": "response",
-        "status": 200,
-        "path": "/wp-json/yoast/v1/statistics",
-        "time": 1794596010936
-      },
-      {
-        "event": "response",
-        "status": 200,
-        "path": "/wp-json/wp/v2/",
-        "time": 1794596010947
-      },
-      {
-        "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/changes",
-        "time": 1794596012046
+        "time": 1794596352396
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794596012309
+        "time": 1794596352697
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/changes",
-        "time": 1794596014285
+        "time": 1794596354559
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794596014376
+        "time": 1794596354767
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794596028502
+        "time": 1794596371799
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794596031141
+        "time": 1794596374314
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794596032215
+        "time": 1794596375364
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794596034316
+        "time": 1794596377403
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794596035382
+        "time": 1794596378448
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794596037466
+        "time": 1794596380456
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794596038549
+        "time": 1794596381498
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794596040633
+        "time": 1794596383539
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794596041681
+        "time": 1794596384583
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794596043703
+        "time": 1794596386598
       }
     ],
+    "addProductLookup": "PASS",
     "addDialog": "PASS",
+    "deleteReady": "PASS",
     "deleteDialog": "PASS",
     "sortStatus": "Item nguồn có viền đỏ. Nhấp item đích trong website để tô viền xanh.",
     "sortSourceText": "1. 82530",
@@ -193,7 +159,7 @@
   "temporaryCreated": 0,
   "cleanupRemaining": 0,
   "errors": [],
-  "qa_run_id": 43486831682,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43486831682",
-  "recorded_at": "2026-11-13T18:54:15.881Z"
+  "qa_run_id": 43487564650,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43487564650",
+  "recorded_at": "2026-11-13T19:00:03.070Z"
 }
