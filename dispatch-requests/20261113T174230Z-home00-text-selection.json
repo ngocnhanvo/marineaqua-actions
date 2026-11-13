@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T174230Z-home00-text-selection",
+  "reason": "Publish corrected Home00 Visual Builder selection so text edits do not open the image editor",
+  "source_sha": "6f713e284a18f576e6463891b196ecfaff8cc508",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
