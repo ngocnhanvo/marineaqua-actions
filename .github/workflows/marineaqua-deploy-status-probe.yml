@@ -16,6 +16,7 @@ name: Marine Aqua read-only production deployment status probe
 # Read status for sharing archive production run triggered by bridge
 # Observe explicit production sharing browser QA
 # Track article archive visual redesign release
+# Observe corrected mobile gutter assertion QA run
 on:
   push:
     branches: [main]
