@@ -12,6 +12,23 @@ await mkdir(DIR,{recursive:true});
 const browser=await chromium.launch({headless:true});
 const context=await browser.newContext({viewport:{width:1440,height:900},serviceWorkers:'block'});
 const page=await context.newPage();
+const requestTrace=[];
+page.on('request',req=>{
+ if(req.url().includes('/esc-builder/v1/')||req.url().includes('/wp-json/')){
+   requestTrace.push({event:'start',method:req.method(),path:new URL(req.url()).pathname,time:Date.now()});
+ }
+});
+page.on('response',res=>{
+ if(res.url().includes('/esc-builder/v1/')||res.url().includes('/wp-json/')){
+   requestTrace.push({event:'response',status:res.status(),path:new URL(res.url()).pathname,time:Date.now()});
+ }
+});
+page.on('requestfailed',req=>{
+ if(req.url().includes('/esc-builder/v1/')){
+   requestTrace.push({event:'failure',path:new URL(req.url()).pathname,reason:req.failure()?.errorText||'unknown',time:Date.now()});
+ }
+});
+page.on('pageerror',e=>requestTrace.push({event:'script_error',message:e.message.slice(0,200),time:Date.now()}));
 try{
   let ready=false,checks=0;
   for(let i=0;i<42&&!ready;i++){
@@ -70,6 +87,7 @@ try{
         source:el.closest('[data-tablepress-preview]')?.getAttribute('data-tablepress-preview')}))
     };
     report.builder.lastSelection=selectedInfo;
+    report.builder.requestTrace=requestTrace.slice(-35);
     assert.ok(selectedInfo.context?.startsWith(tableId+' · dòng 1'),
       'Card selection did not map to native ESC Table: '+JSON.stringify(selectedInfo));
     await page.locator('#esc-vb-item-new').waitFor({state:'visible',timeout:15000});
