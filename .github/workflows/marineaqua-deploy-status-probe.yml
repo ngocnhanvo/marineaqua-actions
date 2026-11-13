@@ -6,6 +6,7 @@ name: Marine Aqua read-only production deployment status probe
 # Reconcile exact sharing Page conflict after migration inventory
 # Inspect second sharing migration attempt
 # Follow migration after Knowledge Page reuse
+# Watch featured media migration after sanitized WordPress search
 on:
   push:
     branches: [main]
