@@ -1,0 +1,476 @@
+{
+  "status": "PASS_READ_ONLY",
+  "screens": [],
+  "forms": {
+    "editorUrl": "https://admin.marine-aqua.io.vn/wp-admin/admin.php",
+    "buttons": [
+      {
+        "tag": "A",
+        "id": "",
+        "name": null,
+        "text": "the instructions on how to enable JavaScript in your browser",
+        "title": null,
+        "className": ""
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "name": null,
+        "text": "Save Changes",
+        "title": null,
+        "className": "components-button is-primary"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "name": null,
+        "text": "Insert Link",
+        "title": null,
+        "className": "components-button is-secondary is-compact"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "name": null,
+        "text": "Insert Image",
+        "title": null,
+        "className": "components-button is-secondary is-compact"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "name": null,
+        "text": "Insert",
+        "title": null,
+        "className": "components-button is-secondary is-compact"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "name": null,
+        "text": "Delete",
+        "title": null,
+        "className": "components-button is-secondary is-compact"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "name": null,
+        "text": "Insert",
+        "title": null,
+        "className": "components-button is-secondary is-compact"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "name": null,
+        "text": "Delete",
+        "title": null,
+        "className": "components-button is-secondary is-compact"
+      }
+    ],
+    "tableStructure": {
+      "rows": 6,
+      "columns": 4,
+      "canSet": true,
+      "firstRow": [
+        "title",
+        "image",
+        "link",
+        "mobile"
+      ],
+      "tableActions": [
+        "data"
+      ],
+      "editorActions": [
+        "rows",
+        "colgroupContainer",
+        "colgroup",
+        "getJsonRow",
+        "save",
+        "getRowData",
+        "setRowData",
+        "getColumnData",
+        "setColumnData",
+        "createRow",
+        "isColMerged",
+        "isRowMerged",
+        "getColumnOptions",
+        "updateOrderArrow",
+        "moveRow",
+        "insertRow",
+        "deleteRow",
+        "moveColumn",
+        "insertColumn",
+        "deleteColumn",
+        "getSelectedRows",
+        "getSelectedColumns",
+        "showRow",
+        "hideRow",
+        "showColumn",
+        "hideColumn",
+        "row",
+        "col",
+        "historyProcessRow",
+        "historyProcessColumn"
+      ]
+    }
+  },
+  "builder": {
+    "url": "https://admin.marine-aqua.io.vn/wp-admin/edit.php",
+    "pageTitle": "ESC Visual Builder ‹ marine-aqua.vn — WordPress",
+    "frames": [
+      {
+        "id": "esc-vb-frame",
+        "title": "Astro preview",
+        "src": "https://marine-aqua.io.vn/esc-builder/preview/82454"
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "A",
+        "id": "",
+        "text": "ESC Table",
+        "title": null,
+        "className": "wp-has-submenu wp-not-current-submenu menu-top toplevel_page_tablepress"
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "All Tables",
+        "title": null,
+        "className": "wp-first-item"
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "Add New Table",
+        "title": null,
+        "className": ""
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "Import a Table",
+        "title": null,
+        "className": ""
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "Export a Table",
+        "title": null,
+        "className": ""
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "Group ESC Table",
+        "title": null,
+        "className": ""
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "BEAR Bulk Editor",
+        "title": null,
+        "className": ""
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "Sửa tệp tin Plugin",
+        "title": null,
+        "className": ""
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "Add/edit post types",
+        "title": null,
+        "className": "wp-first-item"
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "Add/edit taxonomies",
+        "title": null,
+        "className": ""
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "ESC Table",
+        "title": null,
+        "className": "ab-item"
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "BEAR Bulk Editor",
+        "title": "BEAR - WooCommerce Bulk Editor",
+        "className": "ab-item"
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "Sao lưu / Khôi Phục",
+        "title": null,
+        "className": "ab-item"
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "Võ Ngọc NhânanhtuanescSửa hồ sơ",
+        "title": null,
+        "className": "ab-item"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "esc-vb-refresh-section",
+        "text": "Làm mới section từ WordPress",
+        "title": null,
+        "className": "button"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "esc-vb-edit-save",
+        "text": "Lưu WordPress",
+        "title": null,
+        "className": "button button-primary"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "esc-vb-image-choose",
+        "text": "Chọn hoặc tải ảnh lên",
+        "title": null,
+        "className": "button"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "esc-vb-image-save",
+        "text": "Lưu WordPress",
+        "title": null,
+        "className": "button button-primary"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "esc-vb-item-duplicate",
+        "text": "Nhân bản item đang chọn",
+        "title": null,
+        "className": "button"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "esc-vb-item-delete",
+        "text": "Xóa item đang chọn",
+        "title": null,
+        "className": "button"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "esc-vb-section-order-open",
+        "text": "↔ Hoán đổi section",
+        "title": null,
+        "className": "button"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "Lưu WordPress",
+        "title": null,
+        "className": "button button-primary"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "Chọn ảnh Media",
+        "title": null,
+        "className": "button"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "Lưu ảnh WordPress",
+        "title": null,
+        "className": "button button-primary"
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "Lưu WordPress",
+        "title": null,
+        "className": "button button-primary"
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "Quản lý ESC Table chứng nhận & bản quyền",
+        "title": null,
+        "className": ""
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "Lưu ESC Table",
+        "title": null,
+        "className": "button button-primary"
+      },
+      {
+        "tag": "A",
+        "id": "",
+        "text": "Mở ESC Table Editor để chỉnh ảnh hoặc thêm/xóa dòng",
+        "title": null,
+        "className": ""
+      }
+    ],
+    "iframeCount": 1,
+    "bodyExcerpt": "Chuyển đến nội dung chính\nChuyển đến thanh công cụ\n\n\nTrang quản trị\nTổng quan\nCập nhật 22\n\n\nGitHub 1\n🚀 Build Website\n🔍 Chế độ xem trước\n🌐 Chế độ chính thức\n\n\nBài viết\nTất cả bài viết\nThêm Bài Viết\nDanh mục\nThẻ\nRe-Order\n\n\nThư viện\nThư viện\nCleaner\nTải tệp lên\nMedia Cleaning\nRe-Order\n\n\nTrang\nTất cả các trang\nThêm Trang\nVisual Builder\n\n\nWPClever\nAbout\nEssential Kit\nProduct Bundles\n\n\nThông tin chung\nAll Thông tin chung\nAdd new Thông tin chung\nRe-Order\n\n\nĐiều hướng URL\nTất cả điều hướng\nThêm điều hướng URL\nRe-Order\n\n\nFlamingo\nAddress Book\nInbound Messages\n\n\nESC Table\nAll Tables\nAdd New Table\nImport a Table\nExport a Table\nPlugin Options\nGroup ESC Table\n\n\nForm liên hệ\nDanh sách Form\nAdd Contact Form\nTích hợp\n\n\nWooCommerce\nTổng quan\nĐơn hàng\nAuto Coupons\nKhách hàng\nMã ưu đãi\nRe-Order\nBáo cáo\nCài đặt\nTrạng thái\nMở rộng\nModern Cart\nCart Abandonment\n\n\nSản phẩm\nTất cả sản phẩm\nThêm sản phẩm mới\nThương hiệu\nDanh mục\nThẻ\nThuộc tính\nĐánh giá\nRe-Order\nBEAR Bulk Editor\n\n\nThanh toán\n\n\nPhân tích\nTổng quan\nSản phẩm\nDoanh thu\nĐơn hàng\nCác biến thể\nDanh mục\nMã ưu đãi\nThuế\nTệp tải xuống\nTồn kho\nCài đặt\n\n\nTiếp thị\nTổng quan\nCác ưu đãi\nRe-Order\n\n\nMenu\n\n\nPlugin 22\nPlugin đã cài đặt\nThêm Plugin\nSửa tệp tin Plugin\n\n\nTài khoản\nTất cả người dùng\nThêm người dùng\nHồ sơ\n\n\nCông cụ\nCác công cụ có sẵn\nNhập dữ liệu\nXuất dữ liệu\nTình trạng website 1\nXuất dữ liệu cá nhân\nXóa dữ liệu cá nhân\nHội thoại AI\nHành động theo lịch trình\nYoast Redirects\n\n\nCài đặt\nTổng quan\nKết nối\nViết\nĐọc\nBình luận\nThư viện\nCấu trúc đường dẫn\nRiêng tư\nSEO & Tracking\nSEO Files\nDuplicate Post\nSVG Support\n Post Types Order\n\n\nCoCart\nSupport\nSetup Wizard\n\n\nFolders Settings\nFolders Settings\nRecommended Plugins\nUpgrade to Pro\n\n\nACF\nNhóm trường\nLoại nội dung\nPhân loại\nTrang cài đặt\nCông cụ\n\n\nMeow Apps\nDashboard\nMedia Cleaner\n\n\nWP Mail SMTP\nCài đặt\nNhật ký email\nBáo cáo email\nCông cụ\nPrivacy Compliance\nGiới thiệu\nNâng cấp lên Pro\n\n\nYoast SEO 4\n4 thông báo\nCài đặt chung\nThiết lập\nTích hợp thêm\nCông cụ\nHọc viện\nPlans\nWorkouts \nChuyển hướng truy cập \nHỗ trợ\nUpgrade\nAI Brand Insights\n\n\nCPT UI\nAdd/edit post types\nAdd/edit taxonomies\nRegistered types & taxonomies\nTools\nHelp/support\nAbout CPT UI\nUpdraftPlus\nThu gọn Menu\nGiới thiệu về WordPress\nmarine-aqua.vn\nĐang bán\n22\n22 cập nhật mới\nCtrl+K\nMở tìm kiếm nhanh\nThêm mới\nSEO\n4\n4 thông báo\nGitHub 1\nBEAR Bulk Editor\nUpdraftPlus\nXin chào, Võ Ngọc Nhân\nESC Visual Builder — Chỉnh sửa chữ & hình ảnh\nTrang:\nTài khoản\nHoàn tất đơn hàng\nThanh toán\nGiỏ hàng\nTổng quan về bể cá biển\nSet up bể cá biển mini\nKinh nghiệm xử lý vấn đề trong bể cá (rêu hại, tảo hại, bệnh cá, san hô...)\nCách chọn thức ăn tốt cho cá và san hô\nCách chọn muối, vi sinh và hóa chất tốt nhất cho bể cá\nCác thiết bị trong bể cá (đèn, skimmer, máy bơm...)\nThời gian bán hàng\nHướng dẫn mua hàng tại nhà\nHướng dẫn mua hàng ở xa\nPhí ship hàng\nChính sách đổi trả hàng\nTin kiến thức\nLiên hệ\nSản phẩm\nTrang chủ\nMở trang\nGiao diện:\nDesktop\nMobile\n\nBuilder tải dữ liệu mới nhất từ WordPress. Bấm vào chữ hoặc hình ảnh trong trang xem trước để chỉnh sửa. Thay đổi hiển thị ngay trong Builder; chỉ ghi vào WordPress khi bấm Lưu WordPress. Kiểm tra hoặc làm mới section không kích hoạt build.\n\nSection đang chọn\n\nChưa chọn section.\n\nXem thông tin kỹ thuật (JSON)\nLàm mới section từ WordPress\nKiểm tra thay đổi\nLàm mới tất cả (0)\n\nĐang tải phiên bản mới nhất...\n\n1 nguồn đang chờ build. ESC Table: 145, khuyen_mai_01 (chỉ làm mới khi bấm nút)\n\n↔ Hoán đổi section",
+    "inputs": [
+      {
+        "tag": "INPUT",
+        "id": "",
+        "name": "post_type",
+        "placeholder": null,
+        "type": "hidden"
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "name": "page",
+        "placeholder": null,
+        "type": "hidden"
+      },
+      {
+        "tag": "SELECT",
+        "id": "esc-vb-page",
+        "name": "esc_vb_page",
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "SELECT",
+        "id": "esc-vb-device",
+        "name": "esc_vb_view",
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "SELECT",
+        "id": "esc-vb-edit-row",
+        "name": null,
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "TEXTAREA",
+        "id": "esc-vb-edit-title",
+        "name": null,
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "TEXTAREA",
+        "id": "esc-vb-seo-html-alt",
+        "name": null,
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "INPUT",
+        "id": "esc-vb-menu-label",
+        "name": null,
+        "placeholder": null,
+        "type": "text"
+      },
+      {
+        "tag": "TEXTAREA",
+        "id": "esc-vb-menu-description",
+        "name": null,
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "INPUT",
+        "id": "esc-vb-menu-custom-url",
+        "name": null,
+        "placeholder": "/duong-dan hoặc https://...",
+        "type": "text"
+      },
+      {
+        "tag": "INPUT",
+        "id": "esc-vb-menu-new-tab",
+        "name": null,
+        "placeholder": null,
+        "type": "checkbox"
+      },
+      {
+        "tag": "SELECT",
+        "id": "esc-vb-menu-mega-position",
+        "name": null,
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "SELECT",
+        "id": "esc-vb-menu-parent",
+        "name": null,
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "SELECT",
+        "id": "",
+        "name": null,
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "name": null,
+        "placeholder": "Tìm theo tên (ít nhất 2 ký tự)",
+        "type": "search"
+      },
+      {
+        "tag": "TEXTAREA",
+        "id": "esc-vb-footer-value",
+        "name": null,
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "SELECT",
+        "id": "esc-vb-footer-asset-field",
+        "name": null,
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "TEXTAREA",
+        "id": "esc-vb-footer-asset-value",
+        "name": null,
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "SELECT",
+        "id": "esc-vb-footer-asset-visible",
+        "name": null,
+        "placeholder": null,
+        "type": null
+      },
+      {
+        "tag": "SELECT",
+        "id": "esc-vb-item-delete-picker",
+        "name": null,
+        "placeholder": null,
+        "type": null
+      }
+    ]
+  },
+  "errors": [],
+  "run_id": 43472343242,
+  "run_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43472343242",
+  "recorded_at": "2026-11-13T17:24:38.719Z"
+}
