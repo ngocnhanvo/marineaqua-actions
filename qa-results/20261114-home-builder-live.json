@@ -74,12 +74,18 @@
       "x": 442,
       "y": 90
     },
-    "imageEditorVisible": true
+    "imageEditorVisible": true,
+    "productTitleText": "TROPIC-MARIN",
+    "productTitleEditorValue": "",
+    "productTitleRow": "",
+    "productTitleFeedback": "Không có tọa độ ESC Table hợp lệ cho chữ này. Hãy làm mới preview hoặc sửa trực tiếp ESC Table.",
+    "productTitleCaption": "home_04 · chỉ sửa chữ có nguồn ESC Table. Dữ liệu lấy từ API phải sửa tại nguồn.",
+    "productTitlePageTail": "dẫn mua hàng ở xa\nPhí ship hàng\nChính sách đổi trả hàng\nTin kiến thức\nLiên hệ\nSản phẩm\nTrang chủ\nMở trang\nGiao diện:\nDesktop\nMobile\n\nBuilder tải dữ liệu mới nhất từ WordPress. Bấm vào chữ hoặc hình ảnh trong trang xem trước để chỉnh sửa. Thay đổi hiển thị ngay trong Builder; chỉ ghi vào WordPress khi bấm Lưu WordPress. Kiểm tra hoặc làm mới section không kích hoạt build.\n\nSection đang chọn\n\nhome_04 · TROPIC-MARIN\n\nXem thông tin kỹ thuật (JSON)\nLàm mới section từ WordPress\nKiểm tra thay đổi\nLàm mới tất cả (0)\n\nBuilder đã kiểm tra WordPress: 6 ESC Table có dữ liệu mới nhất.\n\n2 nguồn đang chờ build. ESC Table: 145, khuyen_mai_01, home_00 (chỉ làm mới khi bấm nút)\n\nChỉnh sửa chữ trực quan\n\nhome_04 · chỉ sửa chữ có nguồn ESC Table. Dữ liệu lấy từ API phải sửa tại nguồn.\n\nDòng nội dung\nChưa có chữ có thể chỉnh sửa\nLưu WordPress\nHủy thay đổi\n\nKhông có tọa độ ESC Table hợp lệ cho chữ này. Hãy làm mới preview hoặc sửa trực tiếp ESC Table.\n\nChọn chữ trong vùng WordPress Editor để sửa trực tiếp nội dung Page. ESC Table vẫn có trình sửa riêng. Bản xem trước cập nhật tức thì và không tải lại iframe; bản production chỉ đổi sau khi build.\n\nESC Table · Quản lý item\n\nhome_04 · chọn item để nhân bản hoặc xóa\n\n+ Thêm item\nNhân bản item đang chọn\nXóa item đang chọn\n↕ Sắp xếp item\n\n↔ Hoán đổi section"
   },
   "errors": [
-    "BUILDER: page.waitForFunction: Timeout 22000ms exceeded."
+    "BUILDER: Product section title did not map to its WordPress source\n\n'' !== 'TROPIC-MARIN'\n"
   ],
-  "qa_run_id": 43478827338,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43478827338",
-  "recorded_at": "2026-11-13T18:06:28.292Z"
+  "qa_run_id": 43479465421,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43479465421",
+  "recorded_at": "2026-11-13T18:08:34.263Z"
 }
