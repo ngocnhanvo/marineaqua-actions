@@ -1,0 +1,11 @@
+{
+  "action": "workflow_dispatch",
+  "request_id": "20261113T085717Z-checkout-uncertainty-php-release",
+  "reason": "Release reviewed checkout uncertainty handling: reject invalid input before writes and prevent retry after an attempted order creation; regression tests use stubs only.",
+  "source_sha": "9855763bf7319b18c9e36f86db5430ace39e6d66",
+  "workflow": "marineaqua-php-release.yml",
+  "ref": "main",
+  "inputs": {
+    "confirm": "DEPLOY_PHP"
+  }
+}
