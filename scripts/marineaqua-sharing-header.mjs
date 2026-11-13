@@ -40,6 +40,39 @@ try{
   const pages=await read('/wp-json/wp/v2/pages?status=publish&slug='+t.slug+'&_fields=id,slug,acf');
   must(pages.length===1&&pages[0].acf?.action==='PostsPage'&&(pages[0].acf?.key==='ssr-posts'||(t.slug==='tin-kien-thuc'&&pages[0].acf?.key==='knowledge')),'Published SSR category Page missing '+t.slug);
  }
+ // Independent source/target Post parity check: same 133 unique slugs and
+ // exact category memberships, without duplicating multi-category articles.
+ const listPosts=async(origin)=>{
+  const all=[];
+  for(let pageNumber=1;pageNumber<=3;pageNumber++){
+   const response=await context.request.get(origin+'/wp-json/wp/v2/posts?status=publish&per_page=100&page='+pageNumber+'&_fields=id,slug,categories',{timeout:45000,failOnStatusCode:false});
+   must(response.ok(),'Post inventory HTTP '+response.status()+' '+origin+' page '+pageNumber);
+   const items=await response.json();
+   must(Array.isArray(items),'Post inventory malformed '+origin);
+   all.push(...items);
+   if(items.length<100)break;
+  }
+  return all;
+ };
+ const [sourcePosts,targetPosts,sourceTerms,targetTerms]=await Promise.all([
+  listPosts('https://marine-aqua.vn'),listPosts(WP),
+  context.request.get('https://marine-aqua.vn/wp-json/wp/v2/categories?per_page=100&_fields=id,slug').then(r=>{must(r.ok(),'Source terms HTTP '+r.status());return r.json()}),
+  read('/wp-json/wp/v2/categories?per_page=100&_fields=id,slug')
+ ]);
+ must(sourcePosts.length===133&&targetPosts.length===133,'Published Post inventory count mismatch source='+sourcePosts.length+' target='+targetPosts.length);
+ const sourceCatById=new Map(sourceTerms.map(t=>[t.id,t.slug]));
+ const targetCatById=new Map(targetTerms.map(t=>[t.id,t.slug]));
+ const sourceIndex=new Map(sourcePosts.map(p=>[p.slug,p]));
+ const targetIndex=new Map(targetPosts.map(p=>[p.slug,p]));
+ must(sourceIndex.size===133&&targetIndex.size===133,'Duplicate slug in source or target Posts');
+ for(const [slug,post] of sourceIndex){
+  const target=targetIndex.get(slug);
+  must(target,'Missing published Post slug '+slug);
+  const a=post.categories.map(id=>sourceCatById.get(id)).sort();
+  const b=target.categories.map(id=>targetCatById.get(id)).sort();
+  must(JSON.stringify(a)===JSON.stringify(b),'Post taxonomy membership differs '+slug);
+ }
+ report.postsParity={unique:133,memberships:'PASS'};
  const before=await getMenu(),flat=flatten(before);
  const ignore=new Set(targets.map(t=>t.id));
  const savedChecksum=checksum(before,ignore);
