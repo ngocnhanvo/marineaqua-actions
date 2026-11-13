@@ -40,17 +40,17 @@ try {
       if (viewport.name === 'desktop') {
         const link = page.locator('#desktop-menu a').filter({ hasText: /^Liên hệ$/ });
         assert.equal(await link.count(), 1, 'WordPress Header contact link is missing or duplicated on desktop');
-        assert.equal(new URL(await link.getAttribute('href'), HOST).pathname.replace(/\\/+$/, ''), '/lien-he', 'Desktop Header contact destination mismatch');
+        assert.equal(new URL(await link.getAttribute('href'), HOST).pathname.replace(/\/+$/, ''), '/lien-he', 'Desktop Header contact destination mismatch');
         await link.click();
       } else {
         const toggle = page.locator('#hamburger-btn');
         await toggle.click();
         const link = page.locator('#mobile-menu-container a').filter({ hasText: /^Liên hệ$/ });
         assert.equal(await link.count(), 1, 'WordPress Header contact link is missing or duplicated on mobile');
-        assert.equal(new URL(await link.getAttribute('href'), HOST).pathname.replace(/\\/+$/, ''), '/lien-he', 'Mobile Header contact destination mismatch');
+        assert.equal(new URL(await link.getAttribute('href'), HOST).pathname.replace(/\/+$/, ''), '/lien-he', 'Mobile Header contact destination mismatch');
         await link.click();
       }
-      await page.waitForURL(url => url.pathname.replace(/\\/+$/, '') === '/lien-he', { timeout: 10000 });
+      await page.waitForURL(url => url.pathname.replace(/\/+$/, '') === '/lien-he', { timeout: 10000 });
       assert.equal(await page.locator('main#main-content h1').count(), 1, 'Header navigation did not reach contact page');
       const links=await main.locator('a[href]').evaluateAll(nodes=>nodes.map(n=>({href:n.getAttribute('href'),target:n.target,rel:n.rel})));
       assert.ok(links.some(x=>x.href==='mailto:info@marine-aqua.vn'));
