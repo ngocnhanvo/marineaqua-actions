@@ -191,7 +191,24 @@ async function verifyCmsAndBuilder(){
   report.builder.productTitleCaption=await page.locator('#esc-vb-edit-caption').innerText().catch(()=>null);
   report.builder.productTitlePageTail=(await page.locator('body').innerText()).slice(-1300);
   assert.equal(report.builder.productTitleEditorValue.trim(),brandValue,'Product section title did not map to its WordPress source');
+  assert.equal(report.builder.productTitleRow,'section','Product heading did not select native section title');
+  assert.ok(await page.locator('#esc-vb-edit-title').isEnabled(),'Product heading text editor is disabled');
+  // Preview-only modification: never save, and verify cancel restores the
+  // original production display and unchanged canonical WordPress table.
+  const draft=brandValue+' [QA preview only]';
+  await page.locator('#esc-vb-edit-title').fill(draft);
+  await brand.getByText(draft,{exact:true}).waitFor({state:'visible',timeout:12000});
+  report.builder.productTitleDraftVisible=true;
+  await page.locator('#esc-vb-edit-cancel').click();
+  await page.waitForFunction(expected=>
+     document.querySelector('#esc-vb-edit-title')?.value===expected,brandValue,{timeout:10000});
+  await brand.getByText(brandValue,{exact:true}).waitFor({state:'visible',timeout:12000});
+  const brandSource=await ctx.request.get(WP+'/wp-json/tablepress/v1/table/home_04',{timeout:30000});
+  assert.equal(brandSource.status(),200,'Source Product ESC Table unavailable');
+  const canonical=await brandSource.json();
+  assert.equal(canonical.title,brandValue,'Product heading draft unexpectedly changed WordPress');
   report.builder.productTitleEditable=true;
+  report.builder.productTitleDraftCancelPass=true;
   report.builder.status='PASS';
  }finally{await ctx.close();}
 }
