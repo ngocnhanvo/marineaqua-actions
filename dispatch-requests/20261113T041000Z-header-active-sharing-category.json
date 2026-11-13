@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "cb400bd593bf86490c1479020ac139820ae4cec5",
+  "reason": "Highlight correct current WordPress sharing submenu on desktop and mobile",
+  "request_id": "20261113T041000Z-header-active-sharing-category",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
