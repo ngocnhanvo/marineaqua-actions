@@ -38,8 +38,8 @@
         }
       ],
       "width": {
-        "viewport": 1280,
-        "document": 1280
+        "viewport": 1366,
+        "document": 1366
       }
     },
     {
@@ -78,12 +78,12 @@
         }
       ],
       "width": {
-        "viewport": 1280,
-        "document": 1280
+        "viewport": 390,
+        "document": 390
       }
     }
   ],
   "errors": [],
-  "run_id": "43336814220",
+  "run_id": "43336982003",
   "outcome": "success"
 }
