@@ -60,7 +60,7 @@ try{
      const original=grid.map(row=>row.slice(0,4));
      const indexes=grid.map((row,i)=>i).filter(i=>i>0&&(
        String(grid[i]?.[0]||'').trim()||String(grid[i]?.[1]||'').includes('<img')));
-     if(indexes.length!==4)throw Error('Expected exactly four populated banner rows');
+     if(indexes.length!==4)throw Error('Expected exactly four populated banner rows; found '+indexes.length+' at '+indexes.join(',')+'; row-shapes='+JSON.stringify(grid.map((row,i)=>({i,filled:row.filter(v=>String(v||'').trim()).length,hasImage:String(row[1]||'').includes('<img'),titlePresent:Boolean(String(row[0]||'').trim())}))));
      const inserted=tp.editor.insertColumn(7,3,false);
      if(inserted===false)throw Error('Native column insertion rejected');
      if(tp.table.data[0].length!==11)throw Error('Could not extend table to 11 columns');
