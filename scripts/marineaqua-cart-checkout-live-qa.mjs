@@ -148,7 +148,27 @@ async function checkoutReady(page, scope) {
   return saved;
 }
 async function screenshot(page, name) {
-  await page.screenshot({ path: DIR + '/' + name, fullPage: true, animations: 'disabled', timeout: 5000, mask: [page.locator('input, textarea, select, pre, code')] });
+  const capturePosition = await page.evaluate(async () => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    let deadline;
+    try {
+      await Promise.race([
+        (async () => {
+          if (document.fonts) await document.fonts.ready;
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        })(),
+        new Promise((_resolve, reject) => { deadline = setTimeout(() => reject(Error('Screenshot fonts/animation-frame readiness exceeded 4000ms')), 4000); })
+      ]);
+    } finally {
+      clearTimeout(deadline);
+    }
+    return { x: window.scrollX, y: window.scrollY };
+  });
+  assert.equal(capturePosition.y, 0, 'Screenshot must start at scrollY zero');
+  assert.equal(capturePosition.x, 0, 'Screenshot must start at scrollX zero');
+  const privateFields = 'input:not([type]), input[type="text"], input[type="password"], input[type="email"], input[type="tel"], input[type="search"], input[type="url"], input[type="number"], textarea, select, pre, code';
+  await page.screenshot({ path: DIR + '/' + name, fullPage: true, animations: 'disabled', timeout: 5000, mask: [page.locator(privateFields)] });
   report.screenshots.push(name);
 }
 async function checkLayout(page, viewport, name) {
