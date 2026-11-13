@@ -19,6 +19,7 @@ name: Marine Aqua read-only production deployment status probe
 # Observe corrected mobile gutter assertion QA run
 # Capture final mobile header QA run and result
 # Final result after GitHub evidence write conflict retry
+# Observe deployment after removing article archive eyebrow label
 on:
   push:
     branches: [main]
