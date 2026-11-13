@@ -1,0 +1,18 @@
+{
+  "status": "FAIL",
+  "table": "home_00",
+  "writeScope": [
+    "home_00"
+  ],
+  "changes": 0,
+  "skippedUnchanged": 0,
+  "temporaryCreated": 0,
+  "cleanupRemaining": 0,
+  "checks": [],
+  "errors": [
+    "page.evaluate: Error: Expected exactly four populated banner rows\n    at eval (eval at evaluate (:370:30), <anonymous>:12:34)\n    at UtilityScript.evaluate (<anonymous>:372:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at /__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-home00-add-editable-fields.mjs:52:29"
+  ],
+  "run_id": 43472972367,
+  "run_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43472972367",
+  "recorded_at": "2026-11-13T17:28:17.476Z"
+}
