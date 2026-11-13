@@ -5,27 +5,31 @@
 - Repository: ngocnhanvo/marineaqua-actions
 - Branch: main
 - Lưu phản hồi: SAVED
-- Trạng thái công việc đã xác minh: DONE — liên kết mục Liên hệ của Header
-- WordPress native Header/vi item ID 82509: trước linkType none, sau internal href=slug=lien-he; no other menu items modified
-- WordPress workflow: 43455825353 job 131989557118 SUCCESS, exact REST readback
-- Astro source master unchanged: afe994bb2cf47c3da78936d51c20b5c6edeabc84
-- Production bridge: 43456195013 SUCCESS
-- Production deploy: 43456243983 job 131991027486 SUCCESS; build, FTPS upload, signed activation all PASS
-- Live desktop/mobile click QA: 43456671923 job 131992512158 SUCCESS; real Header clicks, correct /lien-he, no horizontal overflow
-- Checkpoint: docs/contact-header-link-checkpoint.md commit dd3cbacf69a1197424e6d4f200f1782987824750 DONE
-- No real order, customer data or contact message submitted; no cleanup pending
+- Trạng thái công việc đã xác minh: DONE — nút Khám phá danh mục dẫn đến /san-pham
+- Astro master source: 45e27c9e188ce87fe6e5a2038be802162508842d
+- File: src/astro/tablepress/Home_00.astro
+- Change: href="#categories" → href="/san-pham"; preserve banner slides and design
+- Existing CI run 43382064682, rerun job 131998162370 SUCCESS
+- Existing production deploy 43458564198 job 131999093731 SUCCESS; exact source SHA; build/output/FTPS/signed activation PASS
+- Live QA 43458378189 rerun job 132000310209 SUCCESS; actual CTA click navigated to /san-pham on desktop and mobile, destination HTTP 200, no overflow
+- Checkpoint: docs/home-category-cta-checkpoint.md commit ef691736325c9474164de54c5b163bfd2703abb6
+- No WordPress data, PHP, cart, orders, emails or menu changed; no cleanup pending
 
 ## Phản hồi nguyên văn
 
-Đã sửa **menu Liên hệ trên Header** và triển khai lên [website](https://marine-aqua.io.vn/lien-he).
+Đã sửa nút **“Khám phá danh mục”** trên banner trang chủ để mở đúng:
 
-Nguyên nhân là mục **Liên hệ** trong WordPress Menu Manager có `linkType: none`, nên hiển thị nhưng không nhấp được. Mình đã chuyển mục đó sang liên kết nội bộ `/lien-he`, giữ nguyên các menu khác.
+[https://marine-aqua.io.vn/san-pham](https://marine-aqua.io.vn/san-pham)
 
-- [Cập nhật WordPress thành công](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43455825353)
-- [Build và deploy production thành công](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43456243983)
-- [Kiểm tra desktop/mobile PASS](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43456671923): nhấp **Liên hệ** từ Header mở đúng trang.
+Bản sửa đã triển khai thành công lên production và kiểm tra thực tế **PASS trên desktop và mobile**:
 
-Đã lưu [checkpoint](https://github.com/ngocnhanvo/marineaqua-actions/blob/main/docs/contact-header-link-checkpoint.md).
+- Desktop 1366 px và mobile 390 px: nhấp nút đều chuyển đúng `/san-pham`.
+- Trang sản phẩm trả HTTP 200, không tràn ngang.
+- Giữ nguyên giao diện, hình ảnh và hiệu ứng banner.
+
+[Build production PASS](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43458564198) · [Playwright QA PASS](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43458378189).
+
+Đã lưu [checkpoint](https://github.com/ngocnhanvo/marineaqua-actions/blob/main/docs/home-category-cta-checkpoint.md).
 
 Chế độ code: auto-build
 Cổng ghi source: bypass
