@@ -64,9 +64,17 @@ jobs:
           if(!sharingMigrationResponse.ok)throw Error('Sharing migration run lookup HTTP '+sharingMigrationResponse.status);
           const sharingMigrationData=await sharingMigrationResponse.json();
           const sharingMigrationRuns=(sharingMigrationData.workflow_runs||[]).map(x=>({id:x.id,status:x.status,conclusion:x.conclusion,created_at:x.created_at,html_url:x.html_url}));
+          const sharingHeaderResponse=await fetch('https://api.github.com/repos/'+repo+'/actions/workflows/marineaqua-sharing-header-release.yml/runs?per_page=6',{headers});
+          if(!sharingHeaderResponse.ok)throw Error('Sharing Header runs HTTP '+sharingHeaderResponse.status);
+          const sharingHeaderData=await sharingHeaderResponse.json();
+          const sharingHeaderRuns=(sharingHeaderData.workflow_runs||[]).map(x=>({id:x.id,status:x.status,conclusion:x.conclusion,created_at:x.created_at,html_url:x.html_url}));
+          const sharingQaResponse=await fetch('https://api.github.com/repos/'+repo+'/actions/workflows/marineaqua-sharing-live-qa.yml/runs?per_page=6',{headers});
+          if(!sharingQaResponse.ok)throw Error('Sharing QA runs HTTP '+sharingQaResponse.status);
+          const sharingQaData=await sharingQaResponse.json();
+          const sharingQaRuns=(sharingQaData.workflow_runs||[]).map(x=>({id:x.id,status:x.status,conclusion:x.conclusion,created_at:x.created_at,html_url:x.html_url}));
           const endpoint='https://api.github.com/repos/'+repo+'/contents/docs/information-pages-production-runs.json';
           const previous=await fetch(endpoint,{headers}).then(r=>r.ok?r.json():null);
-          const body={message:'Record read-only canonical production run statuses',content:Buffer.from(JSON.stringify({runs,qaRuns,menuRuns,bridgeRuns,headerQaRuns,sharingRuns,sharingMigrationRuns},null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
+          const body={message:'Record read-only canonical production run statuses',content:Buffer.from(JSON.stringify({runs,qaRuns,menuRuns,bridgeRuns,headerQaRuns,sharingRuns,sharingMigrationRuns,sharingHeaderRuns,sharingQaRuns},null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
           if(previous?.sha)body.sha=previous.sha;
           const saved=await fetch(endpoint,{method:'PUT',headers,body:JSON.stringify(body)});
           if(!saved.ok)throw Error('Status evidence write failed '+saved.status+' '+(await saved.text()).slice(0,140));
