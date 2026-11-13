@@ -6,7 +6,7 @@ const HOST = 'https://marine-aqua.io.vn';
 const DIR = 'cart-checkout-evidence';
 const STORAGE_KEY = 'esc-cart-storage';
 const args = process.argv.slice(2);
-assert.ok(args.length === 0 || (args.length === 1 && ['--scope=shipping-fee', '--scope=account-cart', '--scope=checkout-readiness'].includes(args[0])), 'Supported scopes: shipping-fee, account-cart, checkout-readiness; omit the flag for the full suite');
+assert.ok(args.length === 0 || (args.length === 1 && ['--scope=shipping-fee', '--scope=account-cart', '--scope=checkout-readiness', '--scope=checkout-billing'].includes(args[0])), 'Supported scopes: shipping-fee, account-cart, checkout-readiness, checkout-billing; omit the flag for the full suite');
 const QA_SCOPE = args.length ? args[0].split('=')[1] : 'full';
 const RESPONSE_TIMEOUT = 40000;
 const DOM_TIMEOUT = 15000;
@@ -19,6 +19,8 @@ const VALID_BILLING = {
   billing_email: 'marine-aqua-checkout-qa@example.invalid',
   billing_diachi: 'QA — không đặt hàng'
 };
+const BILLING_LOCALITY = { billing_state: 'Tỉnh QA', billing_city: 'Phường QA', order_comments: 'Kiểm tra giao diện — không tạo đơn' };
+const BILLING_PASSWORD = 'QA-Only-Not-An-Account-2026';
 const report = { status: 'STARTED', scope: QA_SCOPE, checkedAt: new Date().toISOString(), checks: [], navigation: [], network: [], cleanup: [], screenshots: [], errors: [] };
 const privateValues = new Set();
 function redact(value) {
@@ -52,7 +54,7 @@ async function navigate(page, url, check, click) {
     diagnostic.http = response?.status() ?? null;
     diagnostic.url = safeUrl(response?.url() || page.url());
     diagnostic.contentType = response?.headers()['content-type'] || '';
-    if (QA_SCOPE === 'account-cart' && response) {
+    if (['account-cart', 'checkout-billing'].includes(QA_SCOPE) && response) {
       const actualUrl = new URL(response.url());
       if (actualUrl.origin === HOST && ['/gio-hang', '/thanh-toan'].includes(actualUrl.pathname.replace(/\/+$/, ''))) {
         diagnostic.stage = 'RESPONSE_CACHE_POLICY';
@@ -653,6 +655,199 @@ async function accountCartQA(page, scope, saved) {
   assert.ok(scope.auth.records.every(record => record.simulated === true), 'Authentication request escaped browser mocks');
   report.checks.push({ type: 'account-cart-safety', viewport: scope.name, authSimulationOnly: true, checkoutPosts: 0, orderRequests: 0, realOrders: 0, ok: true });
 }
+async function installBillingGuards(scope) {
+  scope.billingGuard = { blocked: [], interceptedCheckoutPosts: 0 };
+  for (const value of [...Object.values(VALID_BILLING), ...Object.values(BILLING_LOCALITY), BILLING_PASSWORD]) privateValues.add(value);
+  await scope.context.route('**/*', async route => {
+    const request = route.request(), url = new URL(request.url()), method = request.method(), path = url.pathname;
+    const sensitive = /^\/api\/(?:user|orders?)(?:\/|$)/.test(path) ||
+      /^\/wp-json\/.*\/(?:login|logout|users?|customers?|orders?)(?:\/|$)/.test(path);
+    const ownCartWrite = url.origin === HOST && method === 'POST' && ['/api/cart/add', '/api/cart/update', '/api/cart/del'].includes(path);
+    const mockedCheckout = url.origin === HOST && method === 'POST' && path === '/api/cart/checkout';
+    if (sensitive || (!['GET', 'HEAD', 'OPTIONS'].includes(method) && !ownCartWrite && !mockedCheckout)) {
+      scope.billingGuard.blocked.push({ method, url: safeUrl(url.href) });
+      report.errors.push(scope.name + ': billing QA blocked an unexpected request: ' + method + ' ' + safeUrl(url.href));
+      await route.abort('blockedbyclient');
+      return;
+    }
+    if (mockedCheckout) scope.billingGuard.interceptedCheckoutPosts++;
+    await route.fallback();
+  });
+}
+function billingPayloadProjection(payload) {
+  const billing = payload?.billing || {};
+  return {
+    name: billing.first_name === VALID_BILLING.billing_tenchuthe,
+    phone: billing.phone === VALID_BILLING.billing_sodienthoai,
+    email: billing.email === VALID_BILLING.billing_email,
+    address: billing.address_1 === VALID_BILLING.billing_diachi,
+    province: billing.state === BILLING_LOCALITY.billing_state,
+    districtWard: billing.city === BILLING_LOCALITY.billing_city,
+    note: payload?.customer_note === BILLING_LOCALITY.order_comments,
+    terms: payload?.terms === true,
+    noAccountPassword: payload?.account_password === '',
+    noLegacyMetadata: !Object.hasOwn(billing, 'chuthe') && !Object.hasOwn(billing, 'cccd'),
+  };
+}
+async function billingLayoutQA(page, scope) {
+  const card = page.locator('[data-checkout-billing-card]');
+  await card.waitFor({ state: 'visible' });
+  assert.equal(await card.count(), 1, 'Billing card is missing or duplicated');
+  const snapshot = await card.evaluate(element => {
+    const visible = node => Boolean(node.getClientRects().length && getComputedStyle(node).visibility !== 'hidden');
+    const rect = node => { const r = node.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height, right: r.right, bottom: r.bottom }; };
+    const field = node => ({
+      name: node.name, placeholder: node.getAttribute('placeholder'), required: node.required,
+      type: node.type, autocomplete: node.autocomplete, labelled: Boolean(node.labels?.length || node.getAttribute('aria-label')),
+      empty: node.value === '', radius: Number.parseFloat(getComputedStyle(node).borderRadius), ...rect(node),
+    });
+    const heading = element.querySelector('#checkout-billing-title');
+    const fields = [...element.querySelectorAll('input:not([type="checkbox"]):not([type="hidden"]), textarea')].filter(visible).map(field);
+    const checkbox = element.querySelector('#createaccount');
+    return {
+      card: { ...rect(element), background: getComputedStyle(element).backgroundColor, radius: Number.parseFloat(getComputedStyle(element).borderRadius) },
+      heading: { text: heading?.textContent?.trim(), fontSize: Number.parseFloat(getComputedStyle(heading).fontSize) },
+      fields, checkbox: { label: checkbox?.closest('label')?.textContent?.replace(/\s+/g, ' ').trim(), checked: checkbox?.checked, ...rect(checkbox) },
+      legacyVisible: [...element.querySelectorAll('[name="billing_chuthe"], [name="billing_cccd"]')].filter(visible).length,
+    };
+  });
+  const expected = [
+    ['billing_tenchuthe', 'Họ và tên *', 'billing name', true],
+    ['billing_sodienthoai', 'Số điện thoại', 'billing tel', true],
+    ['billing_email', 'Email *', 'billing email', true],
+    ['billing_diachi', 'Địa chỉ *', 'billing address-line1', true],
+    ['billing_state', 'Tỉnh / Thành phố', 'billing address-level1', false],
+    ['billing_city', 'Quận / Huyện / Phường', 'billing address-level2', false],
+    ['order_comments', 'Ghi chú đơn hàng', '', false],
+  ];
+  assert.deepEqual(snapshot.fields.map(field => field.name), expected.map(field => field[0]), 'Billing field order differs from the user reference');
+  assert.equal(snapshot.heading.text, 'Thông tin thanh toán', 'Billing card heading differs from the reference');
+  assert.ok(snapshot.heading.fontSize >= 19 && snapshot.heading.fontSize <= 21, 'Billing heading size differs from the reference');
+  assert.equal(snapshot.card.background, 'rgb(255, 255, 255)', 'Billing card must have a white background');
+  assert.ok(snapshot.card.radius >= 12, 'Billing card corner radius is missing');
+  assert.equal(snapshot.legacyVisible, 0, 'Removed personal/organization or identity fields remain visible');
+  for (const [index, [name, placeholder, autocomplete, required]] of expected.entries()) {
+    const field = snapshot.fields[index];
+    assert.equal(field.placeholder, placeholder, name + ': placeholder differs from the reference');
+    assert.equal(field.required, required, name + ': required policy changed');
+    assert.equal(field.labelled, true, name + ': accessible label is missing');
+    assert.equal(field.empty, true, name + ': fresh guest form unexpectedly contains data');
+    if (autocomplete) assert.equal(field.autocomplete, autocomplete, name + ': autocomplete purpose is incorrect');
+    assert.ok(field.radius >= 11 && field.radius <= 13, name + ': field corner radius differs from the reference');
+    if (name !== 'order_comments') assert.ok(field.height >= 48 && field.height <= 52, name + ': field height differs from the reference');
+  }
+  const [name, phone, email, address, province, district, note] = snapshot.fields;
+  for (const [index, field] of [name, phone, email, address].entries()) {
+    assert.ok(Math.abs(field.x - name.x) <= 1 && Math.abs(field.width - name.width) <= 1, field.name + ': field is not full width');
+    if (index) assert.ok(field.y - snapshot.fields[index - 1].bottom >= 14 && field.y - snapshot.fields[index - 1].bottom <= 18, field.name + ': vertical spacing differs from the reference');
+  }
+  assert.ok(name.x - snapshot.card.x >= 23 && name.x - snapshot.card.x <= 26, 'Billing card padding differs from the reference');
+  assert.ok(province.y - address.bottom >= 14 && province.y - address.bottom <= 18, 'Locality row spacing differs from the reference');
+  if (scope.name === 'desktop') {
+    assert.ok(Math.abs(province.y - district.y) <= 1 && Math.abs(province.width - district.width) <= 1, 'Desktop localities must use two equal columns');
+    assert.ok(district.x - province.right >= 10 && district.x - province.right <= 14, 'Desktop locality column gap differs from the reference');
+    assert.ok(Math.abs(province.x - name.x) <= 1 && Math.abs(district.right - name.right) <= 1, 'Desktop localities do not span the card');
+  } else {
+    assert.ok(district.y > province.bottom && Math.abs(province.width - name.width) <= 1 && Math.abs(district.width - name.width) <= 1, 'Mobile localities must stack at full width');
+  }
+  assert.equal(snapshot.checkbox.label, 'Tạo tài khoản mới?', 'Create-account label differs from the reference');
+  assert.equal(snapshot.checkbox.checked, false, 'Fresh checkout unexpectedly enables account creation');
+  assert.ok(snapshot.checkbox.y > Math.max(province.bottom, district.bottom) && note.y > snapshot.checkbox.bottom, 'Checkbox and notes must follow the locality fields');
+  assert.ok(Math.abs(note.x - name.x) <= 1 && Math.abs(note.width - name.width) <= 1 && note.height >= 98 && note.height <= 104, 'Order notes size differs from the reference');
+  await checkLayout(page, scope.name, 'checkout-billing');
+  await screenshot(page, scope.name + '-checkout-billing.png');
+  // This crop is deliberately taken only after proving every visible field is
+  // blank in a fresh guest context, so placeholders remain reviewable without PII.
+  const cardScreenshot = scope.name + '-checkout-billing-card.png';
+  await card.screenshot({ path: DIR + '/' + cardScreenshot, animations: 'disabled', timeout: 5000 });
+  report.screenshots.push(cardScreenshot);
+  report.checks.push({ type: 'checkout-billing-reference-layout', viewport: scope.name, fields: snapshot.fields.map(({ name, placeholder, required, labelled, autocomplete, height, width }) => ({ name, placeholder, required, labelled, autocomplete, height, width })), localities: scope.name === 'desktop' ? 'two-equal-columns' : 'stacked', legacyControlsVisible: 0, blankGuestScreenshot: true, ok: true });
+}
+async function checkoutBillingQA(page, scope, saved) {
+  await clickNavigation(page, '#btn-proceed-checkout', scope.name + '-billing-cart-checkout');
+  await checkoutReady(page, scope);
+  const form = page.locator('#checkout-form'), submit = page.locator('#submit-checkout-btn'), terms = page.locator('#terms-checkbox');
+  let methods = await form.evaluate(node => JSON.parse(node.dataset.paymentMethods || '[]'));
+  let paymentRetry = false;
+  if (!methods.length) {
+    const messages = await form.evaluate(node => JSON.parse(node.dataset.checkoutMessages || '{}'));
+    const warning = page.locator('#checkout-cart-container + div [role="status"]').filter({ hasText: messages.payment_unavailable });
+    assert.equal(await warning.count(), 1, 'Empty gateway metadata does not have the explicit unavailable state');
+    assert.equal(await warning.isVisible(), true, 'Payment unavailable state is hidden');
+    paymentRetry = true;
+    await navigate(page, page.url(), scope.name + '-billing-payment-fresh-get');
+    await checkoutReady(page, scope);
+    methods = await form.evaluate(node => JSON.parse(node.dataset.paymentMethods || '[]'));
+  }
+  assert.ok(methods.length, 'Configured payment options are unavailable after at most one fresh GET');
+  await billingLayoutQA(page, scope);
+  assert.equal(await terms.isChecked(), false, 'Terms must start unchecked');
+  assert.equal(await submit.isDisabled(), true, 'Submit must stay disabled before accepting terms');
+  await terms.check();
+  await until(async () => await submit.isEnabled(), 'Nonempty checkout did not enable submission after terms');
+  await submit.click();
+  for (const name of Object.keys(VALID_BILLING)) assert.equal(await page.locator('[name="' + name + '"]').evaluate(input => input.validity.valueMissing), true, name + ': blank required field was accepted');
+  assert.equal(scope.mock.records.length, 0, 'Blank required fields submitted checkout');
+  await fillValidGuestForm(page);
+  assert.equal(await page.locator('#billing_state').inputValue(), '', 'Province should be optional and initially empty');
+  assert.equal(await page.locator('#billing_city').inputValue(), '', 'District/ward should be optional and initially empty');
+  await page.locator('#billing_email').fill('invalid-email');
+  await submit.click();
+  assert.equal(await page.locator('#billing_email').evaluate(input => input.validity.typeMismatch), true, 'Invalid email was accepted');
+  assert.equal(scope.mock.records.length, 0, 'Invalid email submitted checkout');
+  await page.locator('#billing_email').fill(VALID_BILLING.billing_email);
+  report.checks.push({ type: 'checkout-billing-validation', viewport: scope.name, requiredFields: Object.keys(VALID_BILLING), emailType: true, localitiesOptional: true, termsGuard: true, configuredMethods: methods, freshGetRetries: Number(paymentRetry), ok: true });
+
+  const createAccount = page.locator('#createaccount'), accountFields = page.locator('#create-account-fields'), password = page.locator('#account_password');
+  assert.equal(await accountFields.isVisible(), false, 'Account fields must start hidden');
+  assert.equal(await password.evaluate(input => input.required), false, 'Hidden password must not be required');
+  await createAccount.check();
+  await accountFields.waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#account_username').inputValue(), VALID_BILLING.billing_email, 'Account username did not follow the billing email');
+  assert.equal(await page.locator('#account_username').evaluate(input => input.readOnly), true, 'Account username must remain tied to billing email');
+  assert.equal(await password.evaluate(input => input.required && input.validity.valueMissing), true, 'Creating an account must require a password');
+  await submit.click();
+  assert.equal(scope.mock.records.length, 0, 'Account creation without a password submitted checkout');
+  await password.fill(BILLING_PASSWORD);
+  await page.locator('#toggle-password-btn').click();
+  assert.equal(await password.getAttribute('type'), 'text', 'Password visibility toggle failed');
+  await page.locator('#toggle-password-btn').click();
+  assert.equal(await password.getAttribute('type'), 'password', 'Password visibility toggle did not conceal the fixture');
+  await createAccount.uncheck();
+  assert.equal(await accountFields.isVisible(), false, 'Unchecking account creation did not hide its fields');
+  assert.equal(await password.inputValue(), '', 'Unchecking account creation did not clear its password');
+  assert.equal(await password.evaluate(input => input.required), false, 'Unchecking account creation did not clear the password requirement');
+  report.checks.push({ type: 'checkout-billing-account-controls', viewport: scope.name, emailSynced: true, conditionalPasswordRequired: true, visibilityToggle: true, uncheckedClearsPassword: true, accountPosts: 0, ok: true });
+
+  for (const [name, value] of Object.entries(BILLING_LOCALITY)) await page.locator('[name="' + name + '"]').fill(value);
+  assert.equal(await form.evaluate(node => node.checkValidity()), true, 'Synthetic form with localities must be valid');
+  const before = await readCart(scope.context, saved.cartKey);
+  scope.mock.expected = true;
+  scope.mock.status = 422;
+  scope.mock.held = new Promise(resolve => { scope.mock.release = resolve; });
+  await submit.click();
+  await until(() => scope.mock.records.length === 1, 'Synthetic checkout was not intercepted');
+  assert.equal(await submit.isDisabled(), true, 'Pending checkout did not lock submission');
+  await form.evaluate(node => node.requestSubmit());
+  await page.waitForTimeout(300);
+  assert.equal(scope.mock.records.length, 1, 'Duplicate checkout escaped the submission guard');
+  const record = scope.mock.records[0];
+  assert.equal(record.createAccount, false, 'Guest payload attempted account creation');
+  assert.equal(record.cartKeyPresent, true, 'Checkout payload lost the cart identity');
+  assert.ok(methods.includes(record.paymentMethod), 'Checkout payload changed the configured payment method');
+  for (const [name, matched] of Object.entries(record.billingProjection)) assert.equal(matched, true, 'Checkout payload mapping failed: ' + name);
+  scope.mock.release();
+  await until(async () => await submit.isEnabled(), 'Mocked rejection did not restore submission');
+  await page.locator('#checkout-error').waitFor({ state: 'visible' });
+  const errorMessage = await form.evaluate(node => JSON.parse(node.dataset.checkoutMessages || '{}').checkout_failed || '');
+  assert.equal(normalizedText(await page.locator('#checkout-error').textContent()), errorMessage, 'Mocked rejection did not show a safe localized error');
+  for (const [name, value] of Object.entries({ ...VALID_BILLING, ...BILLING_LOCALITY })) assert.equal(await page.locator('[name="' + name + '"]').inputValue(), value, 'Rejected checkout cleared field: ' + name);
+  assertCartUnchanged(before, await readCart(scope.context, saved.cartKey), 'Mocked billing rejection');
+  assert.equal(scope.billingGuard.blocked.length, 0, 'Unexpected auth/order or mutation request occurred');
+  assert.equal(scope.billingGuard.interceptedCheckoutPosts, 1, 'Unexpected checkout request count');
+  report.checks.push({ type: 'checkout-billing-payload-and-rejection', viewport: scope.name, simulated: true, fieldsMapped: record.billingProjection, duplicateGuard: true, valuesPreserved: true, cartPreserved: true, interceptedPosts: 1, liveOrders: 0, ok: true });
+  report.checks.push({ type: 'checkout-billing-safety', viewport: scope.name, liveAuthenticationRequests: 0, orderRequests: 0, realOrders: 0, realAccounts: 0, checkoutPostsMocked: 1, ok: true });
+}
 async function installCheckoutReadinessGuard(scope) {
   scope.readiness = { blocked: [], documentRequests: 0 };
   await scope.context.route('**/*', async route => {
@@ -900,7 +1095,7 @@ await mkdir(DIR, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 try {
   for (const viewport of [{ name: 'desktop', width: 1366, height: 900 }, { name: 'mobile', width: 390, height: 844 }].filter(viewport => QA_SCOPE !== 'checkout-readiness' || viewport.name === 'mobile')) {
-    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, serviceWorkers: 'block', ...(QA_SCOPE === 'checkout-readiness' ? { isMobile: true, hasTouch: true } : {}) });
+    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, serviceWorkers: 'block', ...(viewport.name === 'mobile' && ['checkout-readiness', 'checkout-billing'].includes(QA_SCOPE) ? { isMobile: true, hasTouch: true } : {}) });
     const page = await context.newPage();
     page.setDefaultTimeout(DOM_TIMEOUT);
     const scope = { name: viewport.name, context, page, carts: new Map(), mock: { records: [], expected: false, status: 422, held: Promise.resolve(), release: () => {}, dialogs: 0 } };
@@ -913,7 +1108,9 @@ try {
       try { payload = route.request().postDataJSON(); } catch { payload = {}; }
       const mockHttp = scope.mock.status === 502 ? 502 : 422;
       const marker = mockHttp === 502 ? MOCK_UNCERTAIN : MOCK_REJECTION;
-      scope.mock.records.push({ cartKeyPresent: Boolean(payload?.cartKey), createAccount: payload?.create_account === true, paymentMethod: String(payload?.payment_method || ''), mockHttp });
+      scope.mock.records.push({ cartKeyPresent: Boolean(payload?.cartKey), createAccount: payload?.create_account === true, paymentMethod: String(payload?.payment_method || ''), mockHttp,
+        ...(QA_SCOPE === 'checkout-billing' ? { billingProjection: billingPayloadProjection(payload) } : {}),
+      });
       if (!scope.mock.expected) report.errors.push(viewport.name + ': unexpected checkout POST was safely intercepted');
       let timer;
       await Promise.race([scope.mock.held, new Promise(resolve => { timer = setTimeout(resolve, 10000); })]);
@@ -922,6 +1119,7 @@ try {
     });
     if (QA_SCOPE === 'account-cart') await installAccountGuards(scope);
     if (QA_SCOPE === 'checkout-readiness') await installCheckoutReadinessGuard(scope);
+    if (QA_SCOPE === 'checkout-billing') await installBillingGuards(scope);
     page.on('response', response => {
       const request = response.request();
       const url = safeUrl(response.url());
@@ -970,6 +1168,8 @@ try {
         await shippingFeeQA(page, scope, saved);
       } else if (QA_SCOPE === 'account-cart') {
         await accountCartQA(page, scope, saved);
+      } else if (QA_SCOPE === 'checkout-billing') {
+        await checkoutBillingQA(page, scope, saved);
       } else {
       await clickMutation(page, '#cart-list-container .btn-qty-plus', '/api/cart/update');
       await until(async () => quantity((await state(page))?.items?.[0]) === 2, 'Cart quantity did not increase to two');
