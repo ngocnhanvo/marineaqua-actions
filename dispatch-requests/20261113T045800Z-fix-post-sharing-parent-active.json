@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T045800Z-fix-post-sharing-parent-active",
+  "reason": "Release corrected sharing parent active state on post details",
+  "source_sha": "a64ac1cf571f2f27c74cbcf06cb95c85f396fac6",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
