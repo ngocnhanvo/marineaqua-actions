@@ -1,0 +1,2070 @@
+{
+  "source": "https://marine-aqua.vn",
+  "target": "https://admin.marine-aqua.io.vn",
+  "labels": [
+    "Tổng quan về bể cá biển",
+    "Setup bể cá biển mini",
+    "Kinh nghiệm xử lý bể cá",
+    "Cách chọn muối, vi sinh và hóa chất tốt nhất cho bể cá",
+    "Cách chọn thức ăn tốt cho cá và san hô",
+    "Tin kiến thức",
+    "Các thiết bị trong bể cá"
+  ],
+  "errors": [],
+  "sourceCategories": [
+    {
+      "id": 2042,
+      "name": "Các thiết bị trong bể cá (đèn, skimmer, máy bơm...)",
+      "slug": "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+      "count": 32,
+      "parent": 0,
+      "link": "https://marine-aqua.vn/cat/cac-thiet-bi-trong-be-ca-den-skimmer-may-bom/"
+    },
+    {
+      "id": 2031,
+      "name": "Cách chọn muối, vi sinh và hóa chất tốt nhất cho bể cá",
+      "slug": "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+      "count": 36,
+      "parent": 0,
+      "link": "https://marine-aqua.vn/cat/cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca/"
+    },
+    {
+      "id": 2033,
+      "name": "Cách chọn thức ăn tốt cho cá và san hô",
+      "slug": "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+      "count": 16,
+      "parent": 0,
+      "link": "https://marine-aqua.vn/cat/cach-chon-thuc-an-tot-cho-ca-va-san-ho/"
+    },
+    {
+      "id": 2030,
+      "name": "Kinh nghiệm xử lý vấn đề trong bể cá (rêu hại, tảo hại, bệnh cá, san hô...)",
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "count": 48,
+      "parent": 0,
+      "link": "https://marine-aqua.vn/cat/kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca/"
+    },
+    {
+      "id": 2032,
+      "name": "Set up bể cá biển mini",
+      "slug": "set-up-be-ca-bien-mini",
+      "count": 4,
+      "parent": 0,
+      "link": "https://marine-aqua.vn/cat/set-up-be-ca-bien-mini/"
+    },
+    {
+      "id": 1,
+      "name": "Tin kiến thức",
+      "slug": "tin-kien-thuc",
+      "count": 24,
+      "parent": 0,
+      "link": "https://marine-aqua.vn/cat/tin-kien-thuc/"
+    },
+    {
+      "id": 2034,
+      "name": "Tổng quan về bể cá biển",
+      "slug": "tong-quan-ve-be-ca",
+      "count": 5,
+      "parent": 0,
+      "link": "https://marine-aqua.vn/cat/tong-quan-ve-be-ca/"
+    }
+  ],
+  "targetCategories": [
+    {
+      "id": 1,
+      "name": "Uncategorized",
+      "slug": "uncategorized",
+      "count": 0,
+      "parent": 0,
+      "link": "https://admin.marine-aqua.io.vn/category/uncategorized/"
+    }
+  ],
+  "targetPosts": [],
+  "menu": [
+    {
+      "id": 82502,
+      "key": "home",
+      "lang": "vi",
+      "label": "Trang chủ",
+      "slug": "trang-chu",
+      "href": "trang-chu",
+      "linkMode": "page",
+      "linkType": "internal",
+      "target": "",
+      "megaHeader": [
+        {
+          "text": ""
+        },
+        {
+          "text": ""
+        },
+        {
+          "text": ""
+        }
+      ],
+      "columnCount": 3
+    },
+    {
+      "id": 82503,
+      "key": "approved-v3-2",
+      "lang": "vi",
+      "label": "Khuyến mãi",
+      "slug": "san-pham/giam-gia-khung",
+      "href": "san-pham/giam-gia-khung",
+      "linkMode": "custom",
+      "linkType": "internal",
+      "target": "",
+      "megaHeader": [
+        {
+          "text": ""
+        },
+        {
+          "text": ""
+        },
+        {
+          "text": ""
+        }
+      ],
+      "columnCount": 3
+    },
+    {
+      "id": 82504,
+      "key": "approved-v3-7",
+      "lang": "vi",
+      "label": "Chính sách và hướng dẫn",
+      "slug": "/",
+      "href": "/",
+      "linkMode": "custom",
+      "linkType": "internal",
+      "target": "",
+      "children": [
+        {
+          "id": 82511,
+          "key": "menu-item-82511",
+          "lang": "vi",
+          "label": "Chính sách đổi trả hàng",
+          "slug": "chinh-sach-doi-tra-hang",
+          "href": "chinh-sach-doi-tra-hang",
+          "linkMode": "custom",
+          "linkType": "internal",
+          "target": "",
+          "position": 0
+        },
+        {
+          "id": 82512,
+          "key": "menu-item-82512",
+          "lang": "vi",
+          "label": "Phí ship hàng",
+          "slug": "thong-bao",
+          "href": "thong-bao",
+          "linkMode": "custom",
+          "linkType": "internal",
+          "target": "",
+          "position": 0
+        },
+        {
+          "id": 82513,
+          "key": "menu-item-82513",
+          "lang": "vi",
+          "label": "Hướng dẫn mua hàng ở xa",
+          "slug": "huong-dan-mua-hang-o-xa",
+          "href": "huong-dan-mua-hang-o-xa",
+          "linkMode": "custom",
+          "linkType": "internal",
+          "target": "",
+          "position": 0
+        },
+        {
+          "id": 82514,
+          "key": "menu-item-82514",
+          "lang": "vi",
+          "label": "Hướng dẫn mua hàng tại nhà",
+          "slug": "huong-dan-mua-hang-tai-nha",
+          "href": "huong-dan-mua-hang-tai-nha",
+          "linkMode": "custom",
+          "linkType": "internal",
+          "target": "",
+          "position": 0
+        }
+      ],
+      "megaHeader": [
+        {
+          "text": ""
+        },
+        {
+          "text": ""
+        },
+        {
+          "text": ""
+        }
+      ],
+      "columnCount": 3
+    },
+    {
+      "id": 82515,
+      "key": "menu-item-82515",
+      "lang": "vi",
+      "label": "Thời gian bán hàng",
+      "slug": "thoi-gian-ban-hang",
+      "href": "thoi-gian-ban-hang",
+      "linkMode": "custom",
+      "linkType": "internal",
+      "target": "",
+      "megaHeader": [
+        {
+          "text": ""
+        },
+        {
+          "text": ""
+        },
+        {
+          "text": ""
+        }
+      ],
+      "columnCount": 3
+    },
+    {
+      "id": 82505,
+      "key": "marine-support",
+      "lang": "vi",
+      "label": "Chia sẻ",
+      "slug": "",
+      "href": "",
+      "linkMode": "none",
+      "linkType": "none",
+      "target": "",
+      "children": [
+        {
+          "id": 82506,
+          "key": "approved-v3-3",
+          "lang": "vi",
+          "label": "Tổng quan về bể cá biển",
+          "slug": "",
+          "href": "",
+          "linkMode": "none",
+          "linkType": "none",
+          "target": "",
+          "position": 0
+        },
+        {
+          "id": 82507,
+          "key": "approved-v3-4",
+          "lang": "vi",
+          "label": "Setup bể cá biển mini",
+          "slug": "",
+          "href": "",
+          "linkMode": "none",
+          "linkType": "none",
+          "target": "",
+          "position": 0
+        },
+        {
+          "id": 82508,
+          "key": "approved-v3-6",
+          "lang": "vi",
+          "label": "Kinh nghiệm xử lý bể cá (rêu hại, tảo hại, bệnh cá, san hô...)",
+          "slug": "",
+          "href": "",
+          "linkMode": "none",
+          "linkType": "none",
+          "target": "",
+          "position": 0
+        },
+        {
+          "id": 82516,
+          "key": "menu-item-82516",
+          "lang": "vi",
+          "label": "Cách chọn muối, vi sinh và hóa chất tốt nhất cho bể cá",
+          "slug": "",
+          "href": "",
+          "linkMode": "none",
+          "linkType": "none",
+          "target": "",
+          "position": 0
+        },
+        {
+          "id": 82517,
+          "key": "menu-item-82517",
+          "lang": "vi",
+          "label": "Cách chọn thức ăn tốt cho cá và san hô",
+          "slug": "",
+          "href": "",
+          "linkMode": "none",
+          "linkType": "none",
+          "target": "",
+          "position": 0
+        },
+        {
+          "id": 82518,
+          "key": "menu-item-82518",
+          "lang": "vi",
+          "label": "Tin kiến thức",
+          "slug": "",
+          "href": "",
+          "linkMode": "none",
+          "linkType": "none",
+          "target": "",
+          "position": 0
+        },
+        {
+          "id": 82519,
+          "key": "menu-item-82519",
+          "lang": "vi",
+          "label": "Các thiết bị trong bể cá (đèn, skimmer, máy bơm…)",
+          "slug": "",
+          "href": "",
+          "linkMode": "none",
+          "linkType": "none",
+          "target": "",
+          "position": 0
+        }
+      ],
+      "megaHeader": [
+        {
+          "text": ""
+        },
+        {
+          "text": ""
+        },
+        {
+          "text": ""
+        }
+      ],
+      "columnCount": 3
+    },
+    {
+      "id": 82509,
+      "key": "approved-v3-5",
+      "lang": "vi",
+      "label": "Liên hệ",
+      "slug": "",
+      "href": "",
+      "linkMode": "none",
+      "linkType": "none",
+      "target": "",
+      "megaHeader": [
+        {
+          "text": ""
+        },
+        {
+          "text": ""
+        },
+        {
+          "text": ""
+        }
+      ],
+      "columnCount": 3
+    }
+  ],
+  "sourcePosts": [
+    {
+      "id": 91762,
+      "slug": "muoi-bien-cho-be-ca-canh-tropic-marin-pro-reef-20-kg-box",
+      "title": "Muối biển cho bể cá cảnh TROPIC MARIN PRO – REEF 20 KG BOX",
+      "categories": [
+        2031,
+        2032
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/muoi-bien-cho-be-ca-canh-tropic-marin-pro-reef-20-kg-box/",
+      "contentLength": 2342,
+      "featured_media": 91774
+    },
+    {
+      "id": 91259,
+      "slug": "cac-phuong-phap-loc-trong-be-ca-canh",
+      "title": "Các phương pháp lọc trong bể cá cảnh",
+      "categories": [
+        2042,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/cac-phuong-phap-loc-trong-be-ca-canh/",
+      "contentLength": 4147,
+      "featured_media": 9930
+    },
+    {
+      "id": 90608,
+      "slug": "toi-uu-hoa-lo-phan-ung-canxi-cho-be-ca",
+      "title": "Tối ưu hóa Lò phản ứng Canxi  cho bể cá",
+      "categories": [
+        2042,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/toi-uu-hoa-lo-phan-ung-canxi-cho-be-ca/",
+      "contentLength": 3721,
+      "featured_media": 9949
+    },
+    {
+      "id": 90197,
+      "slug": "chon-be-to-hay-nho-voi-nhung-nguoi-moi-bat-dau-choi-ca-canh",
+      "title": "Chọn bể to hay nhỏ với những người mới bắt đầu chơi cá cảnh",
+      "categories": [
+        2032,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/chon-be-to-hay-nho-voi-nhung-nguoi-moi-bat-dau-choi-ca-canh/",
+      "contentLength": 3734,
+      "featured_media": 90564
+    },
+    {
+      "id": 89669,
+      "slug": "tropic-marin-elimi-aiptas-giup-ngan-ngua-hai-quy-aiptasia-va-va-cac-loai-cnidarian-co-hai-khac",
+      "title": "Tropic Marin Elimi-Aiptas Giúp ngăn ngừa hải quỳ Aiptasia và và các loài cnidarian có hại khác",
+      "categories": [
+        2030,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-elimi-aiptas-giup-ngan-ngua-hai-quy-aiptasia-va-va-cac-loai-cnidarian-co-hai-khac/",
+      "contentLength": 1818,
+      "featured_media": 89671
+    },
+    {
+      "id": 65786,
+      "slug": "cac-thong-so-nuoc-danh-cho-be-ca-nuoc-man",
+      "title": "Các thông số nước dành cho bể cá nước mặn",
+      "categories": [
+        2031,
+        2030,
+        2032,
+        1,
+        2034
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/cac-thong-so-nuoc-danh-cho-be-ca-nuoc-man/",
+      "contentLength": 4252,
+      "featured_media": 65791
+    },
+    {
+      "id": 64119,
+      "slug": "thuc-an-cho-ca-canh-bien-formula-two-pellets-flakes-ocean-nutrition-usa",
+      "title": "Thức ăn cho cá cảnh biển Formula Two Pellets &#038; Flakes – Ocean Nutrition (USA)",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/thuc-an-cho-ca-canh-bien-formula-two-pellets-flakes-ocean-nutrition-usa/",
+      "contentLength": 1972,
+      "featured_media": 64137
+    },
+    {
+      "id": 63985,
+      "slug": "thuc-an-cho-ca-canh-bien-formula-one-pellets-flakes-ocean-nutrition-usa",
+      "title": "Thức ăn cho cá cảnh biển Formula One Pellets &#038; Flakes &#8211; Ocean Nutrition (USA)",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/thuc-an-cho-ca-canh-bien-formula-one-pellets-flakes-ocean-nutrition-usa/",
+      "contentLength": 1926,
+      "featured_media": 63989
+    },
+    {
+      "id": 62247,
+      "slug": "thiet-bi-lam-sach-kinh-cho-be-ca-canh-co-be-tunze-nano",
+      "title": "Thiết bị làm sạch kính cho bể cá cảnh &#8211; Cọ bể Tunze Nano",
+      "categories": [
+        2042,
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/thiet-bi-lam-sach-kinh-cho-be-ca-canh-co-be-tunze-nano/",
+      "contentLength": 1877,
+      "featured_media": 62262
+    },
+    {
+      "id": 61674,
+      "slug": "jebao-cross-flow-scp-may-tao-song-danh-cho-be-ca-canh",
+      "title": "Jebao Cross Flow SCP &#8211; Máy tạo sóng dành cho bể cá cảnh",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/jebao-cross-flow-scp-may-tao-song-danh-cho-be-ca-canh/",
+      "contentLength": 2391,
+      "featured_media": 61682
+    },
+    {
+      "id": 45534,
+      "slug": "korallen-zucht-pohls-b-balance-concentrate-dinh-luong-tu-dong-ma-khong-can-bat-ky-thiet-bi-ky-thuat-nao",
+      "title": "KORALLEN-ZUCHT Pohl’s B-Balance Concentrate – Định lượng tự động mà không cần bất kỳ thiết bị kỹ thuật nào",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/korallen-zucht-pohls-b-balance-concentrate-dinh-luong-tu-dong-ma-khong-can-bat-ky-thiet-bi-ky-thuat-nao/",
+      "contentLength": 2019,
+      "featured_media": 45545
+    },
+    {
+      "id": 45275,
+      "slug": "tropic-marin-amino-organic-cung-cap-chat-dinh-duong-cho-san-ho",
+      "title": "Tropic Marin Amino Organic &#8211; Cung cấp chất dinh dưỡng cho san hô",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-amino-organic-cung-cap-chat-dinh-duong-cho-san-ho/",
+      "contentLength": 2241,
+      "featured_media": 45276
+    },
+    {
+      "id": 44059,
+      "slug": "tropic-marin-coral-clean-dung-dich-lam-sach-san-ho-va-cung-nhu-be-ca-canh-cua-ban",
+      "title": "Tropic Marin Coral Clean dung dịch làm sạch san hô và cũng như bể cá cảnh của bạn",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-coral-clean-dung-dich-lam-sach-san-ho-va-cung-nhu-be-ca-canh-cua-ban/",
+      "contentLength": 2481,
+      "featured_media": 44064
+    },
+    {
+      "id": 43811,
+      "slug": "all-for-reef-powder-khoang-chat-va-nguyen-to-vi-luong-quan-trong-cho-be-ca-ran-san-ho-moi",
+      "title": "ALL-FOR-REEF POWDER Khoáng chất và nguyên tố vi lượng quan trọng cho bể cá rạn san hô mới",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/all-for-reef-powder-khoang-chat-va-nguyen-to-vi-luong-quan-trong-cho-be-ca-ran-san-ho-moi/",
+      "contentLength": 3132,
+      "featured_media": 43816
+    },
+    {
+      "id": 41765,
+      "slug": "muoi-bien-nano-danh-cho-be-ca-bien-tropic-marin-pro-reef-nano",
+      "title": "Muối biển Nano dành cho bể cá biển Tropic Marin Pro-Reef Nano",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/muoi-bien-nano-danh-cho-be-ca-bien-tropic-marin-pro-reef-nano/",
+      "contentLength": 1935,
+      "featured_media": 41772
+    },
+    {
+      "id": 28142,
+      "slug": "thiet-bi-lau-kinh-cho-be-ca-canh-su-dung-nam-cham-cua-aqua-excel",
+      "title": "Thiết bị lau kính cho bể cá cảnh sử dụng nam châm của Aqua Excel",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/thiet-bi-lau-kinh-cho-be-ca-canh-su-dung-nam-cham-cua-aqua-excel/",
+      "contentLength": 1669,
+      "featured_media": 28163
+    },
+    {
+      "id": 27351,
+      "slug": "vat-lieu-loc-sinh-hoc-san-xuat-boi-continuum-aquatics",
+      "title": "Vật liệu lọc sinh học sản xuất bởi CONTINUUM AQUATICS",
+      "categories": [
+        2030,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/vat-lieu-loc-sinh-hoc-san-xuat-boi-continuum-aquatics/",
+      "contentLength": 3210,
+      "featured_media": 27554
+    },
+    {
+      "id": 24856,
+      "slug": "vi-sinh-lam-sach-va-chong-reu-tao-cho-be-nuoc-ngot-continuum-aquatics-bacter-clean-f",
+      "title": "Vi sinh làm sạch và chống rêu tảo cho bể nước ngọt &#8211; Continuum Aquatics Bacter Clean F",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/vi-sinh-lam-sach-va-chong-reu-tao-cho-be-nuoc-ngot-continuum-aquatics-bacter-clean-f/",
+      "contentLength": 4799,
+      "featured_media": 24860
+    },
+    {
+      "id": 24838,
+      "slug": "vi-sinh-danh-cho-be-nuoc-ngot-continuum-aquatics-bacter-gen-f",
+      "title": "Vi sinh dành cho bể nước ngọt &#8211; Continuum Aquatics Bacter Gen F",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/vi-sinh-danh-cho-be-nuoc-ngot-continuum-aquatics-bacter-gen-f/",
+      "contentLength": 2358,
+      "featured_media": 24845
+    },
+    {
+      "id": 23564,
+      "slug": "vat-lieu-loc-nuoc-cao-cap-cua-continuum-aquatics-bact-rox-l",
+      "title": "Vật liệu lọc nước cao cấp của Continuum Aquatics &#8211; BACT ROX L",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/vat-lieu-loc-nuoc-cao-cap-cua-continuum-aquatics-bact-rox-l/",
+      "contentLength": 3511,
+      "featured_media": 23571
+    },
+    {
+      "id": 18312,
+      "slug": "kangaroo-thuong-hieu-uy-tin-den-tu-viet-nam",
+      "title": "Kangaroo &#8211; Thương hiệu uy tín đến từ Việt Nam",
+      "categories": [
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/kangaroo-thuong-hieu-uy-tin-den-tu-viet-nam/",
+      "contentLength": 5940,
+      "featured_media": 18352
+    },
+    {
+      "id": 18319,
+      "slug": "lam-the-nao-de-giu-cho-ca-cua-ban-khoe-manh-trong-mua-dong",
+      "title": "Làm thế nào để giữ cho cá của bạn khỏe mạnh trong mùa đông",
+      "categories": [
+        1,
+        2034
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/lam-the-nao-de-giu-cho-ca-cua-ban-khoe-manh-trong-mua-dong/",
+      "contentLength": 2497,
+      "featured_media": 18321
+    },
+    {
+      "id": 18268,
+      "slug": "mang-phan-quang-danh-cho-den-ati-sunpower",
+      "title": "Máng phản quang dành cho đèn ATI Sunpower",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/mang-phan-quang-danh-cho-den-ati-sunpower/",
+      "contentLength": 1587,
+      "featured_media": 18269
+    },
+    {
+      "id": 18256,
+      "slug": "den-danh-cho-be-nuoi-san-ho-ati-sunpower-dimmer",
+      "title": "Đèn dành cho bể nuôi san hô &#8211; ATI Sunpower Dimmer",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/den-danh-cho-be-nuoi-san-ho-ati-sunpower-dimmer/",
+      "contentLength": 3322,
+      "featured_media": 18258
+    },
+    {
+      "id": 18228,
+      "slug": "tropic-marin-goi-hoan-chinh-chat-luong-cao-cho-be-ca-cua-ban",
+      "title": "Tropic Marin: Gói hoàn chỉnh chất lượng cao cho bể cá của bạn",
+      "categories": [
+        1,
+        2034
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-goi-hoan-chinh-chat-luong-cao-cho-be-ca-cua-ban/",
+      "contentLength": 3419,
+      "featured_media": 18230
+    },
+    {
+      "id": 17531,
+      "slug": "bong-den-mau-xanh-cho-be-nuoi-san-ho-ati-t5-blue-plus",
+      "title": "Bóng đèn màu xanh cho bể nuôi san hô &#8211; ATI T5 Blue Plus",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/bong-den-mau-xanh-cho-be-nuoi-san-ho-ati-t5-blue-plus/",
+      "contentLength": 1898,
+      "featured_media": 17532
+    },
+    {
+      "id": 17521,
+      "slug": "bong-den-mau-tim-cho-be-nuoi-san-ho-ati-t5-purple-plus",
+      "title": "Bóng đèn màu tím cho bể nuôi san hô Ati T5 &#8211; Purple Plus",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/bong-den-mau-tim-cho-be-nuoi-san-ho-ati-t5-purple-plus/",
+      "contentLength": 2028,
+      "featured_media": 17522
+    },
+    {
+      "id": 17486,
+      "slug": "bong-den-the-he-moi-danh-cho-be-nuoi-san-ho-ati-t5-coral-plus",
+      "title": "BÓNG ĐÈN THẾ HỆ MỚI DÀNH CHO BỂ NUÔI SAN HÔ &#8211; ATI T5 CORAL PLUS",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/bong-den-the-he-moi-danh-cho-be-nuoi-san-ho-ati-t5-coral-plus/",
+      "contentLength": 2276,
+      "featured_media": 17490
+    },
+    {
+      "id": 17472,
+      "slug": "cat-trang-cho-be-ca-bien-ati-fiji-white-sand-m-l",
+      "title": "Cát trắng cho bể cá biển Ati &#8211; Fiji White Sand M &#038; L",
+      "categories": [
+        2032,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/cat-trang-cho-be-ca-bien-ati-fiji-white-sand-m-l/",
+      "contentLength": 1927,
+      "featured_media": 17474
+    },
+    {
+      "id": 17402,
+      "slug": "bo-loc-va-nguyen-lieu-ati-carbo-ex-air-filter-loc-khong-khi-loai-bo-95-co2-va-bui-min",
+      "title": "Bộ lọc và nguyên liệu ATI &#8211;  CARBO EX AIR FILTER Lọc không khí loại bỏ 95% CO2 và bụi mịn",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/bo-loc-va-nguyen-lieu-ati-carbo-ex-air-filter-loc-khong-khi-loai-bo-95-co2-va-bui-min/",
+      "contentLength": 2102,
+      "featured_media": 17403
+    },
+    {
+      "id": 16528,
+      "slug": "bo-doi-tang-nong-do-kiem-va-canxi-cho-be-ca-korallen-zucht-kh-plus-powder-va-calcium-plus-powder",
+      "title": "Bộ đôi tăng nồng đồ kiềm và canxi cho bể cá KORALLEN-ZUCHT KH PLUS POWDER và CALCIUM PLUS POWDER",
+      "categories": [
+        2031,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/bo-doi-tang-nong-do-kiem-va-canxi-cho-be-ca-korallen-zucht-kh-plus-powder-va-calcium-plus-powder/",
+      "contentLength": 3080,
+      "featured_media": 16529
+    },
+    {
+      "id": 16355,
+      "slug": "muoi-pha-nuoc-bien-nhan-tao-hw-marinemix-professional-san-xuat-tai-chlb-duc",
+      "title": "MUỐI PHA NƯỚC BIỂN NHÂN TẠO HW-MARINEMIX PROFESSIONAL &#8211; SẢN XUẤT TẠI CHLB ĐỨC",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/muoi-pha-nuoc-bien-nhan-tao-hw-marinemix-professional-san-xuat-tai-chlb-duc/",
+      "contentLength": 2639,
+      "featured_media": 16353
+    },
+    {
+      "id": 16351,
+      "slug": "muoi-pha-nuoc-bien-nhan-tao-hw-marinemix-reefer-san-xuat-tai-chlb-duc",
+      "title": "MUỐI PHA NƯỚC BIỂN NHÂN TẠO HW-MARINEMIX REEFER &#8211; SẢN XUẤT TẠI CHLB ĐỨC",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/muoi-pha-nuoc-bien-nhan-tao-hw-marinemix-reefer-san-xuat-tai-chlb-duc/",
+      "contentLength": 5228,
+      "featured_media": 16352
+    },
+    {
+      "id": 15823,
+      "slug": "continuum-aquatics-dong-san-pham-den-tu-my",
+      "title": "Continuum Aquatics dòng sản phẩm đến từ Mỹ",
+      "categories": [
+        2031,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/continuum-aquatics-dong-san-pham-den-tu-my/",
+      "contentLength": 1511,
+      "featured_media": 15824
+    },
+    {
+      "id": 15671,
+      "slug": "than-hoat-tinh-de-ngan-ngua-chat-vang-va-cac-chat-doc-hai-tropic-marin-carbon",
+      "title": "Than hoạt tính để ngăn ngừa chất vàng và các chất độc hại Tropic Marin Carbon",
+      "categories": [
+        2030,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/than-hoat-tinh-de-ngan-ngua-chat-vang-va-cac-chat-doc-hai-tropic-marin-carbon/",
+      "contentLength": 2037,
+      "featured_media": 15672
+    },
+    {
+      "id": 15639,
+      "slug": "lo-canxi-cho-be-ca-bien-deltec-pr-501-pr-509-pr-601",
+      "title": "Lò canxi cho bể cá biển Deltec PR 501, PR 509, PR 601",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/lo-canxi-cho-be-ca-bien-deltec-pr-501-pr-509-pr-601/",
+      "contentLength": 1897,
+      "featured_media": 15640
+    },
+    {
+      "id": 15573,
+      "slug": "may-tach-bot-cho-be-ca-skimmer-deltec-400i-600i-1000i-1500i-su-dung-bom-dc",
+      "title": "Máy tách bọt cho bể cá Skimmer Deltec 400i, 600i 1000i, 1500i Sử dụng bơm DC",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/may-tach-bot-cho-be-ca-skimmer-deltec-400i-600i-1000i-1500i-su-dung-bom-dc/",
+      "contentLength": 2396,
+      "featured_media": 15576
+    },
+    {
+      "id": 14928,
+      "slug": "huong-dan-pha-nuoc-bien-nhan-tao-tu-muoi-bien",
+      "title": "Hướng dẫn pha nước biển nhân tạo từ muối biển",
+      "categories": [
+        2031,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/huong-dan-pha-nuoc-bien-nhan-tao-tu-muoi-bien/",
+      "contentLength": 2609,
+      "featured_media": 14930
+    },
+    {
+      "id": 14912,
+      "slug": "tropic-marin-pro-reef-meerasalz-muoi-thiet-ke-dac-biet-cho-ho-sps-ho-dinh-duong-thap",
+      "title": "Tropic Marin Pro-Reef Meerasalz Muối thiết kế đặc biệt cho hồ SPS, hồ dinh dưỡng thấp",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-pro-reef-meerasalz-muoi-thiet-ke-dac-biet-cho-ho-sps-ho-dinh-duong-thap/",
+      "contentLength": 2969,
+      "featured_media": 14914
+    },
+    {
+      "id": 14858,
+      "slug": "tropic-marin-syn-biotic-muoi-chua-vi-sinh-va-thuc-an-vi-sinh-chat-luong-cao",
+      "title": "Tropic Marin Syn Biotic Muối chứa vi sinh và thức ăn vi sinh chất lượng cao",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-syn-biotic-muoi-chua-vi-sinh-va-thuc-an-vi-sinh-chat-luong-cao/",
+      "contentLength": 3202,
+      "featured_media": 14861
+    },
+    {
+      "id": 14823,
+      "slug": "tropic-marin-np-bactor-pellets-vat-lieu-loc-loai-bo-nitrat-va-phot-phat-cho-be-ca",
+      "title": "Tropic Marin NP-Bactor-Pellets Vật liệu lọc loại bỏ nitrat và phốt phát cho bể cá",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-np-bactor-pellets-vat-lieu-loc-loai-bo-nitrat-va-phot-phat-cho-be-ca/",
+      "contentLength": 3020,
+      "featured_media": 14824
+    },
+    {
+      "id": 14671,
+      "slug": "tropic-marin-classic-meeralz-muoi-bien-tu-nhien-cho-tat-ca-cac-be-ca-bien",
+      "title": "Tropic Marin Classic Meeralz Muối biển tự nhiên cho tất cả các bể cá biển",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-classic-meeralz-muoi-bien-tu-nhien-cho-tat-ca-cac-be-ca-bien/",
+      "contentLength": 2357,
+      "featured_media": 14672
+    },
+    {
+      "id": 13910,
+      "slug": "tropic-marin-bio-strontium-bo-sung-strontium-ly-tuong-ve-mat-sinh-hoc-cho-be-ca-ran-san-ho",
+      "title": "Tropic Marin BIO-STRONTIUM Bổ sung strontium lý tưởng về mặt sinh học cho bể cá rạn san hô",
+      "categories": [
+        2031,
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-bio-strontium-bo-sung-strontium-ly-tuong-ve-mat-sinh-hoc-cho-be-ca-ran-san-ho/",
+      "contentLength": 3507,
+      "featured_media": 13912
+    },
+    {
+      "id": 13880,
+      "slug": "tropic-marin-iod-giai-phap-cung-cap-lugol-dung-dich-i-ot-cho-be-ca-canh",
+      "title": "Tropic Marin IOD giải pháp cung cấp Lugol (dung dịch I-ốt) cho bể cá cảnh",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-iod-giai-phap-cung-cap-lugol-dung-dich-i-ot-cho-be-ca-canh/",
+      "contentLength": 3043,
+      "featured_media": 13881
+    },
+    {
+      "id": 13833,
+      "slug": "tropic-marin-potassium-bo-sung-kali-cho-san-ho-cung-nhu-cac-sinh-vat-trong-be-ca",
+      "title": "TROPIC MARIN ® POTASSIUM bổ sung kali cho san hô cũng như các sinh vật trong bể cá",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-potassium-bo-sung-kali-cho-san-ho-cung-nhu-cac-sinh-vat-trong-be-ca/",
+      "contentLength": 2718,
+      "featured_media": 13834
+    },
+    {
+      "id": 13764,
+      "slug": "tropic-marin-k-va-a-elements-bo-doi-cung-cap-dinh-duong-khoang-hoan-chinh-cho-be-ca",
+      "title": "Tropic Marin K+ và A- Elements bộ đôi cung cấp khoáng vi lượng đầy đủ cho san hô",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-k-va-a-elements-bo-doi-cung-cap-dinh-duong-khoang-hoan-chinh-cho-be-ca/",
+      "contentLength": 3788,
+      "featured_media": 13785
+    },
+    {
+      "id": 13298,
+      "slug": "thiet-bi-chieu-sang-cho-be-ca-canh-va-san-ho-zetlight-e100m",
+      "title": "Thiết bị chiếu sáng cho bể cá cảnh và san hô Zetlight E100M",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/thiet-bi-chieu-sang-cho-be-ca-canh-va-san-ho-zetlight-e100m/",
+      "contentLength": 2343,
+      "featured_media": 13305
+    },
+    {
+      "id": 13210,
+      "slug": "thiet-bi-do-do-man-nhiet-do-cua-nuoc-bien-hi98319",
+      "title": "Thiết bị đo độ mặn, nhiệt độ của nước biển HI98319",
+      "categories": [
+        2042,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/thiet-bi-do-do-man-nhiet-do-cua-nuoc-bien-hi98319/",
+      "contentLength": 3358,
+      "featured_media": 13236
+    },
+    {
+      "id": 13170,
+      "slug": "huong-dan-cua-chung-toi-ve-muoi-bien-tot-nhat",
+      "title": "Hướng dẫn của chúng tôi về muối biển tốt nhất",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/huong-dan-cua-chung-toi-ve-muoi-bien-tot-nhat/",
+      "contentLength": 2273,
+      "featured_media": 13176
+    },
+    {
+      "id": 13066,
+      "slug": "may-tach-bot-cho-be-ca-canh-800-1200-lit-aqua-excel-ae1001",
+      "title": "Máy tách bọt cho bể cá cảnh 800-1200 lít Aqua Excel AE1001",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/may-tach-bot-cho-be-ca-canh-800-1200-lit-aqua-excel-ae1001/",
+      "contentLength": 2773,
+      "featured_media": 13067
+    },
+    {
+      "id": 12968,
+      "slug": "bo-3-nhom-hoa-chat-co-ban-magnesium-complex-calcium-plus-concentrate-kh-plus-concentrate",
+      "title": "Bộ 3 nhóm hóa chất cơ bản: Magnesium Complex, Calcium plus Concentrate, KH plus Concentrate",
+      "categories": [
+        2031,
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/bo-3-nhom-hoa-chat-co-ban-magnesium-complex-calcium-plus-concentrate-kh-plus-concentrate/",
+      "contentLength": 2906,
+      "featured_media": 12969
+    },
+    {
+      "id": 12385,
+      "slug": "nhung-dieu-ban-can-biet-ve-san-ho-sps-va-lps",
+      "title": "Những điều bạn cần biết về San hô SPS và LPS",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/nhung-dieu-ban-can-biet-ve-san-ho-sps-va-lps/",
+      "contentLength": 6677,
+      "featured_media": 12387
+    },
+    {
+      "id": 12272,
+      "slug": "san-ho-nuoc-bien-cho-nguoi-moi-bat-dau-5-loai-de-cham-soc",
+      "title": "San hô nước biển cho người mới bắt đầu: 5 loài dễ chăm sóc",
+      "categories": [
+        2030,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/san-ho-nuoc-bien-cho-nguoi-moi-bat-dau-5-loai-de-cham-soc/",
+      "contentLength": 9335,
+      "featured_media": 12280
+    },
+    {
+      "id": 12045,
+      "slug": "so-tai-tuong-cho-nguoi-moi-bat-dau-dep-va-co-ich-cho-be-ca-canh",
+      "title": "Sò tai tượng cho người mới bắt đầu, đẹp và có ích cho bể cá cảnh",
+      "categories": [
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/so-tai-tuong-cho-nguoi-moi-bat-dau-dep-va-co-ich-cho-be-ca-canh/",
+      "contentLength": 7190,
+      "featured_media": 12049
+    },
+    {
+      "id": 11228,
+      "slug": "top-4-loai-tao-co-the-giup-giam-nong-do-p04-va-n03-trong-be-ca",
+      "title": "TOP 4 LOẠI TẢO CÓ THỂ GIÚP GIẢM NỒNG ĐỘ P04 VÀ N03 TRONG BỂ CÁ",
+      "categories": [
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/top-4-loai-tao-co-the-giup-giam-nong-do-p04-va-n03-trong-be-ca/",
+      "contentLength": 5101,
+      "featured_media": 11234
+    },
+    {
+      "id": 11088,
+      "slug": "bo-4-san-pham-nang-luong-nano-cua-korallen-zucht",
+      "title": "Bộ 4 sản phẩm năng lượng Nano của Korallen-Zucht",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/bo-4-san-pham-nang-luong-nano-cua-korallen-zucht/",
+      "contentLength": 3514,
+      "featured_media": 11090
+    },
+    {
+      "id": 11050,
+      "slug": "korallen-zucht-aragonite-reactor-tang-nong-do-cua-canxi-va-carbonate-cho-be-ca-canh",
+      "title": "KORALLEN-ZUCHT Aragonite Reactor Tăng nồng độ của canxi và carbonate cho bể cá cảnh",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/korallen-zucht-aragonite-reactor-tang-nong-do-cua-canxi-va-carbonate-cho-be-ca-canh/",
+      "contentLength": 1562,
+      "featured_media": 11051
+    },
+    {
+      "id": 10614,
+      "slug": "ae-fs-gia-do-bo-loc",
+      "title": "AE -FS Giá đỡ bộ lọc",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/ae-fs-gia-do-bo-loc/",
+      "contentLength": 3218,
+      "featured_media": 10599
+    },
+    {
+      "id": 10469,
+      "slug": "zeomag-magnesium-granulate-va-calcium-plus-granulate-tang-nong-do-canxi-magie-cho-be-ca-bien",
+      "title": "ZEOMag Magnesium Granulate và Calcium Plus Granulate Tăng nồng độ canxi, magiê cho bể cá biển",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/zeomag-magnesium-granulate-va-calcium-plus-granulate-tang-nong-do-canxi-magie-cho-be-ca-bien/",
+      "contentLength": 3804,
+      "featured_media": 10477
+    },
+    {
+      "id": 10397,
+      "slug": "korallen-zucht-iron-concentrate-bo-sung-chat-dinh-duong-va-cai-thien-mau-sac-cho-san-ho",
+      "title": "Korallen-Zucht Iron Concentrate Bổ sung chất dinh dưỡng và cải thiện màu sắc cho san hô",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/korallen-zucht-iron-concentrate-bo-sung-chat-dinh-duong-va-cai-thien-mau-sac-cho-san-ho/",
+      "contentLength": 2062,
+      "featured_media": 10413
+    },
+    {
+      "id": 10345,
+      "slug": "korallen-zucht-kaliumiodide-fluor-concentrate-tang-cuong-cac-sac-to-mau-sac-cho-san-ho",
+      "title": "KORALLEN-ZUCHT KALIUMIODIDE FLUOR CONCENTRATE Tăng cường các sắc tố màu sắc cho san hô",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/korallen-zucht-kaliumiodide-fluor-concentrate-tang-cuong-cac-sac-to-mau-sac-cho-san-ho/",
+      "contentLength": 2420,
+      "featured_media": 10346
+    },
+    {
+      "id": 10245,
+      "slug": "lo-khu-the-he-moi-danh-cho-be-ca-bien-aqua-excel-fr-l04-va-fr-l05",
+      "title": "Lò khử thế hệ mới dành cho bể cá biển Aqua Excel FR / L04 và FR / L05",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/lo-khu-the-he-moi-danh-cho-be-ca-bien-aqua-excel-fr-l04-va-fr-l05/",
+      "contentLength": 2235,
+      "featured_media": 10246
+    },
+    {
+      "id": 10214,
+      "slug": "aqua-excel-200um-4inch-tat-loc-danh-cho-be-ca-bien",
+      "title": "Aqua excel 200um 4inch Tất lọc dành cho bể cá biển",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/aqua-excel-200um-4inch-tat-loc-danh-cho-be-ca-bien/",
+      "contentLength": 1652,
+      "featured_media": 10216
+    },
+    {
+      "id": 10139,
+      "slug": "lo-dung-vat-lieu-loc-be-ca-canh-ae-fr40-va-ae-fr50",
+      "title": "LÒ ĐỰNG VẬT LIỆU LỌC BỂ CÁ CẢNH AE-FR40 và AE-FR50",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/lo-dung-vat-lieu-loc-be-ca-canh-ae-fr40-va-ae-fr50/",
+      "contentLength": 2897,
+      "featured_media": 10140
+    },
+    {
+      "id": 10055,
+      "slug": "bo-loc-protein-tich-hop-cho-be-ca-aqua-excel-nano-50-120l",
+      "title": "Bộ lọc Protein tích hợp cho bể cá AQUA EXCEL NANO 50 (120L)",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/bo-loc-protein-tich-hop-cho-be-ca-aqua-excel-nano-50-120l/",
+      "contentLength": 2068,
+      "featured_media": 10056
+    },
+    {
+      "id": 10008,
+      "slug": "may-tach-bot-cho-be-ca-canh-skimmer-aqua-excel-ae-301-ae-401-ae-601",
+      "title": "Máy tách bọt cho bể cá cảnh Skimmer Aqua Excel AE-301, AE-401, AE-601",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/may-tach-bot-cho-be-ca-canh-skimmer-aqua-excel-ae-301-ae-401-ae-601/",
+      "contentLength": 3137,
+      "featured_media": 9933
+    },
+    {
+      "id": 9684,
+      "slug": "hw-marinemix-professional-muoi-pha-nuoc-bien-nhan-tao-danh-cho-be-ca-bien",
+      "title": "hw-Marinemix® professional Muối pha nước biển nhân tạo dành cho bể cá biển",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/hw-marinemix-professional-muoi-pha-nuoc-bien-nhan-tao-danh-cho-be-ca-bien/",
+      "contentLength": 2895,
+      "featured_media": 9685
+    },
+    {
+      "id": 9582,
+      "slug": "tropic-marin-zootonic-thuc-an-danh-cho-san-ho-va-cac-bo-loc",
+      "title": "Tropic Marin Zootonic Thức ăn dành cho san hô và các bộ loc",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-zootonic-thuc-an-danh-cho-san-ho-va-cac-bo-loc/",
+      "contentLength": 3609,
+      "featured_media": 9583
+    },
+    {
+      "id": 9483,
+      "slug": "tropic-marine-compact-lab-5-trong-1-bo-test-cac-chat-thiet-yeu-trong-be-ca",
+      "title": "Tropic Marine COMPACT LAB &#8211; 5 trong 1 bộ test các chất thiết yếu trong bể cá",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marine-compact-lab-5-trong-1-bo-test-cac-chat-thiet-yeu-trong-be-ca/",
+      "contentLength": 3458,
+      "featured_media": 9484
+    },
+    {
+      "id": 9479,
+      "slug": "xac-dinh-nong-do-nh4-nh3-trong-be-ca-bien",
+      "title": "Xác định nồng độ NH4 / NH3 trong bể cá biển.",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/xac-dinh-nong-do-nh4-nh3-trong-be-ca-bien/",
+      "contentLength": 2221,
+      "featured_media": 9481
+    },
+    {
+      "id": 9306,
+      "slug": "zetlight-zet-200w-bw-thiet-ke-danh-rieng-cho-thuy-cung-hoac-cac-ho-lon",
+      "title": "ZETLIGHT ZET 200W BW Thiết kế dành riêng cho thủy cung hoặc các hồ lớn",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/zetlight-zet-200w-bw-thiet-ke-danh-rieng-cho-thuy-cung-hoac-cac-ho-lon/",
+      "contentLength": 4620,
+      "featured_media": 9308
+    },
+    {
+      "id": 9274,
+      "slug": "zetlight-ufo-ze8600m-den-led-danh-rieng-cho-be-ca-nuoc-man-va-san-ho",
+      "title": "ZETLIGHT UFO ZE8600M Đèn Led dành riêng cho bể cá nước mặn và san hô",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/zetlight-ufo-ze8600m-den-led-danh-rieng-cho-be-ca-nuoc-man-va-san-ho/",
+      "contentLength": 5668,
+      "featured_media": 9275
+    },
+    {
+      "id": 9251,
+      "slug": "zetlight-ufo-ze8600f-den-led-danh-cho-be-thuy-sinh",
+      "title": "ZETLIGHT UFO ZE8600F Đèn led dành cho bể thủy sinh",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/zetlight-ufo-ze8600f-den-led-danh-cho-be-thuy-sinh/",
+      "contentLength": 4181,
+      "featured_media": 9253
+    },
+    {
+      "id": 9222,
+      "slug": "zetlight-qmaven-zt6300-zt6400-zt6700-den-led-chuyen-dung-cho-be-thuy-sinh",
+      "title": "ZETLIGHT QMAVEN ZT6300, ZT6400, ZT6700 – ĐÈN LED CHUYÊN DÙNG CHO BỂ THỦY SINH",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/zetlight-qmaven-zt6300-zt6400-zt6700-den-led-chuyen-dung-cho-be-thuy-sinh/",
+      "contentLength": 5023,
+      "featured_media": 9223
+    },
+    {
+      "id": 9208,
+      "slug": "tropic-marin-ph-test-xac-dinh-nong-do-ph-trong-be-ca-bien",
+      "title": "Tropic Marin pH-TEST xác định nồng độ pH trong bể cá biển",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-ph-test-xac-dinh-nong-do-ph-trong-be-ca-bien/",
+      "contentLength": 4311,
+      "featured_media": 9211
+    },
+    {
+      "id": 9085,
+      "slug": "tropic-marin-nitrit-nitrat-test-xac-dinh-nong-do-no2-no3-trong-be-ca-bien",
+      "title": "TROPIC MARIN NITRIT/NITRAT-TEST Xác định nồng độ NO2/NO3 trong bể cá biển",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-nitrit-nitrat-test-xac-dinh-nong-do-no2-no3-trong-be-ca-bien/",
+      "contentLength": 7162,
+      "featured_media": 9086
+    },
+    {
+      "id": 9048,
+      "slug": "tropic-marin-kh-alkalinity-test-professional-xac-dinh-chinh-xac-do-kiem-kh-trong-be-ca",
+      "title": "TROPIC MARIN KH/ALKALINITY-TEST PROFESSIONAL Xác định chính xác độ kiềm (KH) trong bể cá",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-kh-alkalinity-test-professional-xac-dinh-chinh-xac-do-kiem-kh-trong-be-ca/",
+      "contentLength": 5728,
+      "featured_media": 9057
+    },
+    {
+      "id": 9016,
+      "slug": "tropic-marine-phosphate-test-professional-xac-dinh-nong-do-phosphate-trong-be-ca-bien",
+      "title": "Tropic Marine Phosphate-Test Professional Xác định nồng độ phosphate trong bể cá biển",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marine-phosphate-test-professional-xac-dinh-nong-do-phosphate-trong-be-ca-bien/",
+      "contentLength": 6169,
+      "featured_media": 9019
+    },
+    {
+      "id": 9005,
+      "slug": "tropic-marin-calcium-magnesium-combitest-professional-xac-dinh-nong-do-canxi-va-magie-trong-be-ca",
+      "title": "Tropic Marin Calcium/Magnesium Combitest Professional Xác định nồng độ canxi và magiê trong bể cá",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-calcium-magnesium-combitest-professional-xac-dinh-nong-do-canxi-va-magie-trong-be-ca/",
+      "contentLength": 6281,
+      "featured_media": 9006
+    },
+    {
+      "id": 8974,
+      "slug": "tropic-marin-kali-test-professional-xac-dinh-nong-do-kali-trong-be-nuoc",
+      "title": "Tropic Marin Kali Test Professional Xác định nồng độ Kali trong bể nước",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-kali-test-professional-xac-dinh-nong-do-kali-trong-be-nuoc/",
+      "contentLength": 6402,
+      "featured_media": 8975
+    },
+    {
+      "id": 8903,
+      "slug": "chemi-clean-lam-sach-be-ca-1-cach-an-toan",
+      "title": "CHEMI CLEAN Làm sạch bể cá 1 cách an toàn",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/chemi-clean-lam-sach-be-ca-1-cach-an-toan/",
+      "contentLength": 3401,
+      "featured_media": 8904
+    },
+    {
+      "id": 8861,
+      "slug": "saki-hikari-marine-thuc-an-cao-cap-cho-ca-bien",
+      "title": "SAKI – HIKARI MARINE thức ăn cao cấp cho cá biển.",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/saki-hikari-marine-thuc-an-cao-cap-cho-ca-bien/",
+      "contentLength": 4494,
+      "featured_media": 8864
+    },
+    {
+      "id": 8829,
+      "slug": "tropic-marine-np-bacto-balance-lam-giam-luong-cua-nitrat-va-phot-phat-trong-be-ca",
+      "title": "TROPIC MARINE NP-BACTO-BALANCE làm giảm lượng của nitrat và phốt phát trong bể cá",
+      "categories": [
+        2031,
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marine-np-bacto-balance-lam-giam-luong-cua-nitrat-va-phot-phat-trong-be-ca/",
+      "contentLength": 3037,
+      "featured_media": 15767
+    },
+    {
+      "id": 8794,
+      "slug": "tropic-marine-lipovit-tang-suc-khoe-de-khang-cho-sinh-vat-bien",
+      "title": "Tropic marine LIPOVIT tăng sức khỏe đề kháng cho sinh vật biển",
+      "categories": [
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marine-lipovit-tang-suc-khoe-de-khang-cho-sinh-vat-bien/",
+      "contentLength": 3746,
+      "featured_media": 8795
+    },
+    {
+      "id": 8760,
+      "slug": "tropic-marin-lipo-garlic-bo-sung-dau-toi-va-vitamin",
+      "title": "Tropic Marin LIPO-GARLIC Bổ sung dầu tỏi và Vitamin",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-lipo-garlic-bo-sung-dau-toi-va-vitamin/",
+      "contentLength": 2943,
+      "featured_media": 8761
+    },
+    {
+      "id": 8756,
+      "slug": "tropic-marin-immuvit-tang-cuong-he-mien-dich-tu-nhien-va-bo-sung-vitamin-b",
+      "title": "TROPIC MARIN IMMUVIT Tăng cường hệ miễn dịch tự nhiên và bổ sung vitamin B",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-immuvit-tang-cuong-he-mien-dich-tu-nhien-va-bo-sung-vitamin-b/",
+      "contentLength": 3533,
+      "featured_media": 8757
+    },
+    {
+      "id": 8646,
+      "slug": "korallen-zucht-potassium-test-kit-kiem-tra-nong-do-kali-trong-be-ca",
+      "title": "KORALLEN-ZUCHT POTASSIUM TEST KIT KIỂM TRA NỒNG ĐỘ KALI TRONG BỂ CÁ",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/korallen-zucht-potassium-test-kit-kiem-tra-nong-do-kali-trong-be-ca/",
+      "contentLength": 2017,
+      "featured_media": 8647
+    },
+    {
+      "id": 8618,
+      "slug": "tropic-marin-all-for-reef-bo-sung-dinh-duong-khoang-chat-trong-1-san-pham",
+      "title": "TROPIC MARIN ALL-FOR-REEF BỔ SUNG DINH DƯỠNG KHOÁNG CHẤT TRONG 1 SẢN PHẨM",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-all-for-reef-bo-sung-dinh-duong-khoang-chat-trong-1-san-pham/",
+      "contentLength": 4216,
+      "featured_media": 15757
+    },
+    {
+      "id": 8586,
+      "slug": "tropic-marin-phytonic-thuc-an-danh-cho-san-ho",
+      "title": "TROPIC MARIN PHYTONIC THỨC ĂN DÀNH CHO SAN HÔ",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-phytonic-thuc-an-danh-cho-san-ho/",
+      "contentLength": 3353,
+      "featured_media": 8588
+    },
+    {
+      "id": 8549,
+      "slug": "tropic-marin-reef-actif-thuc-an-vi-sinh",
+      "title": "Tropic Marin REEF ACTIF THỨC ĂN VI SINH",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-reef-actif-thuc-an-vi-sinh/",
+      "contentLength": 2791,
+      "featured_media": 8550
+    },
+    {
+      "id": 8524,
+      "slug": "tropic-marin-nitribiotic-50ml-bo-sung-vi-khuan-probiotic-va-nitrat-hoa-cho-ho-ca-nuoc-man-va-nuoc-ngot",
+      "title": "TROPIC MARIN NITRIBIOTIC 50ML – BỔ SUNG VI KHUẨN PROBIOTIC VÀ NITRAT HÓA CHO HỒ CÁ NƯỚC MẶN VÀ NƯỚC NGỌT",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-nitribiotic-50ml-bo-sung-vi-khuan-probiotic-va-nitrat-hoa-cho-ho-ca-nuoc-man-va-nuoc-ngot/",
+      "contentLength": 3010,
+      "featured_media": 8525
+    },
+    {
+      "id": 8499,
+      "slug": "tropic-marine-reef-snow-thuc-an-danh-rieng-cho-san-ho",
+      "title": "TROPIC MARINE REEF SNOW Thức ăn dành riêng cho san hô",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marine-reef-snow-thuc-an-danh-rieng-cho-san-ho/",
+      "contentLength": 3618,
+      "featured_media": 8500
+    },
+    {
+      "id": 8445,
+      "slug": "tropic-marin-o-megavital-micro-san-pham-cung-cap-thuc-an-cho-ca-va-san-ho",
+      "title": "TROPIC MARIN O-MEGAVITAL MICRO SẢN PHẨM CUNG CẤP THỨC ĂN CHO CÁ VÀ SAN HÔ",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tropic-marin-o-megavital-micro-san-pham-cung-cap-thuc-an-cho-ca-va-san-ho/",
+      "contentLength": 3372,
+      "featured_media": 8446
+    },
+    {
+      "id": 8416,
+      "slug": "may-bom-vi-luong-cho-ho-ca-canh-zetlight-wifi-dosing-pump-d100",
+      "title": "MÁY BƠM VI LƯỢNG CHO HỒ CÁ CẢNH ZETLIGHT WIFI DOSING PUMP D100",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/may-bom-vi-luong-cho-ho-ca-canh-zetlight-wifi-dosing-pump-d100/",
+      "contentLength": 3521,
+      "featured_media": 8417
+    },
+    {
+      "id": 8389,
+      "slug": "may-tach-bot-cho-be-ca-canh-smart-wifi-protein-skimmer-sd1500-sd2000",
+      "title": "Máy tách bọt cho bể cá cảnh SMART WIFI PROTEIN SKIMMER SD1500 &#038; SD2000",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/may-tach-bot-cho-be-ca-canh-smart-wifi-protein-skimmer-sd1500-sd2000/",
+      "contentLength": 4527,
+      "featured_media": 8391
+    },
+    {
+      "id": 8361,
+      "slug": "may-tao-song-chuyen-nghiep-zetlight-wave-maker-sd30-sd50",
+      "title": "MÁY TẠO SÓNG CHUYÊN NGHIỆP ZETLIGHT WAVE MAKER SD30 &#038; SD50",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/may-tao-song-chuyen-nghiep-zetlight-wave-maker-sd30-sd50/",
+      "contentLength": 3840,
+      "featured_media": 8363
+    },
+    {
+      "id": 8335,
+      "slug": "zetlight-qmaven-zt6500-6600-6800-den-led-chuyen-dung-cho-be-san-ho-ca-canh-bien",
+      "title": "ZETLIGHT QMAVEN ZT6500, 6600, 6800 – ĐÈN LED CHUYÊN DÙNG CHO BỂ SAN HÔ, CÁ CẢNH BIỂN",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/zetlight-qmaven-zt6500-6600-6800-den-led-chuyen-dung-cho-be-san-ho-ca-canh-bien/",
+      "contentLength": 3800,
+      "featured_media": 8336
+    },
+    {
+      "id": 8285,
+      "slug": "zetlight-e200s-den-led-chuyen-dung-nuoi-rong-bien",
+      "title": "ZETLIGHT E200S – ĐÈN LED CHUYÊN DÙNG NUÔI RONG BIỂN",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/zetlight-e200s-den-led-chuyen-dung-nuoi-rong-bien/",
+      "contentLength": 4039,
+      "featured_media": 8286
+    },
+    {
+      "id": 8282,
+      "slug": "zetlight-ufo-ze8300-den-led-chuyen-dung-cho-be-san-ho-ca-canh-bien",
+      "title": "ZETLIGHT UFO ZE8300 ĐÈN LED CHUYÊN DÙNG CHO BỂ SAN HÔ, CÁ CẢNH BIỂN",
+      "categories": [
+        2042
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/zetlight-ufo-ze8300-den-led-chuyen-dung-cho-be-san-ho-ca-canh-bien/",
+      "contentLength": 4334,
+      "featured_media": 8283
+    },
+    {
+      "id": 8225,
+      "slug": "korallen-zucht-zeovit-bo-loc-tu-dong-cho-be-ca-bien",
+      "title": "Korallen-Zucht Zeovit Bộ Lọc Tự Động Cho Bể Cá Biển",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/korallen-zucht-zeovit-bo-loc-tu-dong-cho-be-ca-bien/",
+      "contentLength": 3059,
+      "featured_media": 8227
+    },
+    {
+      "id": 8194,
+      "slug": "muoi-bien-syn-biotic",
+      "title": "Muối biển Syn-Biotic",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/muoi-bien-syn-biotic/",
+      "contentLength": 3866,
+      "featured_media": 8195
+    },
+    {
+      "id": 8162,
+      "slug": "than-hoat-tinh-activated-carbon-danh-cho-be-ca-canh",
+      "title": "Than hoạt tính “Activated Carbon” dành cho bể cá cảnh",
+      "categories": [
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/than-hoat-tinh-activated-carbon-danh-cho-be-ca-canh/",
+      "contentLength": 2533,
+      "featured_media": 8163
+    },
+    {
+      "id": 8131,
+      "slug": "muoi-bien-pro-reef-meerasalz",
+      "title": "Muối biển Pro-Reef Meerasalz",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/muoi-bien-pro-reef-meerasalz/",
+      "contentLength": 3680,
+      "featured_media": 8132
+    },
+    {
+      "id": 8056,
+      "slug": "hw-marinemix-reefer-muoi-pha-nuoc-bien-nhan-tao",
+      "title": "Hw-marinemix reefer Muối pha nước biển nhân tạo",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/hw-marinemix-reefer-muoi-pha-nuoc-bien-nhan-tao/",
+      "contentLength": 4875,
+      "featured_media": 8057
+    },
+    {
+      "id": 8027,
+      "slug": "stylo-pocci-glow-tai-tao-mau-sac-tu-nhien-cua-san-ho",
+      "title": "Stylo-Pocci Glow tái tạo màu sắc tự nhiên của San hô",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/stylo-pocci-glow-tai-tao-mau-sac-tu-nhien-cua-san-ho/",
+      "contentLength": 1833,
+      "featured_media": 8028
+    },
+    {
+      "id": 7994,
+      "slug": "pohl-xtra-special-tang-mau-sac-va-phat-trien-cua-san-ho",
+      "title": "Pohl’s Xtra Special  tăng màu sắc và phát triển của san hô",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/pohl-xtra-special-tang-mau-sac-va-phat-trien-cua-san-ho/",
+      "contentLength": 1586,
+      "featured_media": 7995
+    },
+    {
+      "id": 7967,
+      "slug": "zeo-spur-tang-cuong-mau-sac-cho-san-ho",
+      "title": "ZEO Spur2 Tăng cường màu sắc cho san hô",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/zeo-spur-tang-cuong-mau-sac-cho-san-ho/",
+      "contentLength": 1768,
+      "featured_media": 7964
+    },
+    {
+      "id": 7933,
+      "slug": "automatic-elements-amino-acid-concentrate",
+      "title": "Automatic Elements Amino Acid Concentrate",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/automatic-elements-amino-acid-concentrate/",
+      "contentLength": 2643,
+      "featured_media": 7934
+    },
+    {
+      "id": 7910,
+      "slug": "amino-acid-lps-thuc-pham-thiet-ke-danh-rieng-cho-san-ho-large-polyp-stony-lps",
+      "title": "AMINO ACID LPS thực phẩm thiết kế dành riêng cho san hô Large Polyp Stony (LPS)",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/amino-acid-lps-thuc-pham-thiet-ke-danh-rieng-cho-san-ho-large-polyp-stony-lps/",
+      "contentLength": 1607,
+      "featured_media": 7911
+    },
+    {
+      "id": 7853,
+      "slug": "coral-system-1-4",
+      "title": "Coral System 1-4",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/coral-system-1-4/",
+      "contentLength": 3044,
+      "featured_media": 7854
+    },
+    {
+      "id": 7823,
+      "slug": "sponge-power-konzentrat",
+      "title": "Sponge Power Konzentrat",
+      "categories": [
+        2031,
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/sponge-power-konzentrat/",
+      "contentLength": 2216,
+      "featured_media": 7824
+    },
+    {
+      "id": 7797,
+      "slug": "thuc-an-cho-san-ho-zeofood-plus",
+      "title": "Thức ăn cho san hô ZEOfood plus",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/thuc-an-cho-san-ho-zeofood-plus/",
+      "contentLength": 2688,
+      "featured_media": 7798
+    },
+    {
+      "id": 7768,
+      "slug": "coral-vitalizer-thuc-pham-cung-cap-cho-san-ho",
+      "title": "Coral Vitalizer thực phẩm cung cấp cho san hô",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/coral-vitalizer-thuc-pham-cung-cap-cho-san-ho/",
+      "contentLength": 2406,
+      "featured_media": 7772
+    },
+    {
+      "id": 7741,
+      "slug": "zeovit-amino-acid-concentrate",
+      "title": "Zeovit Amino Acid Concentrate",
+      "categories": [
+        2033
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/zeovit-amino-acid-concentrate/",
+      "contentLength": 2585,
+      "featured_media": 7745
+    },
+    {
+      "id": 7691,
+      "slug": "vi-sinh-bo-sung",
+      "title": "ZEObak bổ sung vi sinh cho bể cá biển.",
+      "categories": [
+        2031
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/vi-sinh-bo-sung/",
+      "contentLength": 3070,
+      "featured_media": 7692
+    },
+    {
+      "id": 7624,
+      "slug": "tong-quan-ve-be-ca-bien",
+      "title": "Tổng quan về bể cá biển",
+      "categories": [
+        2034
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/tong-quan-ve-be-ca-bien/",
+      "contentLength": 5967,
+      "featured_media": 7625
+    },
+    {
+      "id": 7589,
+      "slug": "cac-loai-be-ca-nuoc-man",
+      "title": "CÁC LOẠI BỂ CÁ NƯỚC MẶN",
+      "categories": [
+        1,
+        2034
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/cac-loai-be-ca-nuoc-man/",
+      "contentLength": 4708,
+      "featured_media": 7591
+    },
+    {
+      "id": 7566,
+      "slug": "zeostart-3",
+      "title": "ZEOstart 3",
+      "categories": [
+        2031,
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/zeostart-3/",
+      "contentLength": 3403,
+      "featured_media": 7567
+    },
+    {
+      "id": 7559,
+      "slug": "acroclow",
+      "title": "AcroGlow",
+      "categories": [
+        2031,
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/acroclow/",
+      "contentLength": 2143,
+      "featured_media": 7560
+    },
+    {
+      "id": 7550,
+      "slug": "coral-booster",
+      "title": "Coral Booster",
+      "categories": [
+        2031,
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/coral-booster/",
+      "contentLength": 2086,
+      "featured_media": 7553
+    },
+    {
+      "id": 7543,
+      "slug": "cyano-clean",
+      "title": "Cyano Clean",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/cyano-clean/",
+      "contentLength": 3186,
+      "featured_media": 7556
+    },
+    {
+      "id": 7452,
+      "slug": "coral-snow",
+      "title": "Coral Snow",
+      "categories": [
+        2031,
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/coral-snow/",
+      "contentLength": 5058,
+      "featured_media": 7453
+    },
+    {
+      "id": 7444,
+      "slug": "cach-lam-trong-nuoc-be-ca-canh-don-gian-va-hieu-qua",
+      "title": "CÁCH LÀM TRONG NƯỚC BỂ CÁ CẢNH ĐƠN GIẢN VÀ HIỆU QUẢ",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/cach-lam-trong-nuoc-be-ca-canh-don-gian-va-hieu-qua/",
+      "contentLength": 7450,
+      "featured_media": 7447
+    },
+    {
+      "id": 7416,
+      "slug": "zeozym",
+      "title": "ZEOzym",
+      "categories": [
+        2031,
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/zeozym/",
+      "contentLength": 2622,
+      "featured_media": 7417
+    },
+    {
+      "id": 7389,
+      "slug": "bio-mate",
+      "title": "Bio-mate",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/bio-mate/",
+      "contentLength": 2609,
+      "featured_media": 7390
+    },
+    {
+      "id": 7365,
+      "slug": "flatworm-stop",
+      "title": "Flatworm Stop",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/flatworm-stop/",
+      "contentLength": 4283,
+      "featured_media": 7366
+    },
+    {
+      "id": 7327,
+      "slug": "benh-nam-trang-marine-ich",
+      "title": "Bệnh nấm trắng – Marine Ich",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/benh-nam-trang-marine-ich/",
+      "contentLength": 2518,
+      "featured_media": 7337
+    },
+    {
+      "id": 7323,
+      "slug": "lo-tren-dau-doi-khi-con-chi-benh-lo-dau-va-duong-ke-soc-o-ben",
+      "title": "Lỗ trên đầu, đôi khi còn chỉ bệnh lở đầu và đường kẻ sọc ở bên",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/lo-tren-dau-doi-khi-con-chi-benh-lo-dau-va-duong-ke-soc-o-ben/",
+      "contentLength": 2064,
+      "featured_media": 7324
+    },
+    {
+      "id": 7245,
+      "slug": "xu-ly-khi-ca-canh-bi-benh-phu",
+      "title": "Xử lý khi cá cảnh bị “Bệnh phù”",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/xu-ly-khi-ca-canh-bi-benh-phu/",
+      "contentLength": 2225,
+      "featured_media": 7246
+    },
+    {
+      "id": 7239,
+      "slug": "cach-xu-ly-nhiem-doc-ammoniac-o-ca-bien",
+      "title": "Cách xử lý Nhiễm độc Ammoniac ở cá biển?",
+      "categories": [
+        2030
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/cach-xu-ly-nhiem-doc-ammoniac-o-ca-bien/",
+      "contentLength": 2378,
+      "featured_media": 7315
+    },
+    {
+      "id": 7199,
+      "slug": "gioi-thieu-ve-tropic-marin",
+      "title": "Giới thiệu về TROPIC MARIN",
+      "categories": [
+        2031,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/gioi-thieu-ve-tropic-marin/",
+      "contentLength": 3801,
+      "featured_media": 7206
+    },
+    {
+      "id": 7167,
+      "slug": "gioi-thieu-ve-hw-wiegandt",
+      "title": "Giới thiệu về hw-wiegandt",
+      "categories": [
+        2031,
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/gioi-thieu-ve-hw-wiegandt/",
+      "contentLength": 7671,
+      "featured_media": 7169
+    },
+    {
+      "id": 7040,
+      "slug": "muoi-bien-tropic-marin-pro-reef-sea-salt",
+      "title": "Muối biển Tropic Marin PRO-REEF Sea Salt",
+      "categories": [
+        1
+      ],
+      "status": "publish",
+      "link": "https://marine-aqua.vn/muoi-bien-tropic-marin-pro-reef-sea-salt/",
+      "contentLength": 1894,
+      "featured_media": 7046
+    }
+  ],
+  "sourcePages": [
+    {
+      "id": 818641,
+      "slug": "818641-2",
+      "title": "",
+      "link": "https://marine-aqua.vn/818641-2/"
+    },
+    {
+      "id": 6194,
+      "slug": "bai-viet",
+      "title": "Bài viết",
+      "link": "https://marine-aqua.vn/bai-viet/"
+    },
+    {
+      "id": 3820,
+      "slug": "thong-bao",
+      "title": "THÔNG BÁO PHÍ SHIP HÀNG",
+      "link": "https://marine-aqua.vn/thong-bao/"
+    },
+    {
+      "id": 22,
+      "slug": "huong-dan-mua-hang-tai-nha",
+      "title": "Hướng dẫn mua hàng tại nhà",
+      "link": "https://marine-aqua.vn/huong-dan-mua-hang-tai-nha/"
+    },
+    {
+      "id": 20,
+      "slug": "huong-dan-mua-hang-o-xa",
+      "title": "Hướng dẫn mua hàng ở xa",
+      "link": "https://marine-aqua.vn/huong-dan-mua-hang-o-xa/"
+    },
+    {
+      "id": 18,
+      "slug": "chinh-sach-doi-tra-hang",
+      "title": "Chính sách đổi trả hàng",
+      "link": "https://marine-aqua.vn/chinh-sach-doi-tra-hang/"
+    },
+    {
+      "id": 16,
+      "slug": "thoi-gian-ban-hang",
+      "title": "Thời gian bán hàng",
+      "link": "https://marine-aqua.vn/thoi-gian-ban-hang/"
+    },
+    {
+      "id": 14,
+      "slug": "lien-he",
+      "title": "Liên hệ",
+      "link": "https://marine-aqua.vn/lien-he/"
+    },
+    {
+      "id": 7,
+      "slug": "tai-khoan",
+      "title": "Tài khoản",
+      "link": "https://marine-aqua.vn/tai-khoan/"
+    },
+    {
+      "id": 6,
+      "slug": "thanh-toan",
+      "title": "Thanh toán",
+      "link": "https://marine-aqua.vn/thanh-toan/"
+    },
+    {
+      "id": 5,
+      "slug": "gio-hang",
+      "title": "Giỏ hàng",
+      "link": "https://marine-aqua.vn/gio-hang/"
+    },
+    {
+      "id": 4,
+      "slug": "san-pham",
+      "title": "Sản phẩm",
+      "link": "https://marine-aqua.vn/san-pham/"
+    },
+    {
+      "id": 2,
+      "slug": "trang-chu",
+      "title": "Trang Chủ",
+      "link": "https://marine-aqua.vn/"
+    }
+  ],
+  "run_id": "43347920297"
+}
