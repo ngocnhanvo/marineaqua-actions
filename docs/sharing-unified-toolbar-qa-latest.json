@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "checks": [
     {
       "viewport": 1366,
@@ -13,14 +13,14 @@
       },
       "sort": {
         "x": 1027.875,
-        "y": 506,
+        "y": 425,
         "width": 286.890625,
         "height": 44
       },
       "sortValue": "latest",
-      "totalLabel": true,
+      "totalLabel": false,
       "scrollWidth": 1366,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 1366,
@@ -34,14 +34,14 @@
       },
       "sort": {
         "x": 1029.5625,
-        "y": 506,
+        "y": 425,
         "width": 285.203125,
         "height": 44
       },
       "sortValue": "latest",
-      "totalLabel": true,
+      "totalLabel": false,
       "scrollWidth": 1366,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 1366,
@@ -55,14 +55,14 @@
       },
       "sort": {
         "x": 1030,
-        "y": 546,
+        "y": 465,
         "width": 284.765625,
         "height": 44
       },
       "sortValue": "latest",
-      "totalLabel": true,
+      "totalLabel": false,
       "scrollWidth": 1366,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 390,
@@ -71,19 +71,19 @@
       "search": {
         "x": 14.625,
         "y": 298,
-        "width": 360.75,
+        "width": 226.75,
         "height": 44
       },
       "sort": {
-        "x": 14.625,
-        "y": 407,
-        "width": 360.75,
+        "x": 253.375,
+        "y": 298,
+        "width": 122,
         "height": 44
       },
       "sortValue": "latest",
-      "totalLabel": true,
+      "totalLabel": false,
       "scrollWidth": 390,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 390,
@@ -92,19 +92,19 @@
       "search": {
         "x": 14.625,
         "y": 298,
-        "width": 360.75,
+        "width": 226.75,
         "height": 44
       },
       "sort": {
-        "x": 14.625,
-        "y": 407,
-        "width": 360.75,
+        "x": 253.375,
+        "y": 298,
+        "width": 122,
         "height": 44
       },
       "sortValue": "latest",
-      "totalLabel": true,
+      "totalLabel": false,
       "scrollWidth": 390,
-      "pass": false
+      "pass": true
     },
     {
       "viewport": 390,
@@ -113,52 +113,21 @@
       "search": {
         "x": 14.625,
         "y": 374,
-        "width": 360.75,
+        "width": 226.75,
         "height": 44
       },
       "sort": {
-        "x": 14.625,
-        "y": 483,
-        "width": 360.75,
+        "x": 253.375,
+        "y": 374,
+        "width": 122,
         "height": 44
       },
       "sortValue": "latest",
-      "totalLabel": true,
+      "totalLabel": false,
       "scrollWidth": 390,
-      "pass": false
+      "pass": true
     }
   ],
-  "errors": [
-    {
-      "viewport": "desktop",
-      "slug": "tin-kien-thuc",
-      "message": "Search/sort alignment or total label validation failed"
-    },
-    {
-      "viewport": "desktop",
-      "slug": "tong-quan-ve-be-ca",
-      "message": "Search/sort alignment or total label validation failed"
-    },
-    {
-      "viewport": "desktop",
-      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
-      "message": "Search/sort alignment or total label validation failed"
-    },
-    {
-      "viewport": "mobile",
-      "slug": "tin-kien-thuc",
-      "message": "Search/sort alignment or total label validation failed"
-    },
-    {
-      "viewport": "mobile",
-      "slug": "tong-quan-ve-be-ca",
-      "message": "Search/sort alignment or total label validation failed"
-    },
-    {
-      "viewport": "mobile",
-      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
-      "message": "Search/sort alignment or total label validation failed"
-    }
-  ],
-  "run_id": "43358465774"
+  "errors": [],
+  "run_id": "43358689175"
 }
