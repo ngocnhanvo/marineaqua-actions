@@ -14,15 +14,28 @@
   },
   "builder": {
     "status": "NOT_TESTED",
-    "tables": []
+    "tables": [],
+    "lastSelection": {
+      "tableId": "home_04",
+      "context": "home_04 · chọn item để nhân bản hoặc xóa",
+      "status": "Đang xác định đúng dòng ESC Table của sản phẩm 82530...",
+      "panelVisible": true,
+      "inspector": "",
+      "tag": {
+        "id": "82530",
+        "row": "0",
+        "parent": "home_04",
+        "source": "home_04"
+      }
+    }
   },
   "writes": 0,
   "temporaryCreated": 0,
   "cleanupRemaining": 0,
   "errors": [
-    "page.waitForFunction: Timeout 20000ms exceeded.\n    at /__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:61:16"
+    "AssertionError [ERR_ASSERTION]: Card selection did not map to native ESC Table: {\"tableId\":\"home_04\",\"context\":\"home_04 · chọn item để nhân bản hoặc xóa\",\"status\":\"Đang xác định đúng dòng ESC Table của sản phẩm 82530...\",\"panelVisible\":true,\"inspector\":\"\",\"tag\":{\"id\":\"82530\",\"row\":\"0\",\"parent\":\"home_04\",\"source\":\"home_04\"}}\n    at file:///__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:73:12"
   ],
-  "qa_run_id": 43484232851,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43484232851",
-  "recorded_at": "2026-11-13T18:37:27.936Z"
+  "qa_run_id": 43484528381,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43484528381",
+  "recorded_at": "2026-11-13T18:39:11.728Z"
 }
