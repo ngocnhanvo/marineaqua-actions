@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "860aea4c02a728c1713dea545457a74c494fc4aa",
+  "reason": "Remove Góc kiến thức Marine Aqua label from article category headers",
+  "request_id": "20261113T030600Z-remove-sharing-eyebrow",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
