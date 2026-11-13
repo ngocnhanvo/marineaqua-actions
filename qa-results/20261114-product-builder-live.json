@@ -1,0 +1,28 @@
+{
+  "status": "FAIL",
+  "sourceSha": "d79e13c3cf9a023b7a165eef390fe11b12e2d7fb",
+  "public": {
+    "status": "PASS",
+    "checks": 1,
+    "productSources": [
+      "home_04",
+      "home_05",
+      "home_06",
+      "home_07",
+      "home_08"
+    ]
+  },
+  "builder": {
+    "status": "NOT_TESTED",
+    "tables": []
+  },
+  "writes": 0,
+  "temporaryCreated": 0,
+  "cleanupRemaining": 0,
+  "errors": [
+    "locator.waitFor: Error: strict mode violation: locator('[data-tablepress-preview=\"home_04\"]') resolved to 2 elements:\n    1) <div data-esc-builder-dynamic=\"true\" data-tablepress-preview=\"home_04\" data-esc-vb-region-state=\"editable\" data-esc-builder-api-source=\"Product\" data-esc-vb-region-label=\"✎ ESC Table: chỉnh sửa được\">…</div> aka locator('div').filter({ hasText: 'TROPIC-MARINA- ELEMENTS BỔ' }).nth(1)\n    2) <section data-scroll-reveal=\"\" aria-label=\"TROPIC-MARIN\" data-astro-cid-2v6r7w3s=\"\" data-scroll-reveal-ready=\"true\" data-tablepress-preview=\"home_04\" data-esc-vb-region-state=\"editable\" data-esc-vb-region-label=\"✎ ESC Table: chỉnh sửa được\" class=\"marine-brand-section w-full py-9 sm:py-12 lg:py-14 is-scroll-reveal-visible\">…</section> aka getByRole('region', { name: 'TROPIC-MARIN' })\n\nCall log:\n  - waiting for locator('#esc-vb-frame').contentFrame().locator('[data-tablepress-preview=\"home_04\"]') to be visible\n\n    at /__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:43:62"
+  ],
+  "qa_run_id": 43483962076,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43483962076",
+  "recorded_at": "2026-11-13T18:35:55.708Z"
+}
