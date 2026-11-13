@@ -1,0 +1,202 @@
+{
+  "status": "PASS",
+  "views": [
+    {
+      "name": "desktop",
+      "measured": {
+        "viewport": 1366,
+        "document": 1366
+      },
+      "linked": [
+        "tong-quan-ve-be-ca",
+        "set-up-be-ca-bien-mini",
+        "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+        "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+        "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+        "tin-kien-thuc",
+        "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom"
+      ]
+    },
+    {
+      "name": "mobile",
+      "measured": {
+        "viewport": 390,
+        "document": 390
+      },
+      "linked": [
+        "tong-quan-ve-be-ca",
+        "set-up-be-ca-bien-mini",
+        "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+        "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+        "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+        "tin-kien-thuc",
+        "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "viewport": "desktop",
+      "path": "/cat/tong-quan-ve-be-ca",
+      "expectedCount": 5,
+      "status": 200,
+      "heading": "Tổng quan về bể cá biển",
+      "cards": 10,
+      "hasProductListing": false,
+      "width": 1366
+    },
+    {
+      "viewport": "desktop",
+      "path": "/cat/set-up-be-ca-bien-mini",
+      "expectedCount": 4,
+      "status": 200,
+      "heading": "Set up bể cá biển mini",
+      "cards": 8,
+      "hasProductListing": false,
+      "width": 1366
+    },
+    {
+      "viewport": "desktop",
+      "path": "/cat/kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "expectedCount": 48,
+      "status": 200,
+      "heading": "Kinh nghiệm xử lý vấn đề trong bể cá (rêu hại, tảo hại, bệnh cá, san hô...)",
+      "cards": 28,
+      "hasProductListing": false,
+      "width": 1366
+    },
+    {
+      "viewport": "desktop",
+      "path": "/cat/cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+      "expectedCount": 36,
+      "status": 200,
+      "heading": "Cách chọn muối, vi sinh và hóa chất tốt nhất cho bể cá",
+      "cards": 28,
+      "hasProductListing": false,
+      "width": 1366
+    },
+    {
+      "viewport": "desktop",
+      "path": "/cat/cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+      "expectedCount": 16,
+      "status": 200,
+      "heading": "Cách chọn thức ăn tốt cho cá và san hô",
+      "cards": 27,
+      "hasProductListing": false,
+      "width": 1366
+    },
+    {
+      "viewport": "desktop",
+      "path": "/cat/tin-kien-thuc",
+      "expectedCount": 24,
+      "status": 200,
+      "heading": "Tin kiến thức",
+      "cards": 27,
+      "hasProductListing": false,
+      "width": 1366
+    },
+    {
+      "viewport": "desktop",
+      "path": "/cat/cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+      "expectedCount": 32,
+      "status": 200,
+      "heading": "Các thiết bị trong bể cá (đèn, skimmer, máy bơm...)",
+      "cards": 28,
+      "hasProductListing": false,
+      "width": 1366
+    },
+    {
+      "viewport": "mobile",
+      "path": "/cat/tong-quan-ve-be-ca",
+      "expectedCount": 5,
+      "status": 200,
+      "heading": "Tổng quan về bể cá biển",
+      "cards": 10,
+      "hasProductListing": false,
+      "width": 390
+    },
+    {
+      "viewport": "mobile",
+      "path": "/cat/set-up-be-ca-bien-mini",
+      "expectedCount": 4,
+      "status": 200,
+      "heading": "Set up bể cá biển mini",
+      "cards": 8,
+      "hasProductListing": false,
+      "width": 390
+    },
+    {
+      "viewport": "mobile",
+      "path": "/cat/kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "expectedCount": 48,
+      "status": 200,
+      "heading": "Kinh nghiệm xử lý vấn đề trong bể cá (rêu hại, tảo hại, bệnh cá, san hô...)",
+      "cards": 28,
+      "hasProductListing": false,
+      "width": 390
+    },
+    {
+      "viewport": "mobile",
+      "path": "/cat/cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+      "expectedCount": 36,
+      "status": 200,
+      "heading": "Cách chọn muối, vi sinh và hóa chất tốt nhất cho bể cá",
+      "cards": 28,
+      "hasProductListing": false,
+      "width": 390
+    },
+    {
+      "viewport": "mobile",
+      "path": "/cat/cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+      "expectedCount": 16,
+      "status": 200,
+      "heading": "Cách chọn thức ăn tốt cho cá và san hô",
+      "cards": 27,
+      "hasProductListing": false,
+      "width": 390
+    },
+    {
+      "viewport": "mobile",
+      "path": "/cat/tin-kien-thuc",
+      "expectedCount": 24,
+      "status": 200,
+      "heading": "Tin kiến thức",
+      "cards": 27,
+      "hasProductListing": false,
+      "width": 390
+    },
+    {
+      "viewport": "mobile",
+      "path": "/cat/cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+      "expectedCount": 32,
+      "status": 200,
+      "heading": "Các thiết bị trong bể cá (đèn, skimmer, máy bơm...)",
+      "cards": 28,
+      "hasProductListing": false,
+      "width": 390
+    }
+  ],
+  "articles": [
+    {
+      "slug": "muoi-bien-cho-be-ca-canh-tropic-marin-pro-reef-20-kg-box",
+      "status": 200,
+      "h1": "Muối biển cho bể cá cảnh TROPIC MARIN PRO – REEF 20 KG BOX",
+      "textLength": 4562
+    },
+    {
+      "slug": "cac-phuong-phap-loc-trong-be-ca-canh",
+      "status": 200,
+      "h1": "Các phương pháp lọc trong bể cá cảnh",
+      "textLength": 6551
+    },
+    {
+      "slug": "cac-thong-so-nuoc-danh-cho-be-ca-nuoc-man",
+      "status": 200,
+      "h1": "Các thông số nước dành cho bể cá nước mặn",
+      "textLength": 6342
+    }
+  ],
+  "errors": [],
+  "run_id": "43353305198",
+  "outcome": "success"
+}
