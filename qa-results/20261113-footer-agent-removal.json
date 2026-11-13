@@ -1,0 +1,50 @@
+{
+  "project": "marine-aqua.vn",
+  "test": "footer-agent-removal-live",
+  "source_branch": "master",
+  "source_sha": "f243c2c650eb3261251de8f38a7d2ee3737b12e6",
+  "release_request_at": "2026-11-13T17:04:41Z",
+  "production": {
+    "status": "PASS",
+    "run_id": 43469203952,
+    "url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43469203952",
+    "attempt": 1,
+    "conclusion": "success",
+    "job_count": 1,
+    "provenance_sha_found": true,
+    "signed_activation": true
+  },
+  "browser": {
+    "status": "PASS",
+    "checks": [
+      {
+        "viewport": "desktop",
+        "status": "PASS",
+        "knowledge_href": "/cat/tin-kien-thuc",
+        "knowledge_status": 200,
+        "agent_chat_opened": true,
+        "width": {
+          "document": 1366,
+          "viewport": 1366
+        }
+      },
+      {
+        "viewport": "mobile",
+        "status": "PASS",
+        "knowledge_href": "/cat/tin-kien-thuc",
+        "knowledge_status": 200,
+        "agent_chat_opened": true,
+        "width": {
+          "document": 390,
+          "viewport": 390
+        }
+      }
+    ]
+  },
+  "failures": [],
+  "status": "PASS",
+  "qa_run_id": 43470567865,
+  "qa_run_attempt": "1",
+  "qa_run_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43470567865",
+  "recorded_at": "2026-11-13T17:13:57.935Z"
+}
