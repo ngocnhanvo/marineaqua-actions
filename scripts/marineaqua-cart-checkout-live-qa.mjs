@@ -6,7 +6,7 @@ const HOST = 'https://marine-aqua.io.vn';
 const DIR = 'cart-checkout-evidence';
 const STORAGE_KEY = 'esc-cart-storage';
 const args = process.argv.slice(2);
-assert.ok(args.length === 0 || (args.length === 1 && ['--scope=shipping-fee', '--scope=account-cart', '--scope=checkout-readiness', '--scope=checkout-billing', '--scope=commerce-header', '--scope=checkout-payments'].includes(args[0])), 'Supported scopes: shipping-fee, account-cart, checkout-readiness, checkout-billing, commerce-header, checkout-payments; omit the flag for the full suite');
+assert.ok(args.length === 0 || (args.length === 1 && ['--scope=shipping-fee', '--scope=account-cart', '--scope=checkout-readiness', '--scope=checkout-billing', '--scope=commerce-header', '--scope=checkout-payments', '--scope=checkout-consent'].includes(args[0])), 'Supported scopes: shipping-fee, account-cart, checkout-readiness, checkout-billing, commerce-header, checkout-payments, checkout-consent; omit the flag for the full suite');
 const QA_SCOPE = args.length ? args[0].split('=')[1] : 'full';
 const QA_VIEWPORTS = [
   ...(QA_SCOPE === 'commerce-header' ? [{ name: 'desktop-wide', width: 1920, height: 1080 }] : []),
@@ -59,7 +59,7 @@ async function navigate(page, url, check, click) {
     diagnostic.http = response?.status() ?? null;
     diagnostic.url = safeUrl(response?.url() || page.url());
     diagnostic.contentType = response?.headers()['content-type'] || '';
-    if (['account-cart', 'checkout-billing', 'commerce-header', 'checkout-payments'].includes(QA_SCOPE) && response) {
+    if (['account-cart', 'checkout-billing', 'commerce-header', 'checkout-payments', 'checkout-consent'].includes(QA_SCOPE) && response) {
       const actualUrl = new URL(response.url());
       if (actualUrl.origin === HOST && ['/gio-hang', '/thanh-toan'].includes(actualUrl.pathname.replace(/\/+$/, ''))) {
         diagnostic.stage = 'RESPONSE_CACHE_POLICY';
@@ -660,7 +660,7 @@ async function accountCartQA(page, scope, saved) {
   assert.ok(scope.auth.records.every(record => record.simulated === true), 'Authentication request escaped browser mocks');
   report.checks.push({ type: 'account-cart-safety', viewport: scope.name, authSimulationOnly: true, checkoutPosts: 0, orderRequests: 0, realOrders: 0, ok: true });
 }
-async function installCommerceHeaderGuards(scope) {
+async function installCommerceHeaderGuards(scope, purpose = 'commerce Header') {
   scope.commerceGuard = { blocked: [] };
   await scope.context.route('**/*', async route => {
     const request = route.request(), url = new URL(request.url()), method = request.method(), path = url.pathname;
@@ -669,7 +669,7 @@ async function installCommerceHeaderGuards(scope) {
     const ownCartWrite = url.origin === HOST && method === 'POST' && ['/api/cart/add', '/api/cart/update', '/api/cart/del'].includes(path);
     if (sensitive || (!['GET', 'HEAD', 'OPTIONS'].includes(method) && !ownCartWrite)) {
       scope.commerceGuard.blocked.push({ method, url: safeUrl(url.href) });
-      report.errors.push(scope.name + ': commerce Header QA blocked an unexpected request: ' + method + ' ' + safeUrl(url.href));
+      report.errors.push(scope.name + ': ' + purpose + ' QA blocked an unexpected request: ' + method + ' ' + safeUrl(url.href));
       await route.abort('blockedbyclient');
       return;
     }
@@ -1006,6 +1006,90 @@ async function checkoutBillingQA(page, scope, saved) {
   assert.equal(scope.billingGuard.interceptedCheckoutPosts, 1, 'Unexpected checkout request count');
   report.checks.push({ type: 'checkout-billing-payload-and-rejection', viewport: scope.name, simulated: true, fieldsMapped: record.billingProjection, duplicateGuard: true, valuesPreserved: true, cartPreserved: true, interceptedPosts: 1, liveOrders: 0, ok: true });
   report.checks.push({ type: 'checkout-billing-safety', viewport: scope.name, liveAuthenticationRequests: 0, orderRequests: 0, realOrders: 0, realAccounts: 0, checkoutPostsMocked: 1, ok: true });
+}
+async function checkoutConsentQA(page, scope, saved) {
+  await clickNavigation(page, '#btn-proceed-checkout', scope.name + '-consent-cart-checkout');
+  await checkoutReady(page, scope);
+  const form = page.locator('#checkout-form'), terms = page.locator('#terms-checkbox'), submit = page.locator('#submit-checkout-btn');
+  let methods = await form.evaluate(node => JSON.parse(node.dataset.paymentMethods || '[]'));
+  let freshGetRetries = 0;
+  if (!methods.length) {
+    const messages = await form.evaluate(node => JSON.parse(node.dataset.checkoutMessages || '{}'));
+    const warning = page.locator('#checkout-cart-container + div [role="status"]').filter({ hasText: messages.payment_unavailable });
+    assert.equal(await warning.count(), 1, 'Missing methods must have the explicit unavailable state');
+    assert.equal(await warning.isVisible(), true, 'Payment unavailable state must be visible');
+    freshGetRetries++;
+    await navigate(page, page.url(), scope.name + '-consent-payment-fresh-get');
+    await checkoutReady(page, scope);
+    methods = await form.evaluate(node => JSON.parse(node.dataset.paymentMethods || '[]'));
+  }
+  assert.ok(methods.length, 'Consent guard needs a configured payment method and nonempty cart');
+  const label = form.locator('label').filter({ has: terms });
+  assert.equal(await label.count(), 1, 'Consent checkbox must have exactly one containing label');
+  const snapshot = await label.evaluate(element => ({
+    text: element.textContent.normalize('NFC').replace(/\s+/g, ' ').trim(),
+    links: [...element.querySelectorAll('a')].map(link => ({
+      text: link.textContent.normalize('NFC').replace(/\s+/g, ' ').trim(), href: link.getAttribute('href'),
+      target: link.target, rel: [...link.relList],
+    })),
+    required: element.querySelector('#terms-checkbox')?.required === true,
+    textFits: element.scrollWidth <= element.clientWidth + 1,
+  }));
+  assert.equal(snapshot.text, 'Tôi đã đọc và đồng ý với điều khoản và điều kiện của website *', 'Consent label differs from the requested sentence');
+  assert.equal(snapshot.links.length, 1, 'Consent must contain exactly one linked phrase');
+  assert.equal(snapshot.links[0].text, 'điều khoản và điều kiện', 'Only the requested phrase may be linked');
+  assert.equal(snapshot.links[0].href, '/chinh-sach-doi-tra-hang', 'Consent link must use the requested relative destination');
+  assert.equal(snapshot.links[0].target, '_blank', 'Policy must open in a new tab');
+  for (const token of ['noopener', 'noreferrer']) assert.ok(snapshot.links[0].rel.includes(token), 'Consent link is missing ' + token);
+  assert.ok(snapshot.required && snapshot.textFits, 'Consent must remain required and fit its responsive container');
+  assert.equal(await terms.isChecked(), false, 'Consent must start unchecked');
+  assert.equal(await submit.isDisabled(), true, 'Unchecked consent must block checkout');
+  report.checks.push({ type: 'checkout-consent-content', viewport: scope.name, ...snapshot, freshGetRetries, ok: true });
+  await checkLayout(page, scope.name, 'checkout-consent');
+  await screenshot(page, scope.name + '-checkout-consent.png');
+  const consentImage = scope.name + '-checkout-consent-label.png';
+  await label.screenshot({ path: DIR + '/' + consentImage, animations: 'disabled', timeout: 5000 });
+  report.screenshots.push(consentImage);
+
+  const parentUrl = page.url(), before = await readCart(scope.context, saved.cartKey);
+  const responses = [];
+  const onResponse = response => { if (response.request().isNavigationRequest()) responses.push(response); };
+  scope.context.on('response', onResponse);
+  let popup;
+  try {
+    [popup] = await Promise.all([
+      scope.context.waitForEvent('page', { timeout: RESPONSE_TIMEOUT }),
+      label.locator('a').click({ timeout: DOM_TIMEOUT }),
+    ]);
+    await popup.waitForURL(url => url.href !== 'about:blank', { waitUntil: 'domcontentloaded', timeout: RESPONSE_TIMEOUT });
+    assert.equal(normalizedDestination(popup.url()), HOST + '/chinh-sach-doi-tra-hang', 'Policy popup opened a different Page');
+    const response = responses.findLast(candidate => {
+      try { return candidate.request().frame().page() === popup && candidate.request().frame() === popup.mainFrame(); }
+      catch { return false; }
+    });
+    assert.equal(response?.status(), 200, 'Policy popup did not return HTTP 200');
+    assert.equal(await popup.evaluate(() => window.opener === null), true, 'Policy popup retained an opener');
+    const heading = normalizedText(await popup.locator('main h1').first().textContent({ timeout: DOM_TIMEOUT }));
+    assert.ok(heading, 'Policy popup has no published heading');
+    assert.equal(page.url(), parentUrl, 'Policy link navigated away from checkout');
+    assert.equal(await terms.isChecked(), false, 'Clicking the link changed the consent checkbox');
+    assert.equal(await submit.isDisabled(), true, 'Opening the policy bypassed the consent guard');
+    assert.equal((await state(page))?.cartKey, saved.cartKey, 'Policy link lost browser cart identity');
+    assertCartUnchanged(before, await readCart(scope.context, saved.cartKey), 'Checkout consent link');
+    report.checks.push({ type: 'checkout-consent-policy-popup', viewport: scope.name, url: safeUrl(popup.url()), heading, http: response.status(), openerNull: true, parentUnchanged: true, checkboxUnchanged: true, cartPreserved: true, ok: true });
+  } finally {
+    scope.context.off('response', onResponse);
+    if (popup && !popup.isClosed()) await popup.close();
+  }
+  await terms.check();
+  await until(async () => await submit.isEnabled(), 'Accepting consent did not enable the eligible checkout');
+  await terms.uncheck();
+  await until(async () => await submit.isDisabled(), 'Removing consent did not disable checkout');
+  assert.equal(scope.mock.records.length, 0, 'Consent-only QA attempted checkout');
+  assert.equal(scope.commerceGuard.blocked.length, 0, 'Unexpected authentication, order or mutation request occurred');
+  assert.equal(await page.locator('#createaccount').isChecked(), false, 'Consent-only QA must remain a guest');
+  report.checks.push({ type: 'checkout-consent-toggle', viewport: scope.name, required: true, uncheckedDisabled: true, checkedEnabled: true, uncheckedAgainDisabled: true, checkoutPosts: 0, ok: true });
+  report.checks.push({ type: 'checkout-consent-safety', viewport: scope.name, checkoutPosts: 0, realOrders: 0, realAccounts: 0, authenticationRequests: 0, ok: true });
 }
 async function installCheckoutPaymentsGuard(scope) {
   scope.payments = { blocked: [], interceptedCheckoutPosts: 0, receiptDocuments: 0, receiptUrl: '', receiptPath: '', cartKey: '', successState: null };
@@ -1427,7 +1511,7 @@ await mkdir(DIR, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 try {
   for (const viewport of QA_VIEWPORTS) {
-    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, serviceWorkers: 'block', ...(viewport.name === 'mobile' && ['checkout-readiness', 'checkout-billing', 'commerce-header', 'checkout-payments'].includes(QA_SCOPE) ? { isMobile: true, hasTouch: true } : {}) });
+    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, serviceWorkers: 'block', ...(viewport.name === 'mobile' && ['checkout-readiness', 'checkout-billing', 'commerce-header', 'checkout-payments', 'checkout-consent'].includes(QA_SCOPE) ? { isMobile: true, hasTouch: true } : {}) });
     const page = await context.newPage();
     page.setDefaultTimeout(DOM_TIMEOUT);
     const scope = { name: viewport.name, context, page, carts: new Map(), mock: { records: [], expected: false, status: 422, held: Promise.resolve(), release: () => {}, dialogs: 0 } };
@@ -1457,6 +1541,7 @@ try {
     if (QA_SCOPE === 'checkout-readiness') await installCheckoutReadinessGuard(scope);
     if (QA_SCOPE === 'checkout-billing') await installBillingGuards(scope);
     if (QA_SCOPE === 'commerce-header') await installCommerceHeaderGuards(scope);
+    if (QA_SCOPE === 'checkout-consent') await installCommerceHeaderGuards(scope, 'checkout consent');
     if (QA_SCOPE === 'checkout-payments') await installCheckoutPaymentsGuard(scope);
     page.on('response', response => {
       const request = response.request();
@@ -1513,6 +1598,8 @@ try {
         await commerceHeaderQA(page, scope, saved);
       } else if (QA_SCOPE === 'checkout-payments') {
         await checkoutPaymentsQA(page, scope, saved);
+      } else if (QA_SCOPE === 'checkout-consent') {
+        await checkoutConsentQA(page, scope, saved);
       } else {
       await clickMutation(page, '#cart-list-container .btn-qty-plus', '/api/cart/update');
       await until(async () => quantity((await state(page))?.items?.[0]) === 2, 'Cart quantity did not increase to two');
