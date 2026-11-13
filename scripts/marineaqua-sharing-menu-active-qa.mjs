@@ -1,3 +1,4 @@
+// Canonical public-page URL active state postdeploy QA for run 43360791173.
 // Postdeploy verification after canonical active-menu release 43360262840.
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
