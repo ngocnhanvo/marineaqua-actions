@@ -1,4 +1,4 @@
-name: Marine Aqua inspect homepage release status v2
+name: Marine Aqua inspect homepage and Product Builder releases
 on:
   push:
     branches: [main]
