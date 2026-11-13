@@ -30,7 +30,7 @@ jobs:
       - name: Install matching Playwright driver
         run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
       - name: Validate product to cart to checkout without placing order
-        run: node scripts/marineaqua-cart-checkout-live-qa.mjs --scope=checkout-billing
+        run: node scripts/marineaqua-cart-checkout-live-qa.mjs --scope=commerce-header
       - uses: actions/upload-artifact@v4
         if: always()
         with:

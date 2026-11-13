@@ -6,8 +6,13 @@ const HOST = 'https://marine-aqua.io.vn';
 const DIR = 'cart-checkout-evidence';
 const STORAGE_KEY = 'esc-cart-storage';
 const args = process.argv.slice(2);
-assert.ok(args.length === 0 || (args.length === 1 && ['--scope=shipping-fee', '--scope=account-cart', '--scope=checkout-readiness', '--scope=checkout-billing'].includes(args[0])), 'Supported scopes: shipping-fee, account-cart, checkout-readiness, checkout-billing; omit the flag for the full suite');
+assert.ok(args.length === 0 || (args.length === 1 && ['--scope=shipping-fee', '--scope=account-cart', '--scope=checkout-readiness', '--scope=checkout-billing', '--scope=commerce-header'].includes(args[0])), 'Supported scopes: shipping-fee, account-cart, checkout-readiness, checkout-billing, commerce-header; omit the flag for the full suite');
 const QA_SCOPE = args.length ? args[0].split('=')[1] : 'full';
+const QA_VIEWPORTS = [
+  ...(QA_SCOPE === 'commerce-header' ? [{ name: 'desktop-wide', width: 1920, height: 1080 }] : []),
+  { name: 'desktop', width: 1366, height: 900 },
+  { name: 'mobile', width: 390, height: 844 },
+].filter(viewport => QA_SCOPE !== 'checkout-readiness' || viewport.name === 'mobile');
 const RESPONSE_TIMEOUT = 40000;
 const DOM_TIMEOUT = 15000;
 const API_TIMEOUT = 20000;
@@ -54,7 +59,7 @@ async function navigate(page, url, check, click) {
     diagnostic.http = response?.status() ?? null;
     diagnostic.url = safeUrl(response?.url() || page.url());
     diagnostic.contentType = response?.headers()['content-type'] || '';
-    if (['account-cart', 'checkout-billing'].includes(QA_SCOPE) && response) {
+    if (['account-cart', 'checkout-billing', 'commerce-header'].includes(QA_SCOPE) && response) {
       const actualUrl = new URL(response.url());
       if (actualUrl.origin === HOST && ['/gio-hang', '/thanh-toan'].includes(actualUrl.pathname.replace(/\/+$/, ''))) {
         diagnostic.stage = 'RESPONSE_CACHE_POLICY';
@@ -655,6 +660,160 @@ async function accountCartQA(page, scope, saved) {
   assert.ok(scope.auth.records.every(record => record.simulated === true), 'Authentication request escaped browser mocks');
   report.checks.push({ type: 'account-cart-safety', viewport: scope.name, authSimulationOnly: true, checkoutPosts: 0, orderRequests: 0, realOrders: 0, ok: true });
 }
+async function installCommerceHeaderGuards(scope) {
+  scope.commerceGuard = { blocked: [] };
+  await scope.context.route('**/*', async route => {
+    const request = route.request(), url = new URL(request.url()), method = request.method(), path = url.pathname;
+    const sensitive = /^\/api\/(?:user|orders?)(?:\/|$)/.test(path) ||
+      /^\/wp-json\/.*\/(?:login|logout|users?|customers?|orders?)(?:\/|$)/.test(path);
+    const ownCartWrite = url.origin === HOST && method === 'POST' && ['/api/cart/add', '/api/cart/update', '/api/cart/del'].includes(path);
+    if (sensitive || (!['GET', 'HEAD', 'OPTIONS'].includes(method) && !ownCartWrite)) {
+      scope.commerceGuard.blocked.push({ method, url: safeUrl(url.href) });
+      report.errors.push(scope.name + ': commerce Header QA blocked an unexpected request: ' + method + ' ' + safeUrl(url.href));
+      await route.abort('blockedbyclient');
+      return;
+    }
+    await route.fallback();
+  });
+}
+async function catalogTree(page, selector) {
+  const container = page.locator(selector);
+  assert.equal(await container.count(), 1, selector + ': expected exactly one category container');
+  return container.evaluate(element => {
+    const norm = value => String(value || '').normalize('NFC').replace(/\s+/g, ' ').trim();
+    const read = list => [...(list?.children || [])].filter(node => node.matches('li.marine-category-tree-item')).map(item => {
+      const details = item.querySelector(':scope > details');
+      const link = details
+        ? details.querySelector(':scope > .marine-category-tree-children > a.marine-category-tree-all')
+        : item.querySelector(':scope > a.marine-category-tree-leaf');
+      const name = details
+        ? details.querySelector(':scope > summary .marine-category-tree-name')
+        : link?.querySelector('.marine-category-tree-name');
+      const url = link?.getAttribute('href') ? new URL(link.getAttribute('href'), location.origin) : null;
+      return { label: norm(name?.textContent), href: url ? url.origin + url.pathname.replace(/\/+$/, '') : '',
+        children: details ? read(details.querySelector(':scope > .marine-category-tree-children > ul.marine-category-tree')) : [] };
+    });
+    return read(element.querySelector('ul.marine-category-tree'));
+  });
+}
+const flattenCatalog = tree => tree.flatMap(node => [node, ...flattenCatalog(node.children)]);
+async function commerceCategoryOracle(page, scope) {
+  // The known-working product archive is a separate route/data path from the
+  // commerce SSR route under repair. Compare the full ordered tree, not a count.
+  const desktop = await catalogTree(page, '#header-product-catalog-panel');
+  const mobile = await catalogTree(page, '#mobile-menu-container .marine-mobile-menu-categories');
+  assert.deepEqual(mobile, desktop, 'Working archive desktop/mobile category trees differ');
+  const flat = flattenCatalog(desktop);
+  assert.ok(desktop.length > 0 && flat.length > desktop.length, 'Working archive must supply a nonempty nested category oracle');
+  for (const node of flat) {
+    assert.ok(node.label && node.href, 'Category oracle contains a missing label or destination');
+    const url = new URL(node.href);
+    assert.equal(url.origin, HOST, 'Category oracle destination is outside the storefront');
+    assert.ok(!['giam-gia-khung', 'uncategorized', 'khong-phan-loai'].includes(decodeURIComponent(url.pathname.split('/').pop())), 'Excluded category leaked into the Header tree');
+  }
+  assert.equal(new Set(flat.map(node => node.href)).size, flat.length, 'Category oracle contains duplicate destinations');
+  if (report.categoryOracle) assert.deepEqual(desktop, report.categoryOracle.tree, 'Working category oracle changed between viewports');
+  else report.categoryOracle = { source: 'working WordPress-backed product archive Header', url: safeUrl(page.url()), tree: desktop, nodes: flat.length };
+  scope.catalogOracle = desktop;
+  report.checks.push({ type: 'commerce-category-oracle', viewport: scope.name, source: safeUrl(page.url()), roots: desktop.length, nodes: flat.length, orderedTreeCaptured: true, desktopMobileParity: true, excludedCategoriesAbsent: true, ok: true });
+}
+async function commerceAlignment(page, scope, kind) {
+  const selector = '[data-commerce-container="' + kind + '"]';
+  assert.equal(await page.locator(selector).count(), 1, kind + ': commerce container marker missing or duplicated');
+  const measured = await page.locator(selector).evaluate((element, mobile) => {
+    const rect = node => { const box = node.getBoundingClientRect(); return { left: box.left, right: box.right, width: box.width }; };
+    const heading = element.querySelector('h1');
+    const header = document.querySelector('#header-navrow > div');
+    return { container: rect(element), heading: heading ? rect(heading) : null,
+      header: mobile ? null : header ? rect(header) : null,
+      viewport: document.documentElement.clientWidth, content: document.documentElement.scrollWidth };
+  }, scope.name === 'mobile');
+  assert.ok(measured.heading, kind + ': page heading missing');
+  assert.ok(Math.abs(measured.heading.left - measured.container.left) <= 1, kind + ': heading is offset from the commerce content edge');
+  if (scope.name === 'mobile') {
+    assert.ok(Math.abs(measured.container.left - 16) <= 1 && Math.abs(measured.viewport - measured.container.right - 16) <= 1, kind + ': mobile content must retain 16px gutters');
+  } else {
+    assert.ok(measured.header, kind + ': desktop Header container missing');
+    assert.ok(Math.abs(measured.container.left - measured.header.left) <= 1, kind + ': left content edge does not align with Header');
+    assert.ok(Math.abs(measured.container.right - measured.header.right) <= 1, kind + ': right content edge does not align with Header');
+  }
+  assert.ok(measured.content <= measured.viewport + 2, kind + ': horizontal overflow');
+  report.checks.push({ type: 'commerce-header-alignment', viewport: scope.name, page: kind, ...measured, tolerancePx: 1, ok: true });
+}
+async function openCommerceCatalog(page, scope) {
+  const mobile = scope.name === 'mobile';
+  const trigger = page.locator(mobile ? '#hamburger-btn' : '[data-header-catalog-trigger]').filter({ visible: true }).first();
+  const panel = page.locator(mobile ? '#mobile-menu-container' : '#header-product-catalog-panel');
+  await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
+  await trigger.waitFor({ state: 'visible' });
+  assert.equal(await trigger.getAttribute('aria-expanded'), 'false', 'Category menu must start closed');
+  await trigger.click();
+  await panel.waitFor({ state: 'visible' });
+  assert.equal(await trigger.getAttribute('aria-expanded'), 'true', 'Category trigger did not expand');
+  const category = page.locator(mobile ? '#mobile-menu-container .marine-mobile-menu-categories' : '#header-product-catalog-panel');
+  if (mobile) {
+    assert.equal(normalizedText(await category.locator('h2').textContent()), 'Danh mục sản phẩm', 'Mobile category title is missing');
+    await category.locator('h2').scrollIntoViewIfNeeded();
+  } else assert.equal(normalizedText(await trigger.textContent()), 'Danh mục sản phẩm', 'Desktop category title is missing');
+  return { trigger, panel, category };
+}
+async function commerceCatalogInteraction(page, scope, kind) {
+  const desktop = await catalogTree(page, '#header-product-catalog-panel');
+  const mobile = await catalogTree(page, '#mobile-menu-container .marine-mobile-menu-categories');
+  assert.deepEqual(desktop, scope.catalogOracle, kind + ': desktop categories differ from the working archive');
+  assert.deepEqual(mobile, scope.catalogOracle, kind + ': mobile categories differ from the working archive');
+  const { trigger, panel, category } = await openCommerceCatalog(page, scope);
+  const branch = category.locator('details.marine-category-tree-details').first();
+  assert.ok(await branch.count(), kind + ': nested category interaction cannot be verified');
+  const summary = branch.locator(':scope > summary');
+  const initial = await branch.evaluate(element => element.open);
+  await summary.click();
+  assert.equal(await branch.evaluate(element => element.open), !initial, kind + ': first category click did not toggle');
+  await summary.click();
+  assert.equal(await branch.evaluate(element => element.open), initial, kind + ': second category click did not close/restore');
+  const bounds = await panel.evaluate(element => { const box = element.getBoundingClientRect(); return { left: box.left, right: box.right, viewport: document.documentElement.clientWidth }; });
+  assert.ok(bounds.left >= -1 && bounds.right <= bounds.viewport + 1, kind + ': menu extends horizontally outside the viewport');
+  // Current viewport only: preserve the actual open menu and its internal scroll.
+  const imageName = scope.name + '-commerce-' + kind + '-menu.png';
+  await page.screenshot({ path: DIR + '/' + imageName, fullPage: false, animations: 'disabled', timeout: 5000,
+    mask: [page.locator('input:not([type="checkbox"]):not([type="radio"]), textarea, select, pre, code')] });
+  report.screenshots.push(imageName);
+  await trigger.click();
+  await panel.waitFor({ state: 'hidden' });
+  assert.equal(await trigger.getAttribute('aria-expanded'), 'false', kind + ': second Header click did not close the menu');
+  report.checks.push({ type: 'commerce-header-categories', viewport: scope.name, page: kind, nodes: flattenCatalog(desktop).length, fullOrderedTreeParity: true, menuOpenClose: true, nestedSecondClickRestoresState: true, menuWithinViewport: true, ok: true });
+}
+async function commerceHeaderQA(page, scope, saved) {
+  const before = await readCart(scope.context, saved.cartKey);
+  await commerceAlignment(page, scope, 'cart');
+  await screenshot(page, scope.name + '-commerce-cart.png');
+  await commerceCatalogInteraction(page, scope, 'cart');
+  await clickNavigation(page, '#btn-proceed-checkout', scope.name + '-commerce-cart-checkout');
+  const checkout = await checkoutReady(page, scope);
+  assert.ok(checkout.cartKey === saved.cartKey, 'Commerce Header fix changed the cart session');
+  await commerceAlignment(page, scope, 'checkout');
+  await screenshot(page, scope.name + '-commerce-checkout.png');
+  await commerceCatalogInteraction(page, scope, 'checkout');
+  const { category } = await openCommerceCatalog(page, scope);
+  // A real tree may have only parent categories at its top level. Expand
+  // visible branches by clicking until a leaf destination is actually visible.
+  for (let depth = 0; depth < 8 && !(await category.locator('a.marine-category-tree-leaf').filter({ visible: true }).count()); depth++) {
+    const summary = category.locator('details.marine-category-tree-details:not([open]) > summary').filter({ visible: true }).first();
+    assert.ok(await summary.count(), 'No expandable category branch exposes a leaf destination');
+    await summary.click();
+  }
+  const leaf = category.locator('a.marine-category-tree-leaf').filter({ visible: true }).first();
+  assert.ok(await leaf.count(), 'No category destination is available for click navigation');
+  const destination = normalizedDestination(await leaf.getAttribute('href'));
+  assert.ok(flattenCatalog(scope.catalogOracle).some(node => node.href === destination), 'Clicked destination is absent from the working category oracle');
+  await navigate(page, destination, scope.name + '-commerce-category-navigation', () => leaf.click({ timeout: DOM_TIMEOUT }));
+  assert.equal(normalizedDestination(page.url()), destination, 'Category link did not navigate to its real destination');
+  assertCartUnchanged(before, await readCart(scope.context, saved.cartKey), 'Header menu navigation');
+  assert.equal(scope.commerceGuard.blocked.length, 0, 'Unexpected auth/order or mutation request occurred');
+  assert.equal(scope.mock.records.length, 0, 'Header QA attempted checkout');
+  report.checks.push({ type: 'commerce-category-navigation', viewport: scope.name, destination, cartPreserved: true, ok: true });
+  report.checks.push({ type: 'commerce-header-safety', viewport: scope.name, liveAuthenticationRequests: 0, orderRequests: 0, checkoutPosts: 0, realOrders: 0, realAccounts: 0, ok: true });
+}
 async function installBillingGuards(scope) {
   scope.billingGuard = { blocked: [], interceptedCheckoutPosts: 0 };
   for (const value of [...Object.values(VALID_BILLING), ...Object.values(BILLING_LOCALITY), BILLING_PASSWORD]) privateValues.add(value);
@@ -1094,8 +1253,8 @@ async function cleanup(scope) {
 await mkdir(DIR, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 try {
-  for (const viewport of [{ name: 'desktop', width: 1366, height: 900 }, { name: 'mobile', width: 390, height: 844 }].filter(viewport => QA_SCOPE !== 'checkout-readiness' || viewport.name === 'mobile')) {
-    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, serviceWorkers: 'block', ...(viewport.name === 'mobile' && ['checkout-readiness', 'checkout-billing'].includes(QA_SCOPE) ? { isMobile: true, hasTouch: true } : {}) });
+  for (const viewport of QA_VIEWPORTS) {
+    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, serviceWorkers: 'block', ...(viewport.name === 'mobile' && ['checkout-readiness', 'checkout-billing', 'commerce-header'].includes(QA_SCOPE) ? { isMobile: true, hasTouch: true } : {}) });
     const page = await context.newPage();
     page.setDefaultTimeout(DOM_TIMEOUT);
     const scope = { name: viewport.name, context, page, carts: new Map(), mock: { records: [], expected: false, status: 422, held: Promise.resolve(), release: () => {}, dialogs: 0 } };
@@ -1120,6 +1279,7 @@ try {
     if (QA_SCOPE === 'account-cart') await installAccountGuards(scope);
     if (QA_SCOPE === 'checkout-readiness') await installCheckoutReadinessGuard(scope);
     if (QA_SCOPE === 'checkout-billing') await installBillingGuards(scope);
+    if (QA_SCOPE === 'commerce-header') await installCommerceHeaderGuards(scope);
     page.on('response', response => {
       const request = response.request();
       const url = safeUrl(response.url());
@@ -1140,6 +1300,7 @@ try {
       } else {
       if (QA_SCOPE === 'account-cart') await accountUiQA(page, scope);
       await navigate(page, HOST + '/san-pham/korallen-zucht', viewport.name + '-product-archive');
+      if (QA_SCOPE === 'commerce-header') await commerceCategoryOracle(page, scope);
       const productUrl = await selectSimpleProduct(page, viewport.name);
       const wrapper = page.locator('#data-content-wrapper');
       await wrapper.waitFor();
@@ -1170,6 +1331,8 @@ try {
         await accountCartQA(page, scope, saved);
       } else if (QA_SCOPE === 'checkout-billing') {
         await checkoutBillingQA(page, scope, saved);
+      } else if (QA_SCOPE === 'commerce-header') {
+        await commerceHeaderQA(page, scope, saved);
       } else {
       await clickMutation(page, '#cart-list-container .btn-qty-plus', '/api/cart/update');
       await until(async () => quantity((await state(page))?.items?.[0]) === 2, 'Cart quantity did not increase to two');
