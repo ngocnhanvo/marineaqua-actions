@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "views": [
     {
       "name": "desktop",
@@ -186,7 +186,12 @@
       "textLength": 4562,
       "sharingFound": true,
       "sharingActive": true,
-      "activeCategoryLinks": [],
+      "activeCategoryLinks": [
+        {
+          "href": "/cat/set-up-be-ca-bien-mini",
+          "label": "Setup bể cá biển mini"
+        }
+      ],
       "documentWidth": 1366
     },
     {
@@ -198,13 +203,84 @@
       "textLength": 6551,
       "sharingFound": true,
       "sharingActive": true,
-      "activeCategoryLinks": [],
+      "activeCategoryLinks": [
+        {
+          "href": "/cat/tin-kien-thuc",
+          "label": "Tin kiến thức"
+        }
+      ],
       "documentWidth": 1366
+    },
+    {
+      "viewport": "desktop",
+      "slug": "cac-thong-so-nuoc-danh-cho-be-ca-nuoc-man",
+      "status": 200,
+      "expectedCategory": null,
+      "h1": "Các thông số nước dành cho bể cá nước mặn",
+      "textLength": 6342,
+      "sharingFound": true,
+      "sharingActive": true,
+      "activeCategoryLinks": [
+        {
+          "href": "/cat/tong-quan-ve-be-ca",
+          "label": "Tổng quan về bể cá biển"
+        }
+      ],
+      "documentWidth": 1366
+    },
+    {
+      "viewport": "mobile",
+      "slug": "muoi-bien-cho-be-ca-canh-tropic-marin-pro-reef-20-kg-box",
+      "status": 200,
+      "expectedCategory": null,
+      "h1": "Muối biển cho bể cá cảnh TROPIC MARIN PRO – REEF 20 KG BOX",
+      "textLength": 4562,
+      "sharingFound": true,
+      "sharingActive": true,
+      "activeCategoryLinks": [
+        {
+          "href": "/cat/set-up-be-ca-bien-mini",
+          "label": "Setup bể cá biển mini"
+        }
+      ],
+      "documentWidth": 390
+    },
+    {
+      "viewport": "mobile",
+      "slug": "cac-phuong-phap-loc-trong-be-ca-canh",
+      "status": 200,
+      "expectedCategory": null,
+      "h1": "Các phương pháp lọc trong bể cá cảnh",
+      "textLength": 6551,
+      "sharingFound": true,
+      "sharingActive": true,
+      "activeCategoryLinks": [
+        {
+          "href": "/cat/tin-kien-thuc",
+          "label": "Tin kiến thức"
+        }
+      ],
+      "documentWidth": 390
+    },
+    {
+      "viewport": "mobile",
+      "slug": "cac-thong-so-nuoc-danh-cho-be-ca-nuoc-man",
+      "status": 200,
+      "expectedCategory": null,
+      "h1": "Các thông số nước dành cho bể cá nước mặn",
+      "textLength": 6342,
+      "sharingFound": true,
+      "sharingActive": true,
+      "activeCategoryLinks": [
+        {
+          "href": "/cat/tong-quan-ve-be-ca",
+          "label": "Tổng quan về bể cá biển"
+        }
+      ],
+      "documentWidth": 390
     }
   ],
-  "errors": [
-    "Article detail missing cac-thong-so-nuoc-danh-cho-be-ca-nuoc-man {\"h1\":\"\",\"textLength\":0,\"sharingFound\":false,\"sharingActive\":false,\"activeCategoryLinks\":[],\"documentWidth\":1366}"
-  ],
+  "errors": [],
   "run_id": "43371261368",
-  "outcome": "failure"
+  "outcome": "success"
 }
