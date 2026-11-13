@@ -13,10 +13,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 17
     steps:
-      - name: Verify exact PHP master and dispatch existing PHP-only release
+      - name: Checkout exact project PHP master using the working source token
+        uses: actions/checkout@v4
+        with:
+          repository: ngocnhanvo/marineaqua-php
+          ref: master
+          token: ${{ secrets.SOURCE_REPO_PAT }}
+          path: source-php
+          persist-credentials: false
+      - name: Verify the immutable PHP source before dispatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C source-php rev-parse HEAD)" = "94388d16a37f632c376cf2358fb38ba452f0afb8"
+      - name: Dispatch the existing PHP-only release
         uses: actions/github-script@v7
-        env:
-          SOURCE_REPO_PAT: ${{ secrets.SOURCE_REPO_PAT }}
         with:
           script: |
             const owner=context.repo.owner,repo=context.repo.repo;
@@ -27,11 +38,9 @@ jobs:
               status:'STARTED',checks:[],errors:[]};
             let failure=null;
             try {
-              if(!process.env.SOURCE_REPO_PAT)throw Error('SOURCE_REPO_PAT is not configured');
-              const source=await github.request('GET /repos/ngocnhanvo/marineaqua-php/branches/master',{
-                headers:{authorization:'Bearer '+process.env.SOURCE_REPO_PAT}});
-              if(source.data.commit.sha!==expected)throw Error('PHP master has moved; refusing unexpected release');
-              results.checks.push('Exact PHP master SHA verified');
+              // The immediately preceding protected checkout compared master to
+              // the exact expected SHA using the same PAT as the PHP release.
+              results.checks.push('Exact PHP master SHA verified by protected checkout');
               const existing=await github.rest.actions.listWorkflowRuns({owner,repo,
                 workflow_id:'marineaqua-php-release.yml',per_page:12});
               if(existing.data.workflow_runs.some(r=>r.status!=='completed'))
