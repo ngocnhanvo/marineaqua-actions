@@ -18,13 +18,15 @@ try {
      const rect=el=>{const r=el?.getBoundingClientRect();return r?{x:r.x,y:r.y,width:r.width,height:r.height}:null};
      const main=document.querySelector('#main-content');
      return {search:rect(input),sort:rect(sort),sortValue:document.querySelector('#post-sort')?.value,
+       sortDefaultLabel:document.querySelector('#post-sort option[value="latest"]')?.textContent?.trim(),
+       sortSelectedLabel:document.querySelector('#post-sort option:checked')?.textContent?.trim(),
        totalLabel:[...main?.querySelectorAll('p')||[]].some(p=>p.textContent?.includes('Tổng cộng')&&p.textContent?.includes('bài viết')),
        viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};
    });
    const pass=resp?.status()===200&&data.search&&data.sort&&!data.totalLabel&&Math.abs(data.search.y-data.sort.y)<3&&
-    data.search.x+data.search.width<=data.sort.x+1&&data.scrollWidth<=viewport.width+2&&data.sortValue==='latest';
+    data.search.x+data.search.width<=data.sort.x+1&&data.scrollWidth<=viewport.width+2&&data.sortValue==='latest'&&data.sortDefaultLabel==='Mới nhất'&&data.sortSelectedLabel==='Mới nhất';
    report.checks.push({viewport:viewport.name,slug,http:resp?.status(),...data,pass:Boolean(pass)});
-   if(!pass)report.errors.push({viewport:viewport.name,slug,message:'Search/sort alignment or total label validation failed'});
+   if(!pass)report.errors.push({viewport:viewport.name,slug,message:'Search/sort alignment, Mới nhất default label, or total label validation failed'});
    if(slug==='tin-kien-thuc')await page.screenshot({path:OUT+'/'+viewport.name+'.png',fullPage:false});
   }
   await page.close();
