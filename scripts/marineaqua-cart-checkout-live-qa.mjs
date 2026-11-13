@@ -6,8 +6,8 @@ const HOST = 'https://marine-aqua.io.vn';
 const DIR = 'cart-checkout-evidence';
 const STORAGE_KEY = 'esc-cart-storage';
 const args = process.argv.slice(2);
-assert.ok(args.length === 0 || (args.length === 1 && args[0] === '--scope=shipping-fee'), 'Supported argument: --scope=shipping-fee; omit it for the full suite');
-const QA_SCOPE = args.length ? 'shipping-fee' : 'full';
+assert.ok(args.length === 0 || (args.length === 1 && ['--scope=shipping-fee', '--scope=account-cart'].includes(args[0])), 'Supported scopes: shipping-fee, account-cart; omit the flag for the full suite');
+const QA_SCOPE = args.length ? args[0].split('=')[1] : 'full';
 const RESPONSE_TIMEOUT = 40000;
 const DOM_TIMEOUT = 15000;
 const API_TIMEOUT = 20000;
@@ -52,6 +52,25 @@ async function navigate(page, url, check, click) {
     diagnostic.http = response?.status() ?? null;
     diagnostic.url = safeUrl(response?.url() || page.url());
     diagnostic.contentType = response?.headers()['content-type'] || '';
+    if (QA_SCOPE === 'account-cart' && response) {
+      const actualUrl = new URL(response.url());
+      if (actualUrl.origin === HOST && ['/gio-hang', '/thanh-toan'].includes(actualUrl.pathname.replace(/\/+$/, ''))) {
+        diagnostic.stage = 'RESPONSE_CACHE_POLICY';
+        const headers = response.headers();
+        const cacheControl = headers['cache-control'] || '';
+        const vary = headers.vary || '';
+        const directives = cacheControl.toLowerCase().split(',').map(value => value.split('=', 1)[0].trim());
+        diagnostic.cachePolicy = {
+          cacheControl, vary,
+          private: directives.includes('private'),
+          noStore: directives.includes('no-store'),
+          variesByCookie: vary.toLowerCase().split(',').some(value => value.trim() === 'cookie'),
+        };
+        assert.equal(diagnostic.cachePolicy.private, true, check + ': SSR response must be private');
+        assert.equal(diagnostic.cachePolicy.noStore, true, check + ': SSR response must be no-store');
+        assert.equal(diagnostic.cachePolicy.variesByCookie, true, check + ': SSR response must vary by Cookie');
+      }
+    }
     diagnostic.stage = 'DOM_CONTENT_LOADED';
     await page.waitForLoadState('domcontentloaded', { timeout: DOM_TIMEOUT });
     diagnostic.elapsedMs = elapsed(start);
@@ -170,7 +189,8 @@ async function screenshot(page, name) {
   });
   assert.equal(capturePosition.y, 0, 'Screenshot must start at scrollY zero');
   assert.equal(capturePosition.x, 0, 'Screenshot must start at scrollX zero');
-  const privateFields = 'input:not([type]), input[type="text"], input[type="password"], input[type="email"], input[type="tel"], input[type="search"], input[type="url"], input[type="number"], textarea, select, pre, code';
+  const privateFields = 'input:not([type]), input[type="text"], input[type="password"], input[type="email"], input[type="tel"], input[type="search"], input[type="url"], input[type="number"], textarea, select, pre, code' +
+    (QA_SCOPE === 'account-cart' ? ', [data-account-name], [data-account-email]' : '');
   await page.screenshot({ path: DIR + '/' + name, fullPage: true, animations: 'disabled', timeout: 5000, mask: [page.locator(privateFields)] });
   report.screenshots.push(name);
 }
@@ -379,6 +399,260 @@ async function shippingFeeQA(page, scope, saved) {
   assert.equal(await page.locator('#createaccount').isChecked(), false, 'Shipping QA must remain a guest');
   report.checks.push({ type: 'shipping-fee-no-order', viewport: scope.name, interceptedCheckoutPosts: 0, realOrders: 0, ok: true });
 }
+const ACCOUNT_COOKIE = 'esc_user_session';
+const ACCOUNT_FIXTURE = {
+  id: 2147483647, name: 'Marine Aqua QA synthetic profile', email: 'account-qa@example.invalid',
+  billing: { first_name: 'Marine Aqua QA synthetic profile', email: 'account-qa@example.invalid', phone: '', address_1: '', chuthe: 'ca_nhan', cccd: '' },
+};
+const ACCOUNT_PASSWORD = 'browser-only-qa-password';
+let accountContract;
+async function accountCmsContract(context) {
+  if (accountContract) return accountContract;
+  const response = await context.request.get(HOST + '/data/cms-common.json', { timeout: API_TIMEOUT });
+  assert.equal(response.status(), 200, 'Published CMS registry is unavailable');
+  const data = await response.json();
+  const pages = (data.pages || []).filter(page => page.key === 'account' && page.lang === 'vi');
+  assert.equal(pages.length, 1, 'Expected one Vietnamese account Page in the published registry');
+  assert.equal(pages[0].action, 'AccountPage', 'Account Page must use the dedicated component');
+  assert.equal(pages[0].slug, 'tai-khoan', 'Unexpected account Page slug');
+  accountContract = { id: pages[0].id, href: HOST + '/tai-khoan' };
+  report.checks.push({ type: 'account-cms-contract', pageId: accountContract.id, path: '/tai-khoan', action: 'AccountPage', live: true, ok: true });
+  return accountContract;
+}
+async function assertEmptyGuestInfo(response, label) {
+  assert.ok([200, 401].includes(response.status()), label + ': unexpected guest info HTTP status');
+  const data = await response.json();
+  // Never print an unexpected response body: it could contain private data.
+  assert.ok(data && typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length === 0, label + ': unauthenticated info was not an empty object');
+  assert.ok((response.headers()['cache-control'] || '').includes('no-store'), label + ': guest info must not be cached');
+  return { http: response.status(), emptyObject: true, noStore: true };
+}
+async function invalidAccountCookies(context) {
+  const now = Math.floor(Date.now() / 1000);
+  const payload = Buffer.from(JSON.stringify({ v: 1, iat: now, exp: now + 300, user: ACCOUNT_FIXTURE })).toString('base64url');
+  const probes = [
+    { label: 'malformed', value: 'not-a-session-token' },
+    { label: 'legacy-unsigned', value: encodeURIComponent(JSON.stringify(ACCOUNT_FIXTURE)) },
+    { label: 'tampered-signature', value: 'v1.' + payload + '.' + 'A'.repeat(43) },
+  ];
+  for (const probe of probes) {
+    privateValues.add(probe.value);
+    const response = await context.request.get(HOST + '/api/user/info', {
+      headers: { Cookie: ACCOUNT_COOKIE + '=' + probe.value }, timeout: API_TIMEOUT,
+    });
+    const outcome = await assertEmptyGuestInfo(response, probe.label);
+    report.checks.push({ type: 'account-invalid-cookie', case: probe.label, live: true, endpoint: '/api/user/info', ...outcome, ok: true });
+  }
+  assert.equal((await context.cookies(HOST)).some(cookie => cookie.name === ACCOUNT_COOKIE), false, 'Negative probes persisted an authentication cookie');
+}
+async function installAccountGuards(scope) {
+  for (const value of [ACCOUNT_FIXTURE.name, ACCOUNT_FIXTURE.email, ACCOUNT_PASSWORD]) privateValues.add(value);
+  const auth = { viewport: scope.name, mode: 'live', loginOutcome: 'reject', logoutOutcome: 'reject', cartWritesAllowed: false, records: [], blocked: [], liveInfoGets: 0 };
+  (report.auth ||= []).push(auth);
+  scope.auth = auth;
+  await scope.context.route('**/*', async route => {
+    const request = route.request(), url = new URL(request.url()), method = request.method(), path = url.pathname;
+    const block = async reason => {
+      auth.blocked.push({ method, path, reason });
+      report.errors.push(scope.name + ': unexpected request was blocked: ' + method + ' ' + path);
+      await route.abort('blockedbyclient');
+    };
+    const fulfill = async (status, body) => route.fulfill({ status, contentType: 'application/json', headers: { 'Cache-Control': 'private, no-store' }, body: JSON.stringify(body) });
+    if (/^\/api\/(?:user\/order|orders?)(?:\/|$)|^\/wp-json\/(?:wc\/[^/]+|custom\/[^/]+)\/orders?(?:\/|$)/.test(path)) {
+      await block('Order reads and writes are outside this QA'); return;
+    }
+    if (path === '/api/user/login' || path === '/api/user/logout') {
+      if (url.origin !== HOST || method !== 'POST') { await block('Unexpected auth origin or method'); return; }
+      if (path.endsWith('/login')) {
+        let body; try { body = request.postDataJSON(); } catch { body = {}; }
+        const fixtureMatched = body?.username === ACCOUNT_FIXTURE.email && body?.password === ACCOUNT_PASSWORD && body?.rememberme === false;
+        if (!fixtureMatched) { await block('Login payload is not the synthetic browser fixture'); return; }
+        const success = auth.loginOutcome === 'success';
+        auth.records.push({ path, method, simulated: true, fixtureMatched: true, http: success ? 200 : 401 });
+        if (success) auth.mode = 'profile';
+        await fulfill(success ? 200 : 401, success ? { ok: true, data: { display_name: ACCOUNT_FIXTURE.name, billing: ACCOUNT_FIXTURE.billing } } : { ok: false, msg: 'QA_MOCK_LOGIN_REJECTED' });
+      } else {
+        const success = auth.logoutOutcome === 'success';
+        auth.records.push({ path, method, simulated: true, http: success ? 200 : 500 });
+        if (success) auth.mode = 'live';
+        await fulfill(success ? 200 : 500, { success, error: success ? undefined : 'QA_MOCK_LOGOUT_REJECTED' });
+      }
+      return;
+    }
+    if (path === '/api/user/info') {
+      if (url.origin !== HOST || method !== 'GET') { await block('Unexpected profile request'); return; }
+      if (auth.mode === 'profile') {
+        auth.records.push({ path, method, simulated: true, http: 200 });
+        await fulfill(200, ACCOUNT_FIXTURE);
+      } else {
+        auth.liveInfoGets++;
+        await route.fallback();
+      }
+      return;
+    }
+    if (path === '/api/cart/checkout') { await route.fallback(); return; }
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(method) && [HOST, 'https://admin.marine-aqua.io.vn'].includes(url.origin)) {
+      if (url.origin === HOST && auth.cartWritesAllowed && ['/api/cart/add', '/api/cart/update', '/api/cart/del'].includes(path)) {
+        await route.fallback(); return;
+      }
+      await block('Only own transient-cart mutations and mocked auth are allowed'); return;
+    }
+    await route.fallback();
+  });
+}
+async function accountUiQA(page, scope) {
+  const contract = await accountCmsContract(scope.context);
+  if (scope.name === 'desktop') await invalidAccountCookies(scope.context);
+  await navigate(page, HOST + '/', scope.name + '-account-home');
+  let selector = '#header-contacts a[data-header-action="account"]';
+  if (scope.name === 'mobile') {
+    await page.locator('#hamburger-btn').click();
+    await page.locator('#mobile-menu-container').waitFor({ state: 'visible' });
+    selector = '#mobile-menu-container a[data-header-action="account"]';
+  }
+  const accountLink = page.locator(selector);
+  assert.equal(await accountLink.count(), 1, 'Actual account link is missing or duplicated');
+  assert.equal(normalizedDestination(await accountLink.getAttribute('href')), contract.href, 'Header account link differs from the CMS Page');
+  const [guestInfo] = await Promise.all([
+    page.waitForResponse(response => new URL(response.url()).pathname === '/api/user/info' && response.request().method() === 'GET', { timeout: RESPONSE_TIMEOUT + DOM_TIMEOUT + API_TIMEOUT }),
+    clickNavigation(page, selector, scope.name + '-actual-account-navigation'),
+  ]);
+  const guestResponse = await assertEmptyGuestInfo(guestInfo, scope.name + ' guest');
+  assert.equal(normalizedDestination(page.url()), contract.href, 'Header did not open the account Page');
+  assert.equal(normalizedText(await page.locator('main h1').textContent()), 'Tài khoản', 'Account Page heading is incorrect');
+  await page.locator('[data-account-guest]').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-account-profile]').isVisible(), false, 'Guest account incorrectly shows a profile');
+  assert.equal(await page.locator('#account-page a[href="#"], #login-form a[href="#"]').count(), 0, 'Account exposes an unresolved placeholder link');
+  await checkLayout(page, scope.name, 'account-guest');
+  await screenshot(page, scope.name + '-account-guest.png');
+  report.checks.push({ type: 'account-live-guest-navigation', viewport: scope.name, entry: scope.name === 'mobile' ? 'hamburger-account-utility' : 'desktop-header-account', ...guestResponse, live: true, ok: true });
+
+  const form = page.locator('#login-form'), submit = form.locator('button[type="submit"]');
+  const labels = await form.evaluate(node => JSON.parse(node.dataset.i18n || '{}'));
+  await submit.click();
+  assert.equal(scope.auth.records.length, 0, 'Empty login form attempted authentication');
+  assert.ok(await form.evaluate(node => !node.checkValidity()), 'Login required-field validation did not run');
+  await page.locator('#login-username').fill(ACCOUNT_FIXTURE.email);
+  await page.locator('#login-password').fill(ACCOUNT_PASSWORD);
+  await page.locator('#toggle-password').click();
+  assert.equal(await page.locator('#login-password').getAttribute('type'), 'text', 'Password visibility control did not reveal the fixture');
+  await page.locator('#toggle-password').click();
+  assert.equal(await page.locator('#login-password').getAttribute('type'), 'password', 'Password visibility control did not conceal the fixture');
+  await submit.click();
+  await page.locator('#login-error-message').waitFor({ state: 'visible' });
+  assert.equal(normalizedText(await page.locator('#login-error-text').textContent()), labels.login_failed, 'Mocked login rejection did not show the safe localized message');
+  assert.equal(await submit.isEnabled(), true, 'Rejected login did not restore its button');
+  assert.equal(scope.auth.records.filter(record => record.path === '/api/user/login').length, 1, 'Mock login rejection was duplicated');
+  report.checks.push({ type: 'account-login-ui-rejection', viewport: scope.name, simulated: true, requiredFields: true, passwordToggle: true, localizedError: true, ok: true });
+
+  scope.auth.loginOutcome = 'success';
+  await navigate(page, contract.href, scope.name + '-mock-login-reload', () => submit.click());
+  await page.locator('[data-account-profile]').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-account-guest]').isVisible(), false, 'Simulated profile still shows the guest form');
+  assert.equal(normalizedText(await page.locator('[data-account-name]').textContent()), ACCOUNT_FIXTURE.name, 'Simulated profile name is missing');
+  assert.equal(normalizedText(await page.locator('[data-account-email]').textContent()), ACCOUNT_FIXTURE.email, 'Simulated profile email is missing');
+  await screenshot(page, scope.name + '-account-profile-mocked.png');
+  report.checks.push({ type: 'account-profile-ui', viewport: scope.name, simulated: true, liveAuthentication: false, renderedFixture: true, ok: true });
+
+  const accountLabels = await page.locator('#account-page').evaluate(node => JSON.parse(node.dataset.i18n || '{}'));
+  await page.locator('[data-account-logout]').click();
+  await page.locator('[data-account-error]').waitFor({ state: 'visible' });
+  assert.equal(normalizedText(await page.locator('[data-account-error-text]').textContent()), accountLabels.logout_failed, 'Mocked logout error is not localized');
+  assert.equal(await page.locator('[data-account-profile]').isVisible(), true, 'Rejected logout hid the simulated profile');
+  assert.equal(await page.locator('[data-account-logout]').isEnabled(), true, 'Rejected logout did not unlock its button');
+  scope.auth.logoutOutcome = 'success';
+  const [finalGuestInfo] = await Promise.all([
+    page.waitForResponse(response => new URL(response.url()).pathname === '/api/user/info' && response.request().method() === 'GET', { timeout: RESPONSE_TIMEOUT + DOM_TIMEOUT + API_TIMEOUT }),
+    navigate(page, contract.href, scope.name + '-mock-logout-reload', () => page.locator('[data-account-logout]').click()),
+  ]);
+  await assertEmptyGuestInfo(finalGuestInfo, scope.name + ' post-mock guest');
+  await page.locator('[data-account-guest]').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-account-profile]').isVisible(), false, 'Mocked logout did not restore guest view');
+  assert.equal(scope.auth.records.filter(record => record.path === '/api/user/login').length, 2, 'Unexpected login request count');
+  assert.equal(scope.auth.records.filter(record => record.path === '/api/user/logout').length, 2, 'Unexpected logout request count');
+  assert.equal((await scope.context.cookies(HOST)).some(cookie => cookie.name === ACCOUNT_COOKIE), false, 'Browser mocks must not create a real authentication session');
+  report.checks.push({ type: 'account-logout-ui', viewport: scope.name, simulated: true, rejectionPreservesProfile: true, successRestoresGuest: true, liveAuthentication: false, ok: true });
+  scope.auth.cartWritesAllowed = true;
+}
+async function singleProductName(page, saved, kind) {
+  const container = kind === 'cart' ? '#cart-list-container' : '#checkout-cart-container';
+  const names = page.locator(container + ' [data-cart-product-name]');
+  assert.equal(await names.count(), saved.items.length, kind + ': main product name count differs from cart items');
+  const details = [];
+  for (const item of saved.items) {
+    const rawName = typeof item.itemName === 'object' ? item.itemName?.vi : item.itemName;
+    const name = await page.evaluate(value => {
+      const textarea = document.createElement('textarea');
+      textarea.innerHTML = String(value || '').replace(/<[^>]*>/g, '');
+      return textarea.value.normalize('NFC').replace(/\s+/g, ' ').trim();
+    }, rawName);
+    assert.ok(name, kind + ': expected main product name is empty');
+    const matched = names.filter({ hasText: name });
+    assert.equal(await matched.count(), 1, kind + ': main product name is duplicated');
+    assert.equal(normalizedText(await matched.textContent()), name, kind + ': main product name changed');
+    const duplication = await matched.evaluate(element => {
+      const norm = node => (node.textContent || '').normalize('NFC').replace(/\s+/g, ' ').trim();
+      const siblings = [...element.parentElement.children].filter(node => node !== element);
+      return {
+        blueParagraphs: siblings.filter(node => /(?:^|\s)text-blue-/.test(node.className)).length,
+        duplicateParagraphs: siblings.filter(node => norm(node) === norm(element)).length,
+      };
+    });
+    assert.equal(duplication.blueParagraphs, 0, kind + ': secondary blue product paragraph remains');
+    assert.equal(duplication.duplicateParagraphs, 0, kind + ': duplicate product paragraph remains');
+    const variants = item.variations?.vi || [];
+    const removal = page.locator(container + ' .btn-remove-item').filter({ visible: true });
+    assert.equal(await removal.count(), saved.items.length, kind + ': remove controls were lost');
+    let control;
+    if (variants.length) {
+      const selector = page.locator(container + ' custom-select');
+      assert.ok(await selector.count(), kind + ': variation selector was lost');
+      assert.equal(await selector.first().isVisible(), true, kind + ': variation selector is hidden');
+      assert.ok(normalizedText(await selector.first().locator('.trigger-label').textContent()), kind + ': selected variation label is blank');
+      control = 'variation';
+    } else {
+      for (const direction of ['plus', 'minus']) {
+        const button = page.locator(container + ' .btn-qty-' + direction);
+        assert.equal(await button.count(), saved.items.length, kind + ': quantity controls were lost');
+        assert.equal(await button.first().isVisible(), true, kind + ': quantity control is hidden');
+        assert.equal(Number(await button.first().getAttribute('data-qty')), quantity(item), kind + ': displayed quantity changed');
+      }
+      control = 'quantity; variation not applicable to this simple-product fixture';
+    }
+    details.push({ mainNameCount: 1, secondaryBlueParagraphs: 0, duplicateParagraphs: 0, control });
+  }
+  return details;
+}
+async function accountCartQA(page, scope, saved) {
+  const labels = await page.locator('#cart-content-wrapper').evaluate(element => {
+    const text = JSON.parse(element.dataset.i18n || '{}');
+    return { subtotal: text.summary_subtotal, discount_total: text.summary_discount, total_tax: text.summary_tax, total: text.summary_total };
+  });
+  const shippingHref = await page.locator('header a[href]').evaluateAll(links => links.find(link =>
+    (link.textContent || '').normalize('NFC').replace(/\s+/g, ' ').trim() === 'Phí ship hàng')?.href);
+  assert.ok(shippingHref && normalizedDestination(shippingHref) === HOST + '/thong-bao', 'Published shipping policy link changed');
+  const cart = await readCart(scope.context, saved.cartKey);
+  const cartNames = await singleProductName(page, saved, 'cart');
+  const cartSummary = await readShippingSummary(page, labels, 'cart');
+  const cartMoney = assertShippingSummary(cartSummary, cart, saved, shippingHref);
+  await checkLayout(page, scope.name, 'account-cart');
+  await screenshot(page, scope.name + '-account-cart.png');
+  report.checks.push({ type: 'single-product-name-cart', viewport: scope.name, names: cartNames, shippingLinkPreserved: true, ...cartMoney, ok: true });
+  await clickNavigation(page, '#btn-proceed-checkout', scope.name + '-account-cart-checkout');
+  const checkoutSaved = await checkoutReady(page, scope);
+  const checkout = await readCart(scope.context, saved.cartKey);
+  assertCartUnchanged(cart, checkout, 'Cart/checkout presentation changes');
+  const checkoutNames = await singleProductName(page, checkoutSaved, 'checkout');
+  const checkoutSummary = await readShippingSummary(page, labels, 'checkout');
+  const checkoutMoney = assertShippingSummary(checkoutSummary, checkout, checkoutSaved, shippingHref);
+  await checkLayout(page, scope.name, 'account-checkout');
+  await screenshot(page, scope.name + '-account-checkout.png');
+  report.checks.push({ type: 'single-product-name-checkout', viewport: scope.name, names: checkoutNames, shippingLinkPreserved: true, totalsUnchanged: true, ...checkoutMoney, ok: true });
+  assert.equal(scope.mock.records.length, 0, 'Account/cart QA attempted checkout');
+  assert.equal(scope.auth.blocked.length, 0, 'An unexpected auth/order request was blocked');
+  assert.ok(scope.auth.records.every(record => record.simulated === true), 'Authentication request escaped browser mocks');
+  report.checks.push({ type: 'account-cart-safety', viewport: scope.name, authSimulationOnly: true, checkoutPosts: 0, orderRequests: 0, realOrders: 0, ok: true });
+}
 async function fillValidGuestForm(page) {
   for (const [name, value] of Object.entries(VALID_BILLING)) {
     privateValues.add(value);
@@ -546,6 +820,7 @@ try {
       clearTimeout(timer);
       await route.fulfill({ status: mockHttp, contentType: 'application/json', headers: { 'Cache-Control': 'no-store' }, body: JSON.stringify({ ok: false, msg: marker }) });
     });
+    if (QA_SCOPE === 'account-cart') await installAccountGuards(scope);
     page.on('response', response => {
       const request = response.request();
       const url = safeUrl(response.url());
@@ -561,6 +836,7 @@ try {
       await dialog.dismiss();
     });
     try {
+      if (QA_SCOPE === 'account-cart') await accountUiQA(page, scope);
       await navigate(page, HOST + '/san-pham/korallen-zucht', viewport.name + '-product-archive');
       const productUrl = await selectSimpleProduct(page, viewport.name);
       const wrapper = page.locator('#data-content-wrapper');
@@ -588,6 +864,8 @@ try {
       report.checks.push({ type: 'actual-header-cart-navigation', viewport: viewport.name, ok: true });
       if (QA_SCOPE === 'shipping-fee') {
         await shippingFeeQA(page, scope, saved);
+      } else if (QA_SCOPE === 'account-cart') {
+        await accountCartQA(page, scope, saved);
       } else {
       await clickMutation(page, '#cart-list-container .btn-qty-plus', '/api/cart/update');
       await until(async () => quantity((await state(page))?.items?.[0]) === 2, 'Cart quantity did not increase to two');
