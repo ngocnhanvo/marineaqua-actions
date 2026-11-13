@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T163700Z-footer-knowledge-agent-fix",
+  "reason": "Release corrected footer knowledge category route and Agent chat action",
+  "source_sha": "98444e585bf700be647c756688ddb612d2590b4c",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
