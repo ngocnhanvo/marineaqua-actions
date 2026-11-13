@@ -27,15 +27,83 @@
         "parent": "home_04",
         "source": "home_04"
       }
-    }
+    },
+    "requestTrace": [
+      {
+        "event": "start",
+        "method": "GET",
+        "path": "/wp-json/wp/v2/users/me",
+        "time": 1794595259500
+      },
+      {
+        "event": "start",
+        "method": "GET",
+        "path": "/wp-json/wp/v2/",
+        "time": 1794595260376
+      },
+      {
+        "event": "start",
+        "method": "GET",
+        "path": "/wp-json/yoast/v1/statistics",
+        "time": 1794595260385
+      },
+      {
+        "event": "response",
+        "status": 200,
+        "path": "/wp-json/wp/v2/users/me",
+        "time": 1794595261830
+      },
+      {
+        "event": "response",
+        "status": 200,
+        "path": "/wp-json/yoast/v1/statistics",
+        "time": 1794595262430
+      },
+      {
+        "event": "response",
+        "status": 200,
+        "path": "/wp-json/wp/v2/",
+        "time": 1794595262463
+      },
+      {
+        "event": "start",
+        "method": "POST",
+        "path": "/wp-json/esc-builder/v1/changes",
+        "time": 1794595263903
+      },
+      {
+        "event": "start",
+        "method": "GET",
+        "path": "/wp-json/wp/v2/users/me",
+        "time": 1794595264336
+      },
+      {
+        "event": "response",
+        "status": 200,
+        "path": "/wp-json/esc-builder/v1/changes",
+        "time": 1794595265997
+      },
+      {
+        "event": "response",
+        "status": 200,
+        "path": "/wp-json/wp/v2/users/me",
+        "time": 1794595266390
+      },
+      {
+        "event": "start",
+        "method": "POST",
+        "path": "/wp-json/esc-builder/v1/item-schema",
+        "time": 1794595280407
+      }
+    ]
   },
   "writes": 0,
   "temporaryCreated": 0,
   "cleanupRemaining": 0,
   "errors": [
-    "AssertionError [ERR_ASSERTION]: Card selection did not map to native ESC Table: {\"tableId\":\"home_04\",\"context\":\"home_04 · chọn item để nhân bản hoặc xóa\",\"status\":\"Đang xác định đúng dòng ESC Table của sản phẩm 82530...\",\"panelVisible\":true,\"inspector\":\"\",\"tag\":{\"id\":\"82530\",\"row\":\"0\",\"parent\":\"home_04\",\"source\":\"home_04\"}}\n    at file:///__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:73:12"
+    "AssertionError [ERR_ASSERTION]: Card selection did not map to native ESC Table: {\"tableId\":\"home_04\",\"context\":\"home_04 · chọn item để nhân bản hoặc xóa\",\"status\":\"Đang xác định đúng dòng ESC Table của sản phẩm 82530...\",\"panelVisible\":true,\"inspector\":\"\",\"tag\":{\"id\":\"82530\",\"row\":\"0\",\"parent\":\"home_04\",\"source\":\"home_04\"}}\n    at file:///__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:91:12"
   ],
-  "qa_run_id": 43484528381,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43484528381",
-  "recorded_at": "2026-11-13T18:39:11.728Z"
+  "qa_run_id": 43484850014,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43484850014",
+  "recorded_at": "2026-11-13T18:41:24.226Z"
 }
