@@ -1,0 +1,59 @@
+name: Marine Aqua Home Visual Builder UI controls audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-home-builder-ui-audit.yml'
+      - 'scripts/marineaqua-home-builder-ui-audit.mjs'
+permissions:
+  contents: write
+concurrency:
+  group: marineaqua-home-builder-ui-audit
+  cancel-in-progress: false
+jobs:
+  audit:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check scripts/marineaqua-home-builder-ui-audit.mjs
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Inspect native ESC Table and Visual Builder controls without changing CMS
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-home-builder-ui-audit.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-home-builder-ui-inspection
+          path: home-builder-ui-evidence/
+          retention-days: 14
+      - name: Save inspection result
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('node:fs');
+            const path='qa-results/20261114-home-builder-ui.json';
+            const src='home-builder-ui-evidence/result.json';
+            const result=fs.existsSync(src)?JSON.parse(fs.readFileSync(src,'utf8')):{status:'FAIL',errors:['No result']};
+            result.run_id=context.runId;
+            result.run_url=`https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            result.recorded_at=new Date().toISOString();
+            const owner=context.repo.owner,repo=context.repo.repo;
+            let sha;
+            try{sha=(await github.rest.repos.getContent({owner,repo,path,ref:'main'})).data.sha;}
+            catch(e){if(e.status!==404)throw e;}
+            await github.rest.repos.createOrUpdateFileContents({owner,repo,path,branch:'main',sha,
+              message:'Lưu kiểm tra giao diện Visual Builder',
+              content:Buffer.from(JSON.stringify(result,null,2)+'\n').toString('base64')});
