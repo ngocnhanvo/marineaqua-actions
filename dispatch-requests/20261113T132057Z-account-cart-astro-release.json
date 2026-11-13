@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T132057Z-account-cart-astro-release",
+  "reason": "Deploy verified account navigation, signed customer sessions, and single product names after publishing the WordPress account Page.",
+  "source_sha": "d5a3ec034cf43682851ca84ee7e9a7f341d7b96a",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
