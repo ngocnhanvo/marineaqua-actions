@@ -84,6 +84,30 @@ jobs:
           assert.match(css,/#footer-contact > \.marine-footer__content/);
           console.log('MARINEAQUA_FOOTER_SOURCE=PASS');
           NODE
+      - name: Verify cart mutations and read-only checkout preparation
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const read = (name) => readFileSync(name, 'utf8');
+          const cart = read('src/pages/api/cart/index.ts');
+          const update = read('src/pages/api/cart/update.ts');
+          const del = read('src/pages/api/cart/del.ts');
+          assert.match(cart, /export const GET/);
+          assert.match(cart, /method: 'POST'/); // explicit coupon write helper only
+          const getHandler = cart.slice(cart.indexOf('export const GET'));
+          assert.doesNotMatch(getHandler, /sync_coupons|method: 'POST'|namespace: 'sync-coupons-db'/);
+          assert.match(getHandler, /Cart-Key/);
+          assert.match(update, /if \(!response\.ok\)/);
+          assert.match(update, /Number\.isSafeInteger/);
+          assert.match(del, /if \(!response\.ok\)/);
+          assert.match(del, /if \(!cartResponse\.ok\)/);
+          assert.match(update, /encodeURIComponent\(item_key\)/);
+          assert.match(del, /encodeURIComponent\(item_key\)/);
+          console.log('CART_READ_ONLY_AND_MUTATION_STATUS=PASS');
+          NODE
       - name: Run Astro unit tests including paginated product logs
         run: pnpm run test:run
       # Validate approved Marine Aqua design integration with local Quicksand, CMS-only menu and prices.
