@@ -211,6 +211,20 @@ async function verifyCmsAndBuilder(){
   assert.equal(canonical.title,brandValue,'Product heading draft unexpectedly changed WordPress');
   report.builder.productTitleEditable=true;
   report.builder.productTitleDraftCancelPass=true;
+  report.builder.verifiedProductHeadings=[brandValue];
+  const headings=frame.locator('.marine-brand-section h2[data-esc-builder-cell-field="section_title"]');
+  assert.equal(await headings.count(),5,'Unexpected heading count for WordPress Product ESC Tables');
+  for(let i=1;i<5;i++){
+    const heading=headings.nth(i);
+    await heading.scrollIntoViewIfNeeded({timeout:15000});
+    const expected=(await heading.innerText()).trim();
+    await heading.click({timeout:15000});
+    await page.waitForFunction(value=>
+      document.querySelector('#esc-vb-edit-title')?.value?.trim()===value,
+      expected,{timeout:15000});
+    assert.equal(await page.locator('#esc-vb-edit-row').inputValue(),'section');
+    report.builder.verifiedProductHeadings.push(expected);
+  }
   report.builder.status='PASS';
  }finally{await ctx.close();}
 }
