@@ -1,0 +1,97 @@
+{
+  "status": "FAIL",
+  "categoryMap": {
+    "1": 1813,
+    "2030": 1811,
+    "2031": 1809,
+    "2032": 1812,
+    "2033": 1810,
+    "2034": 1814,
+    "2042": 1808
+  },
+  "categories": [
+    {
+      "source": 2042,
+      "target": 1808,
+      "slug": "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+      "count": 32,
+      "created": true
+    },
+    {
+      "source": 2031,
+      "target": 1809,
+      "slug": "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+      "count": 36,
+      "created": true
+    },
+    {
+      "source": 2033,
+      "target": 1810,
+      "slug": "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+      "count": 16,
+      "created": true
+    },
+    {
+      "source": 2030,
+      "target": 1811,
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "count": 48,
+      "created": true
+    },
+    {
+      "source": 2032,
+      "target": 1812,
+      "slug": "set-up-be-ca-bien-mini",
+      "count": 4,
+      "created": true
+    },
+    {
+      "source": 1,
+      "target": 1813,
+      "slug": "tin-kien-thuc",
+      "count": 24,
+      "created": true
+    },
+    {
+      "source": 2034,
+      "target": 1814,
+      "slug": "tong-quan-ve-be-ca",
+      "count": 5,
+      "created": true
+    }
+  ],
+  "pages": [
+    {
+      "slug": "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+      "id": 83289,
+      "created": true
+    },
+    {
+      "slug": "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+      "id": 83290,
+      "created": true
+    },
+    {
+      "slug": "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+      "id": 83291,
+      "created": true
+    },
+    {
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "id": 83292,
+      "created": true
+    },
+    {
+      "slug": "set-up-be-ca-bien-mini",
+      "id": 83293,
+      "created": true
+    }
+  ],
+  "posts": [],
+  "media": [],
+  "errors": [
+    "Existing Page conflicts: tin-kien-thuc"
+  ],
+  "run_id": "43348483112",
+  "outcome": "failure"
+}
