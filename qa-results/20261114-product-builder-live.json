@@ -20,19 +20,43 @@
         "count": 4,
         "firstProductId": "82530",
         "status": "PASS"
+      },
+      {
+        "id": "home_05",
+        "count": 4,
+        "firstProductId": "82542",
+        "status": "PASS"
+      },
+      {
+        "id": "home_06",
+        "count": 4,
+        "firstProductId": "82552",
+        "status": "PASS"
+      },
+      {
+        "id": "home_07",
+        "count": 4,
+        "firstProductId": "82560",
+        "status": "PASS"
+      },
+      {
+        "id": "home_08",
+        "count": 4,
+        "firstProductId": "82568",
+        "status": "PASS"
       }
     ],
     "lastSelection": {
-      "tableId": "home_05",
-      "context": "home_04 · dòng 1",
-      "status": "Đã chọn sản phẩm 82530 · dòng 1. Bấm Xóa item đang chọn để xác nhận.",
+      "tableId": "home_08",
+      "context": "home_08 · dòng 1",
+      "status": "Đã chọn sản phẩm 82568 · dòng 1. Bấm Xóa item đang chọn để xác nhận.",
       "panelVisible": true,
       "inspector": "",
       "tag": {
-        "id": "82542",
+        "id": "82568",
         "row": "0",
-        "parent": "home_05",
-        "source": "home_05"
+        "parent": "home_08",
+        "source": "home_08"
       }
     },
     "requestTrace": [
@@ -40,89 +64,133 @@
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595652563
+        "time": 1794595758909
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/",
-        "time": 1794595652685
+        "time": 1794595759064
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/yoast/v1/statistics",
-        "time": 1794595652692
+        "time": 1794595759072
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595654596
+        "time": 1794595760950
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/yoast/v1/statistics",
-        "time": 1794595654771
+        "time": 1794595761087
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/",
-        "time": 1794595654789
+        "time": 1794595761111
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/changes",
-        "time": 1794595655586
+        "time": 1794595762022
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595655860
+        "time": 1794595762263
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/changes",
-        "time": 1794595657737
+        "time": 1794595764228
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595657873
+        "time": 1794595764395
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595671590
+        "time": 1794595766183
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595674050
+        "time": 1794595768260
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595675085
+        "time": 1794595769299
+      },
+      {
+        "event": "response",
+        "status": 200,
+        "path": "/wp-json/esc-builder/v1/item-schema",
+        "time": 1794595771323
+      },
+      {
+        "event": "start",
+        "method": "POST",
+        "path": "/wp-json/esc-builder/v1/item-schema",
+        "time": 1794595772365
+      },
+      {
+        "event": "response",
+        "status": 200,
+        "path": "/wp-json/esc-builder/v1/item-schema",
+        "time": 1794595774394
+      },
+      {
+        "event": "start",
+        "method": "POST",
+        "path": "/wp-json/esc-builder/v1/item-schema",
+        "time": 1794595775416
+      },
+      {
+        "event": "response",
+        "status": 200,
+        "path": "/wp-json/esc-builder/v1/item-schema",
+        "time": 1794595777399
+      },
+      {
+        "event": "start",
+        "method": "POST",
+        "path": "/wp-json/esc-builder/v1/item-schema",
+        "time": 1794595778432
+      },
+      {
+        "event": "response",
+        "status": 200,
+        "path": "/wp-json/esc-builder/v1/item-schema",
+        "time": 1794595780435
       }
-    ]
+    ],
+    "addDialog": "PASS",
+    "deleteDialog": "PASS"
   },
   "writes": 0,
   "temporaryCreated": 0,
   "cleanupRemaining": 0,
   "errors": [
-    "AssertionError [ERR_ASSERTION]: Card selection did not map to native ESC Table: {\"tableId\":\"home_05\",\"context\":\"home_04 · dòng 1\",\"status\":\"Đã chọn sản phẩm 82530 · dòng 1. Bấm Xóa item đang chọn để xác nhận.\",\"panelVisible\":true,\"inspector\":\"\",\"tag\":{\"id\":\"82542\",\"row\":\"0\",\"parent\":\"home_05\",\"source\":\"home_05\"}}\n    at file:///__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:97:12"
+    "AssertionError [ERR_ASSERTION]: Red source not selected on Product card\n\nnull !== ''\n\n    at file:///__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:125:10"
   ],
-  "qa_run_id": 43485889533,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43485889533",
-  "recorded_at": "2026-11-13T18:47:56.531Z"
+  "qa_run_id": 43486171941,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43486171941",
+  "recorded_at": "2026-11-13T18:49:47.675Z"
 }
