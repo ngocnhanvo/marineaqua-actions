@@ -1,8 +1,85 @@
 {
-  "status": "FAIL",
-  "checks": [],
-  "errors": [
-    "Missing sort selector tin-kien-thuc"
+  "status": "PASS",
+  "checks": [
+    {
+      "viewport": "desktop",
+      "slug": "tin-kien-thuc",
+      "articleCount": 24,
+      "originalFirst": "Các phương pháp lọc trong bể cá cảnh",
+      "titleAscFirst": "Bộ đôi tăng nồng đồ kiềm và canxi cho bể cá KORALLEN-ZUCHT KH PLUS POWDER và CALCIUM PLUS POWDER",
+      "titleDescFirst": "Vật liệu lọc sinh học sản xuất bởi CONTINUUM AQUATICS",
+      "width": {
+        "viewport": 1366,
+        "scroll": 1366
+      },
+      "pass": true
+    },
+    {
+      "viewport": "desktop",
+      "slug": "tong-quan-ve-be-ca",
+      "articleCount": 5,
+      "originalFirst": "Các thông số nước dành cho bể cá nước mặn",
+      "titleAscFirst": "CÁC LOẠI BỂ CÁ NƯỚC MẶN",
+      "titleDescFirst": "Tropic Marin: Gói hoàn chỉnh chất lượng cao cho bể cá của bạn",
+      "width": {
+        "viewport": 1366,
+        "scroll": 1366
+      },
+      "pass": true
+    },
+    {
+      "viewport": "desktop",
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "articleCount": 48,
+      "originalFirst": "Tropic Marin Elimi-Aiptas Giúp ngăn ngừa hải quỳ Aiptasia và và các loài cnidarian có hại khác",
+      "titleAscFirst": "AcroGlow",
+      "titleDescFirst": "ZEOzym",
+      "width": {
+        "viewport": 1366,
+        "scroll": 1366
+      },
+      "pass": true
+    },
+    {
+      "viewport": "mobile",
+      "slug": "tin-kien-thuc",
+      "articleCount": 24,
+      "originalFirst": "Các phương pháp lọc trong bể cá cảnh",
+      "titleAscFirst": "Bộ đôi tăng nồng đồ kiềm và canxi cho bể cá KORALLEN-ZUCHT KH PLUS POWDER và CALCIUM PLUS POWDER",
+      "titleDescFirst": "Vật liệu lọc sinh học sản xuất bởi CONTINUUM AQUATICS",
+      "width": {
+        "viewport": 390,
+        "scroll": 390
+      },
+      "pass": true
+    },
+    {
+      "viewport": "mobile",
+      "slug": "tong-quan-ve-be-ca",
+      "articleCount": 5,
+      "originalFirst": "Các thông số nước dành cho bể cá nước mặn",
+      "titleAscFirst": "CÁC LOẠI BỂ CÁ NƯỚC MẶN",
+      "titleDescFirst": "Tropic Marin: Gói hoàn chỉnh chất lượng cao cho bể cá của bạn",
+      "width": {
+        "viewport": 390,
+        "scroll": 390
+      },
+      "pass": true
+    },
+    {
+      "viewport": "mobile",
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "articleCount": 48,
+      "originalFirst": "Tropic Marin Elimi-Aiptas Giúp ngăn ngừa hải quỳ Aiptasia và và các loài cnidarian có hại khác",
+      "titleAscFirst": "AcroGlow",
+      "titleDescFirst": "ZEOzym",
+      "width": {
+        "viewport": 390,
+        "scroll": 390
+      },
+      "pass": true
+    }
   ],
-  "run_id": "43357469349"
+  "errors": [],
+  "run_id": "43357672607"
 }
