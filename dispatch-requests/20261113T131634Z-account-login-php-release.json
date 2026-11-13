@@ -1,0 +1,11 @@
+{
+  "action": "workflow_dispatch",
+  "request_id": "20261113T131634Z-account-login-php-release",
+  "reason": "Release the reviewed customer login route fix and validate authentication regressions before PHP deployment.",
+  "source_sha": "073ecf89d30243625d8433ec5f386b44e5bd12e3",
+  "workflow": "marineaqua-php-release.yml",
+  "ref": "main",
+  "inputs": {
+    "confirm": "DEPLOY_PHP"
+  }
+}
