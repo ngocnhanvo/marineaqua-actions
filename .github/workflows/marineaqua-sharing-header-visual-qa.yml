@@ -1,0 +1,51 @@
+name: Marine Aqua sharing archive header visual QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-sharing-header-visual-qa.mjs'
+      - '.github/workflows/marineaqua-sharing-header-visual-qa.yml'
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-sharing-header-visual-qa.mjs
+      - id: visual
+        run: node scripts/marineaqua-sharing-header-visual-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sharing-header-visual-qa
+          path: sharing-header-visual-evidence/
+      - name: Persist latest QA evidence
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          GH_RUN_ID: ${{ github.run_id }}
+          QA_OUTCOME: ${{ steps.visual.outcome }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,existsSync} from 'node:fs';
+          const p='sharing-header-visual-evidence/result.json';
+          const result=existsSync(p)?JSON.parse(readFileSync(p,'utf8')):{status:'NO_EVIDENCE'};
+          result.run_id=process.env.GH_RUN_ID;result.outcome=process.env.QA_OUTCOME;
+          const endpoint='https://api.github.com/repos/'+process.env.GH_REPO+'/contents/docs/sharing-header-visual-qa-latest.json';
+          const headers={Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};
+          const old=await fetch(endpoint,{headers}).then(r=>r.ok?r.json():null);
+          const body={message:'Record sharing header visual QA '+result.run_id,content:Buffer.from(JSON.stringify(result,null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
+          if(old?.sha)body.sha=old.sha;
+          const r=await fetch(endpoint,{method:'PUT',headers,body:JSON.stringify(body)});
+          if(!r.ok)throw Error('Evidence write failed '+r.status);
+          NODE
