@@ -12,6 +12,7 @@ name: Marine Aqua read-only production deployment status probe
 # Confirm fast source content import after superseded run cancellation
 # Verify sharing Header workflow has started after 133 Post import PASS
 # Confirm sharing content production deploy and QA checkpoint
+# Observe canonical Astro rebuild after fixing Knowledge archive prerender
 on:
   push:
     branches: [main]
