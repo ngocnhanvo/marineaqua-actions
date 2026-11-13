@@ -1,0 +1,164 @@
+{
+  "status": "FAIL",
+  "checks": [
+    {
+      "viewport": 1366,
+      "slug": "tin-kien-thuc",
+      "http": 200,
+      "search": {
+        "x": 51.21875,
+        "y": 425,
+        "width": 440,
+        "height": 44
+      },
+      "sort": {
+        "x": 1027.875,
+        "y": 506,
+        "width": 286.890625,
+        "height": 44
+      },
+      "sortValue": "latest",
+      "totalLabel": true,
+      "scrollWidth": 1366,
+      "pass": false
+    },
+    {
+      "viewport": 1366,
+      "slug": "tong-quan-ve-be-ca",
+      "http": 200,
+      "search": {
+        "x": 51.21875,
+        "y": 425,
+        "width": 440,
+        "height": 44
+      },
+      "sort": {
+        "x": 1029.5625,
+        "y": 506,
+        "width": 285.203125,
+        "height": 44
+      },
+      "sortValue": "latest",
+      "totalLabel": true,
+      "scrollWidth": 1366,
+      "pass": false
+    },
+    {
+      "viewport": 1366,
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "http": 200,
+      "search": {
+        "x": 51.21875,
+        "y": 465,
+        "width": 440,
+        "height": 44
+      },
+      "sort": {
+        "x": 1030,
+        "y": 546,
+        "width": 284.765625,
+        "height": 44
+      },
+      "sortValue": "latest",
+      "totalLabel": true,
+      "scrollWidth": 1366,
+      "pass": false
+    },
+    {
+      "viewport": 390,
+      "slug": "tin-kien-thuc",
+      "http": 200,
+      "search": {
+        "x": 14.625,
+        "y": 298,
+        "width": 360.75,
+        "height": 44
+      },
+      "sort": {
+        "x": 14.625,
+        "y": 407,
+        "width": 360.75,
+        "height": 44
+      },
+      "sortValue": "latest",
+      "totalLabel": true,
+      "scrollWidth": 390,
+      "pass": false
+    },
+    {
+      "viewport": 390,
+      "slug": "tong-quan-ve-be-ca",
+      "http": 200,
+      "search": {
+        "x": 14.625,
+        "y": 298,
+        "width": 360.75,
+        "height": 44
+      },
+      "sort": {
+        "x": 14.625,
+        "y": 407,
+        "width": 360.75,
+        "height": 44
+      },
+      "sortValue": "latest",
+      "totalLabel": true,
+      "scrollWidth": 390,
+      "pass": false
+    },
+    {
+      "viewport": 390,
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "http": 200,
+      "search": {
+        "x": 14.625,
+        "y": 374,
+        "width": 360.75,
+        "height": 44
+      },
+      "sort": {
+        "x": 14.625,
+        "y": 483,
+        "width": 360.75,
+        "height": 44
+      },
+      "sortValue": "latest",
+      "totalLabel": true,
+      "scrollWidth": 390,
+      "pass": false
+    }
+  ],
+  "errors": [
+    {
+      "viewport": "desktop",
+      "slug": "tin-kien-thuc",
+      "message": "Search/sort alignment or total label validation failed"
+    },
+    {
+      "viewport": "desktop",
+      "slug": "tong-quan-ve-be-ca",
+      "message": "Search/sort alignment or total label validation failed"
+    },
+    {
+      "viewport": "desktop",
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "message": "Search/sort alignment or total label validation failed"
+    },
+    {
+      "viewport": "mobile",
+      "slug": "tin-kien-thuc",
+      "message": "Search/sort alignment or total label validation failed"
+    },
+    {
+      "viewport": "mobile",
+      "slug": "tong-quan-ve-be-ca",
+      "message": "Search/sort alignment or total label validation failed"
+    },
+    {
+      "viewport": "mobile",
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "message": "Search/sort alignment or total label validation failed"
+    }
+  ],
+  "run_id": "43358465774"
+}
