@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T124750Z-shipping-fee-astro-release",
+  "reason": "Deploy the agreed shipping-fee row and policy link on cart and checkout.",
+  "source_sha": "2668d2876f29775e5f552c05aa595daa15903f25",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
