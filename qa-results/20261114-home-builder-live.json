@@ -85,7 +85,7 @@
   "errors": [
     "BUILDER: Product section title did not map to its WordPress source\n\n'' !== 'TROPIC-MARIN'\n"
   ],
-  "qa_run_id": 43479465421,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43479465421",
-  "recorded_at": "2026-11-13T18:08:34.263Z"
+  "qa_run_id": 43480431789,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43480431789",
+  "recorded_at": "2026-11-13T18:14:22.999Z"
 }
