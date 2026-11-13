@@ -5,6 +5,9 @@ import { chromium } from 'playwright';
 const HOST = 'https://marine-aqua.io.vn';
 const DIR = 'cart-checkout-evidence';
 const STORAGE_KEY = 'esc-cart-storage';
+const args = process.argv.slice(2);
+assert.ok(args.length === 0 || (args.length === 1 && args[0] === '--scope=shipping-fee'), 'Supported argument: --scope=shipping-fee; omit it for the full suite');
+const QA_SCOPE = args.length ? 'shipping-fee' : 'full';
 const RESPONSE_TIMEOUT = 40000;
 const DOM_TIMEOUT = 15000;
 const API_TIMEOUT = 20000;
@@ -16,7 +19,7 @@ const VALID_BILLING = {
   billing_email: 'marine-aqua-checkout-qa@example.invalid',
   billing_diachi: 'QA — không đặt hàng'
 };
-const report = { status: 'STARTED', checkedAt: new Date().toISOString(), checks: [], navigation: [], network: [], cleanup: [], screenshots: [], errors: [] };
+const report = { status: 'STARTED', scope: QA_SCOPE, checkedAt: new Date().toISOString(), checks: [], navigation: [], network: [], cleanup: [], screenshots: [], errors: [] };
 const privateValues = new Set();
 function redact(value) {
   let text = String(value ?? '');
@@ -175,6 +178,206 @@ async function checkLayout(page, viewport, name) {
   const widths = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth }));
   assert.ok(widths.content <= widths.viewport + 2, name + ' has horizontal overflow: ' + widths.content + ' > ' + widths.viewport);
   report.checks.push({ type: name + '-layout', viewport, ...widths, ok: true });
+}
+const normalizedText = value => String(value ?? '').normalize('NFC').replace(/\s+/g, ' ').trim();
+function normalizedDestination(value) {
+  const url = new URL(value, HOST);
+  return url.origin + (url.pathname.replace(/\/+$/, '') || '/') + url.search + url.hash;
+}
+function cartTotals(cart) {
+  assert.ok(cart?.totals && typeof cart.totals === 'object', 'Server cart totals are missing');
+  const totals = {};
+  for (const key of ['subtotal', 'discount_total', 'total_tax', 'total']) {
+    const value = cart.totals[key];
+    assert.ok(value !== undefined && value !== null && value !== '', 'Server cart total missing: ' + key);
+    totals[key] = Number(value);
+    assert.ok(Number.isFinite(totals[key]), 'Server cart total is not numeric: ' + key);
+  }
+  return totals;
+}
+function assertCartUnchanged(before, after, label) {
+  assert.equal(after.cart_key, before.cart_key, label + ': cart identity changed');
+  assert.deepEqual(cartTotals(after), cartTotals(before), label + ': server totals changed');
+  assert.equal(after.items.length, before.items.length, label + ': item count changed');
+  for (const item of before.items) {
+    const match = after.items.find(candidate => candidate.item_key === item.item_key);
+    assert.ok(match && quantity(match) === quantity(item), label + ': item identity or quantity changed');
+  }
+}
+async function readShippingSummary(page, labels, kind) {
+  const row = page.locator('[data-shipping-fee]');
+  await row.waitFor({ state: 'visible' });
+  assert.equal(await row.count(), 1, kind + ': shipping row is missing or duplicated');
+  return row.evaluate((element, { labels, kind }) => {
+    const norm = value => String(value || '').normalize('NFC').replace(/\s+/g, ' ').trim();
+    const visible = node => Boolean(node && node.getClientRects().length && getComputedStyle(node).display !== 'none');
+    const rect = node => { const r = node.getBoundingClientRect(); return { x: r.x, y: r.y, right: r.right, bottom: r.bottom, width: r.width, height: r.height }; };
+    const slot = element.closest('[data-checkout-shipping-fee]');
+    const positionNode = slot || element;
+    const container = positionNode.parentElement;
+    const children = [...container.children];
+    const findRow = label => children.find(child => [...child.querySelectorAll('span')].some(span => norm(span.textContent) === label));
+    const amounts = {};
+    const positions = {};
+    for (const [field, label] of Object.entries(labels)) {
+      const amountRow = findRow(label);
+      const amount = amountRow?.querySelector(':scope > span:last-child') ||
+        amountRow?.firstElementChild?.querySelector(':scope > span:last-child');
+      amounts[field] = { visible: visible(amountRow), text: norm(amount?.textContent) };
+      positions[field] = amountRow ? children.indexOf(amountRow) : -1;
+    }
+    const totalRow = findRow(labels.total);
+    const links = [...element.querySelectorAll('a')];
+    const link = links[0];
+    const labelNode = element.querySelector(':scope > span');
+    return {
+      kind, label: norm(labelNode?.textContent), linkCount: links.length,
+      link: link ? { text: norm(link.textContent), href: link.href, target: link.target, rel: [...link.relList] } : null,
+      withinCheckoutSlot: Boolean(slot && slot.closest('#checkout-cart-container')),
+      immediatelyBeforeTotal: positionNode.nextElementSibling === totalRow,
+      shippingPosition: children.indexOf(positionNode), positions, amounts,
+      geometry: {
+        row: rect(element), label: labelNode ? rect(labelNode) : null, link: link ? rect(link) : null,
+        textFits: element.scrollWidth <= element.clientWidth + 1,
+      },
+    };
+  }, { labels, kind });
+}
+function assertShippingSummary(summary, serverCart, saved, expectedHref) {
+  const label = summary.kind;
+  assert.equal(summary.label, 'Phí giao hàng:', label + ': wrong shipping label');
+  assert.equal(summary.linkCount, 1, label + ': agreement must be one link');
+  assert.equal(summary.link?.text, 'Thỏa thuận', label + ': wrong agreement text');
+  assert.equal(normalizedDestination(summary.link.href), normalizedDestination(expectedHref), label + ': shipping destination differs from the CMS Header link');
+  assert.equal(summary.link.target, '_blank', label + ': agreement must open a new tab');
+  for (const token of ['noopener', 'noreferrer']) assert.ok(summary.link.rel.includes(token), label + ': missing ' + token);
+  assert.equal(summary.immediatelyBeforeTotal, true, label + ': shipping row must be immediately before total');
+  if (label.startsWith('checkout')) assert.equal(summary.withinCheckoutSlot, true, label + ': shared row is outside its checkout render slot');
+  assert.ok(summary.positions.subtotal >= 0 && summary.positions.subtotal < summary.shippingPosition, label + ': shipping row must follow subtotal');
+  for (const key of ['discount_total', 'total_tax']) {
+    if (summary.amounts[key].visible) assert.ok(summary.positions[key] < summary.shippingPosition, label + ': shipping row is before ' + key);
+  }
+  assert.ok(summary.geometry.textFits && summary.geometry.label && summary.geometry.link &&
+    summary.geometry.label.right <= summary.geometry.link.x + 1, label + ': shipping text overlaps or overflows');
+  const totals = cartTotals(serverCart);
+  const currency = saved.items[0]?.itemCurrency?.vi || 'VND';
+  assert.match(currency, /^[A-Z]{3}$/, label + ': unsupported cart currency');
+  const format = value => normalizedText(new Intl.NumberFormat('vi-VN', { style: 'currency', currency }).format(value));
+  for (const key of ['subtotal', 'discount_total', 'total_tax', 'total']) {
+    assert.equal(Number(saved[key]), totals[key], label + ': browser and server totals differ for ' + key);
+    const shown = summary.amounts[key];
+    if (key === 'subtotal' || key === 'total' || totals[key] > 0) assert.equal(shown.visible, true, label + ': missing visible ' + key);
+    if (shown.visible) {
+      const prefix = key === 'discount_total' ? '- ' : key === 'total_tax' ? '+ ' : '';
+      assert.equal(shown.text, prefix + format(totals[key]), label + ': displayed ' + key + ' differs from server total');
+    }
+  }
+  return { totals, currency };
+}
+async function shippingPopup(page, scope, expectedHref, label) {
+  const parentUrl = page.url();
+  const responses = [];
+  const started = Date.now();
+  const onResponse = response => {
+    const request = response.request();
+    if (request.isNavigationRequest()) responses.push(response);
+  };
+  scope.context.on('response', onResponse);
+  let popup;
+  try {
+    [popup] = await Promise.all([
+      scope.context.waitForEvent('page', { timeout: RESPONSE_TIMEOUT }),
+      page.locator('[data-shipping-fee] a').click({ timeout: DOM_TIMEOUT }),
+    ]);
+    await popup.waitForURL(url => url.href !== 'about:blank', { waitUntil: 'domcontentloaded', timeout: RESPONSE_TIMEOUT });
+    await popup.waitForLoadState('domcontentloaded', { timeout: RESPONSE_TIMEOUT });
+    assert.equal(normalizedDestination(popup.url()), normalizedDestination(expectedHref), label + ': new tab opened the wrong URL');
+    const response = responses.findLast(candidate => {
+      try { return candidate.request().frame().page() === popup && candidate.request().frame() === popup.mainFrame(); }
+      catch { return false; }
+    });
+    assert.equal(response?.status(), 200, label + ': new tab did not return HTTP 200');
+    assert.equal(normalizedText(await popup.locator('main h1').first().textContent({ timeout: DOM_TIMEOUT })), 'Phí ship hàng', label + ': new tab heading differs from the published shipping Page');
+    assert.equal(await popup.evaluate(() => window.opener === null), true, label + ': new tab retains an opener');
+    assert.equal(page.url(), parentUrl, label + ': clicking agreement navigated the original cart/checkout tab');
+    const evidence = { check: label + '-shipping-popup', url: safeUrl(popup.url()), http: response.status(), elapsedMs: elapsed(started), openerNull: true, parentUnchanged: true, ok: true };
+    report.navigation.push(evidence);
+    return evidence;
+  } finally {
+    scope.context.off('response', onResponse);
+    if (popup && !popup.isClosed()) await popup.close();
+  }
+}
+async function shippingFeeQA(page, scope, saved) {
+  const labels = await page.locator('#cart-content-wrapper').evaluate(element => {
+    const text = JSON.parse(element.dataset.i18n || '{}');
+    return { subtotal: text.summary_subtotal, discount_total: text.summary_discount, total_tax: text.summary_tax, total: text.summary_total };
+  });
+  assert.ok(Object.values(labels).every(label => typeof label === 'string' && label.trim()), 'Cart summary labels are unavailable');
+  const headerLinks = await page.locator('header a[href]').evaluateAll(links => links
+    .filter(link => (link.textContent || '').normalize('NFC').replace(/\s+/g, ' ').trim() === 'Phí ship hàng')
+    .map(link => link.href));
+  assert.ok(headerLinks.length, 'Published CMS Header shipping link is missing');
+  const expectedHref = normalizedDestination(headerLinks[0]);
+  assert.ok(headerLinks.every(href => normalizedDestination(href) === expectedHref), 'CMS Header shipping destinations disagree');
+  assert.equal(new URL(expectedHref).origin, HOST, 'Shipping Page must belong to this production origin');
+  assert.equal(new URL(expectedHref).pathname.replace(/\/$/, ''), '/thong-bao', 'Published shipping Page differs from the verified information-page checkpoint');
+  const cartBefore = await readCart(scope.context, saved.cartKey);
+  assert.equal(cartBefore.items.length, 1, 'Shipping QA requires one isolated cart item');
+  assert.equal(quantity(cartBefore.items[0]), 1, 'Shipping QA must begin with quantity one');
+  const cartSummary = await readShippingSummary(page, labels, 'cart');
+  const cartMoney = assertShippingSummary(cartSummary, cartBefore, saved, expectedHref);
+  const cartPopup = await shippingPopup(page, scope, expectedHref, scope.name + '-cart');
+  const cartAfter = await readCart(scope.context, saved.cartKey);
+  assertCartUnchanged(cartBefore, cartAfter, 'Cart shipping link');
+  const cartSavedAfter = await state(page);
+  assert.equal(cartSavedAfter.cartKey, saved.cartKey, 'Cart shipping link changed browser cart identity');
+  assertShippingSummary(await readShippingSummary(page, labels, 'cart'), cartAfter, cartSavedAfter, expectedHref);
+  report.checks.push({ type: 'shipping-fee-cart', viewport: scope.name, summary: cartSummary, ...cartMoney, popup: cartPopup, totalsUnchanged: true, ok: true });
+  await checkLayout(page, scope.name, 'shipping-cart');
+  await screenshot(page, scope.name + '-shipping-cart.png');
+
+  await clickNavigation(page, '#btn-proceed-checkout', scope.name + '-shipping-cart-checkout-navigation');
+  const checkoutSaved = await checkoutReady(page, scope);
+  assert.equal(checkoutSaved.cartKey, saved.cartKey, 'Shipping QA lost the cart across checkout navigation');
+  const checkoutBefore = await readCart(scope.context, saved.cartKey);
+  assertCartUnchanged(cartAfter, checkoutBefore, 'Cart to checkout navigation');
+  const initialSummary = await readShippingSummary(page, labels, 'checkout-initial');
+  const initialMoney = assertShippingSummary(initialSummary, checkoutBefore, checkoutSaved, expectedHref);
+  report.checks.push({ type: 'shipping-fee-checkout-initial', viewport: scope.name, summary: initialSummary, ...initialMoney, totalsUnchangedFromCart: true, ok: true });
+
+  // Checkout regenerates its summary HTML after quantity updates. The shared
+  // server-rendered shipping row must be cloned back exactly once each time.
+  const oldRow = await page.locator('[data-shipping-fee]').elementHandle();
+  assert.ok(oldRow, 'Checkout shipping row disappeared before update');
+  try {
+    await clickMutation(page, '#checkout-cart-container .btn-qty-plus', '/api/cart/update');
+    await until(async () => quantity((await state(page))?.items?.[0]) === 2, 'Checkout quantity did not increase to two');
+    await until(() => oldRow.evaluate(element => !element.isConnected), 'Checkout did not replace the old shipping row during its render');
+  } finally {
+    await oldRow.dispose();
+  }
+  const updatedSaved = await checkoutReady(page, scope);
+  const updatedCart = await readCart(scope.context, saved.cartKey);
+  assert.equal(updatedCart.items.length, 1, 'Checkout update changed the isolated item count');
+  assert.equal(updatedCart.items[0].item_key, checkoutBefore.items[0].item_key, 'Checkout update replaced the cart item');
+  assert.equal(quantity(updatedCart.items[0]), 2, 'Server cart did not retain checkout quantity two');
+  assert.equal(updatedSaved.cartKey, saved.cartKey, 'Checkout quantity update changed cart identity');
+  const updatedSummary = await readShippingSummary(page, labels, 'checkout-after-update');
+  const updatedMoney = assertShippingSummary(updatedSummary, updatedCart, updatedSaved, expectedHref);
+  const checkoutPopup = await shippingPopup(page, scope, expectedHref, scope.name + '-checkout');
+  const finalCart = await readCart(scope.context, saved.cartKey);
+  assertCartUnchanged(updatedCart, finalCart, 'Checkout shipping link');
+  const finalSaved = await state(page);
+  assert.equal(finalSaved.cartKey, saved.cartKey, 'Checkout shipping link changed browser cart identity');
+  assertShippingSummary(await readShippingSummary(page, labels, 'checkout-after-popup'), finalCart, finalSaved, expectedHref);
+  report.checks.push({ type: 'shipping-fee-checkout-render-after-update', viewport: scope.name, quantityBefore: 1, quantityAfter: 2, summary: updatedSummary, ...updatedMoney, popup: checkoutPopup, totalsUnchangedByLink: true, ok: true });
+  await checkLayout(page, scope.name, 'shipping-checkout');
+  await screenshot(page, scope.name + '-shipping-checkout.png');
+  assert.equal(scope.mock.records.length, 0, 'Shipping QA unexpectedly attempted checkout');
+  assert.equal(await page.locator('#terms-checkbox').isChecked(), false, 'Shipping QA must not accept checkout terms');
+  assert.equal(await page.locator('#createaccount').isChecked(), false, 'Shipping QA must remain a guest');
+  report.checks.push({ type: 'shipping-fee-no-order', viewport: scope.name, interceptedCheckoutPosts: 0, realOrders: 0, ok: true });
 }
 async function fillValidGuestForm(page) {
   for (const [name, value] of Object.entries(VALID_BILLING)) {
@@ -367,7 +570,7 @@ try {
       assert.ok(await wrapper.getAttribute('data-product-id'), 'WooCommerce product ID missing');
       assert.ok(cartSlug && checkoutSlug && cartSlug !== checkoutSlug, 'WordPress cart/checkout URLs missing');
       assert.equal(await page.locator('#main-action-btn').count(), 1, 'Add-to-cart unavailable');
-      await checkLayout(page, viewport.name, 'product');
+      if (QA_SCOPE === 'full') await checkLayout(page, viewport.name, 'product');
       await page.locator('#main-action-btn').click();
       await page.waitForFunction(key => {
         const saved = JSON.parse(localStorage.getItem(key) || 'null')?.state;
@@ -383,6 +586,9 @@ try {
       const saved = await cartReady(page, scope);
       assert.ok(saved.cartKey === added.cartKey, 'Header navigation changed the cart session');
       report.checks.push({ type: 'actual-header-cart-navigation', viewport: viewport.name, ok: true });
+      if (QA_SCOPE === 'shipping-fee') {
+        await shippingFeeQA(page, scope, saved);
+      } else {
       await clickMutation(page, '#cart-list-container .btn-qty-plus', '/api/cart/update');
       await until(async () => quantity((await state(page))?.items?.[0]) === 2, 'Cart quantity did not increase to two');
       const increased = await readCart(context, saved.cartKey);
@@ -420,6 +626,7 @@ try {
       const bought = await checkoutReady(page, scope);
       assert.equal((await readCart(context, bought.cartKey)).items.length, 1, 'Buy now did not retain its server cart');
       report.checks.push({ type: 'buy-now', viewport: viewport.name, cartKeyRetained: true, realOrders: 0, ok: true });
+      }
       assert.equal(report.errors.length, 0, 'Unexpected browser/checkout errors occurred');
     } catch (error) {
       report.status = 'FAIL';
@@ -441,7 +648,7 @@ try {
   process.exitCode = 1;
 } finally {
   console.log('MARINEAQUA_CART_CHECKOUT_CLEANUP', safeJson(report.cleanup));
-  console.log('MARINEAQUA_CART_CHECKOUT_LIVE_QA=' + report.status, safeJson({ checks: report.checks.length, realOrders: 0, errors: report.errors }));
+  console.log('MARINEAQUA_CART_CHECKOUT_LIVE_QA=' + report.status, safeJson({ scope: QA_SCOPE, checks: report.checks.length, realOrders: 0, errors: report.errors }));
   await writeFile(DIR + '/report.json', safeJson(report, 2) + '\n');
   await browser.close();
 }
