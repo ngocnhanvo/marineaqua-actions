@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "5cfbd7e7a79ca6ad1ce0228d8580eac3fc2b3828",
+  "reason": "Align sharing search and sort in single toolbar and remove total articles line",
+  "request_id": "20261113T034500Z-sharing-search-sort-one-row",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
