@@ -100,8 +100,8 @@
   "posts": [],
   "media": [],
   "errors": [
-    "Transient WP 500"
+    "Unsafe featured image filename pro-reef.jpg"
   ],
-  "run_id": "43349362200",
+  "run_id": "43349867177",
   "outcome": "failure"
 }
