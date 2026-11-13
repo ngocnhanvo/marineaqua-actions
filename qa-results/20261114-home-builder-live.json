@@ -1,5 +1,5 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "sourceSha": "c20902aef19e62281271915afd235e273ac641ce",
   "production": {
     "status": "PASS",
@@ -63,7 +63,7 @@
     ]
   },
   "builder": {
-    "status": "FAIL",
+    "status": "PASS",
     "selectedField": "heading",
     "headingText": "Chạm gần hơn với",
     "editorVisible": true,
@@ -76,16 +76,24 @@
     },
     "imageEditorVisible": true,
     "productTitleText": "TROPIC-MARIN",
-    "productTitleEditorValue": "",
-    "productTitleRow": "",
-    "productTitleFeedback": "Không có tọa độ ESC Table hợp lệ cho chữ này. Hãy làm mới preview hoặc sửa trực tiếp ESC Table.",
+    "productTitleEditorValue": "TROPIC-MARIN",
+    "productTitleRow": "section",
+    "productTitleFeedback": "Đang chỉnh bản nháp. Chỉ lưu khi bấm Lưu WordPress.",
     "productTitleCaption": "home_04 · chỉ sửa chữ có nguồn ESC Table. Dữ liệu lấy từ API phải sửa tại nguồn.",
-    "productTitlePageTail": "dẫn mua hàng ở xa\nPhí ship hàng\nChính sách đổi trả hàng\nTin kiến thức\nLiên hệ\nSản phẩm\nTrang chủ\nMở trang\nGiao diện:\nDesktop\nMobile\n\nBuilder tải dữ liệu mới nhất từ WordPress. Bấm vào chữ hoặc hình ảnh trong trang xem trước để chỉnh sửa. Thay đổi hiển thị ngay trong Builder; chỉ ghi vào WordPress khi bấm Lưu WordPress. Kiểm tra hoặc làm mới section không kích hoạt build.\n\nSection đang chọn\n\nhome_04 · TROPIC-MARIN\n\nXem thông tin kỹ thuật (JSON)\nLàm mới section từ WordPress\nKiểm tra thay đổi\nLàm mới tất cả (0)\n\nBuilder đã kiểm tra WordPress: 6 ESC Table có dữ liệu mới nhất.\n\n2 nguồn đang chờ build. ESC Table: 145, khuyen_mai_01, home_00 (chỉ làm mới khi bấm nút)\n\nChỉnh sửa chữ trực quan\n\nhome_04 · chỉ sửa chữ có nguồn ESC Table. Dữ liệu lấy từ API phải sửa tại nguồn.\n\nDòng nội dung\nChưa có chữ có thể chỉnh sửa\nLưu WordPress\nHủy thay đổi\n\nKhông có tọa độ ESC Table hợp lệ cho chữ này. Hãy làm mới preview hoặc sửa trực tiếp ESC Table.\n\nChọn chữ trong vùng WordPress Editor để sửa trực tiếp nội dung Page. ESC Table vẫn có trình sửa riêng. Bản xem trước cập nhật tức thì và không tải lại iframe; bản production chỉ đổi sau khi build.\n\nESC Table · Quản lý item\n\nhome_04 · chọn item để nhân bản hoặc xóa\n\n+ Thêm item\nNhân bản item đang chọn\nXóa item đang chọn\n↕ Sắp xếp item\n\n↔ Hoán đổi section"
+    "productTitlePageTail": "hà\nHướng dẫn mua hàng ở xa\nPhí ship hàng\nChính sách đổi trả hàng\nTin kiến thức\nLiên hệ\nSản phẩm\nTrang chủ\nMở trang\nGiao diện:\nDesktop\nMobile\n\nBuilder tải dữ liệu mới nhất từ WordPress. Bấm vào chữ hoặc hình ảnh trong trang xem trước để chỉnh sửa. Thay đổi hiển thị ngay trong Builder; chỉ ghi vào WordPress khi bấm Lưu WordPress. Kiểm tra hoặc làm mới section không kích hoạt build.\n\nSection đang chọn\n\nhome_04 · TROPIC-MARIN\n\nXem thông tin kỹ thuật (JSON)\nLàm mới section từ WordPress\nKiểm tra thay đổi\nLàm mới tất cả (0)\n\nBuilder đã kiểm tra WordPress: 6 ESC Table có dữ liệu mới nhất.\n\n2 nguồn đang chờ build. ESC Table: 145, khuyen_mai_01, home_00 (chỉ làm mới khi bấm nút)\n\nChỉnh sửa chữ trực quan\n\nhome_04 · chỉ sửa chữ có nguồn ESC Table. Dữ liệu lấy từ API phải sửa tại nguồn.\n\nDòng nội dung\nTiêu đề section — TROPIC-MARIN\nTiêu đề section (ESC Table name)\nLưu WordPress\nHủy thay đổi\n\nĐang chỉnh bản nháp. Chỉ lưu khi bấm Lưu WordPress.\n\nChọn chữ trong vùng WordPress Editor để sửa trực tiếp nội dung Page. ESC Table vẫn có trình sửa riêng. Bản xem trước cập nhật tức thì và không tải lại iframe; bản production chỉ đổi sau khi build.\n\nESC Table · Quản lý item\n\nhome_04 · chọn item để nhân bản hoặc xóa\n\n+ Thêm item\nNhân bản item đang chọn\nXóa item đang chọn\n↕ Sắp xếp item\n\n↔ Hoán đổi section",
+    "productTitleDraftVisible": true,
+    "productTitleEditable": true,
+    "productTitleDraftCancelPass": true,
+    "verifiedProductHeadings": [
+      "TROPIC-MARIN",
+      "PRODIBIO",
+      "PRODAC",
+      "RED SEA",
+      "CONTINUUM AQUATICS"
+    ]
   },
-  "errors": [
-    "BUILDER: Product section title did not map to its WordPress source\n\n'' !== 'TROPIC-MARIN'\n"
-  ],
-  "qa_run_id": 43480431789,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43480431789",
-  "recorded_at": "2026-11-13T18:14:22.999Z"
+  "errors": [],
+  "qa_run_id": 43481140039,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43481140039",
+  "recorded_at": "2026-11-13T18:18:47.901Z"
 }
