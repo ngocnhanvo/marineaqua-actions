@@ -1,0 +1,37 @@
+name: Marine Aqua inspect homepage release status
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-home-release-status.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  inspect:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const owner=context.repo.owner,repo=context.repo.repo;
+            const workflows=['marineaqua-dispatch-bridge.yml','marineaqua-production-deploy.yml','marineaqua-home-builder-live-qa.yml'];
+            const result={checked_at:new Date().toISOString(),workflows:{}};
+            for(const id of workflows){
+              const rows=await github.rest.actions.listWorkflowRuns({owner,repo,workflow_id:id,per_page:8});
+              result.workflows[id]=(rows.data.workflow_runs||[]).map(r=>({
+                id:r.id,attempt:r.run_attempt,status:r.status,conclusion:r.conclusion,
+                event:r.event,created_at:r.created_at,updated_at:r.updated_at,url:r.html_url,
+                head_sha:r.head_sha
+              }));
+            }
+            const fs=require('node:fs');
+            const path='qa-results/20261114-home-release-status.json';
+            let sha;
+            try{sha=(await github.rest.repos.getContent({owner,repo,path,ref:'main'})).data.sha;}
+            catch(e){if(e.status!==404)throw e;}
+            await github.rest.repos.createOrUpdateFileContents({owner,repo,path,branch:'main',sha,
+              message:'Ghi trạng thái release Visual Builder',
+              content:Buffer.from(JSON.stringify(result,null,2)+'\n').toString('base64')});
