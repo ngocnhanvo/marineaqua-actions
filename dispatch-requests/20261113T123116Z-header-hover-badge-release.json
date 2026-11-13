@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T123116Z-header-hover-badge-release",
+  "reason": "Build and deploy reviewed Header hover and cart badge positioning fixes.",
+  "source_sha": "22fb44109065c23bff817faa9341e03f9cef8932",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
