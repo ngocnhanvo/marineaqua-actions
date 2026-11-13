@@ -1,5 +1,10 @@
 name: Marine Aqua product category active menu live QA
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-product-active-menu-qa.yml'
+      - 'scripts/marineaqua-product-active-menu-qa.mjs'
   workflow_run:
     workflows:
       - Marine Aqua Astro deployment (WordPress Build Website only)
