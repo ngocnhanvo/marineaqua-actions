@@ -100,11 +100,17 @@ try {
   assert.equal(bacs.enabled, true, 'Existing BACS must remain enabled');
   assert.ok(Number.isSafeInteger(Number(onepay.order)), 'OnePayUS position is not a valid integer');
   const restrictions = cod.settings?.enable_for_methods?.value;
-  assert.ok(Array.isArray(restrictions) ? restrictions.length === 0 : !restrictions,
-    'COD has existing shipping restrictions; inspect before enabling it');
   result.before = before.map(publicView);
   result.protected_before_sha256 = hash(before.map(protectedView).sort((a, b) => a.id.localeCompare(b.id)));
-  result.cod_shipping_restrictions = [];
+  // This option contains public shipping-method IDs, never gateway credentials.
+  // Record its native REST shape before deciding whether activation is safe.
+  const restrictionValue = typeof restrictions === 'string' ? restrictions.slice(0, 400)
+    : Array.isArray(restrictions) ? restrictions.slice(0, 30).map(value => String(value).slice(0, 100))
+    : restrictions == null ? null : '[unsupported option shape]';
+  result.cod_shipping_restrictions = { type: Array.isArray(restrictions) ? 'array' : typeof restrictions, value: restrictionValue };
+  result.cod_accept_virtual = String(cod.settings?.enable_for_virtual?.value ?? '').slice(0, 20);
+  if (apply) assert.ok(restrictions == null || restrictions === '' || (Array.isArray(restrictions) && restrictions.length === 0),
+    'COD has existing shipping restrictions; inspect before enabling it');
   const plan = [
     { id: 'cod', payload: { enabled: true, title: COD_TITLE, order: Number(onepay.order) } },
     { id: 'onepayus', payload: { enabled: false } },

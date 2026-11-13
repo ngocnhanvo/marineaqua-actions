@@ -29,11 +29,11 @@ jobs:
         run: node --check scripts/marineaqua-checkout-payments.mjs
       - name: Install matching Playwright driver
         run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
-      - name: Replace OnePayUS with native COD and verify scoped settings
+      - name: Inspect COD shipping eligibility without changing settings
         env:
           WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
           WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
-        run: node scripts/marineaqua-checkout-payments.mjs --apply
+        run: node scripts/marineaqua-checkout-payments.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
