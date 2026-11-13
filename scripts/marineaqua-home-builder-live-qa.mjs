@@ -144,10 +144,26 @@ async function verifyCmsAndBuilder(){
   assert.equal((await box.inputValue()).trim(),before.trim(),'Builder picked wrong field content');
   // Image edit must remain independent after selecting a text field.
   const media=frame.locator('section[data-marine-home-variant="desktop"] .marine-hero-media').first();
-  await media.click({position:{x:20,y:20},timeout:12000});
-  await page.waitForTimeout(500);
-  report.builder.imageEditorVisible=await page.locator('#esc-vb-image-choose').isVisible().catch(()=>false);
-  assert.ok(report.builder.imageEditorVisible,'Image editing was broken when detaching image click target');
+  const mediaSize=await media.boundingBox();
+  assert.ok(mediaSize&&mediaSize.width>130&&mediaSize.height>80,'Banner image area unexpectedly small');
+  // The split layout intentionally overlaps the left image edge with the text.
+  // Hit the unobscured image area instead of the masked left edge.
+  await media.click({position:{x:mediaSize.width-45,y:Math.round(mediaSize.height/2)},timeout:18000});
+  await page.locator('#esc-vb-image-choose').waitFor({state:'visible',timeout:18000});
+  report.builder.imageEditorVisible=true;
+  // Distinct existing Product ESC Table section title should use its own
+  // title editing source; do not save or mutate actual product data.
+  const brand=frame.locator('.marine-brand-section h2[data-esc-builder-cell-field="section_title"]').first();
+  await brand.scrollIntoViewIfNeeded({timeout:16000});
+  await brand.click({timeout:16000});
+  await page.locator('#esc-vb-edit-title').waitFor({state:'visible',timeout:20000});
+  const brandValue=(await brand.innerText()).trim();
+  await page.waitForFunction((expected)=>{
+    const value=document.querySelector('#esc-vb-edit-title')?.value||'';
+    return value.trim()===expected;
+  },brandValue,{timeout:22000});
+  report.builder.productTitleText=brandValue;
+  report.builder.productTitleEditable=true;
   report.builder.status='PASS';
  }finally{await ctx.close();}
 }
