@@ -64,133 +64,137 @@
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595758909
+        "time": 1794595898470
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/",
-        "time": 1794595759064
+        "time": 1794595898947
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/yoast/v1/statistics",
-        "time": 1794595759072
+        "time": 1794595898955
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595760950
-      },
-      {
-        "event": "response",
-        "status": 200,
-        "path": "/wp-json/yoast/v1/statistics",
-        "time": 1794595761087
+        "time": 1794595900676
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/",
-        "time": 1794595761111
+        "time": 1794595901050
+      },
+      {
+        "event": "response",
+        "status": 200,
+        "path": "/wp-json/yoast/v1/statistics",
+        "time": 1794595901056
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/changes",
-        "time": 1794595762022
+        "time": 1794595901816
       },
       {
         "event": "start",
         "method": "GET",
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595762263
+        "time": 1794595902072
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/changes",
-        "time": 1794595764228
+        "time": 1794595903969
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/wp/v2/users/me",
-        "time": 1794595764395
+        "time": 1794595904088
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595766183
+        "time": 1794595907080
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595768260
+        "time": 1794595909589
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595769299
+        "time": 1794595910627
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595771323
+        "time": 1794595912645
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595772365
+        "time": 1794595913677
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595774394
+        "time": 1794595915715
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595775416
+        "time": 1794595916778
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595777399
+        "time": 1794595918806
       },
       {
         "event": "start",
         "method": "POST",
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595778432
+        "time": 1794595919828
       },
       {
         "event": "response",
         "status": 200,
         "path": "/wp-json/esc-builder/v1/item-schema",
-        "time": 1794595780435
+        "time": 1794595921864
       }
     ],
     "addDialog": "PASS",
-    "deleteDialog": "PASS"
+    "deleteDialog": "PASS",
+    "sortStatus": "Item nguồn có viền đỏ. Nhấp item đích trong website để tô viền xanh.",
+    "sortSourceText": "1. 82530",
+    "sortFallbackVisible": false,
+    "visualSwapSelection": "PASS"
   },
   "writes": 0,
   "temporaryCreated": 0,
   "cleanupRemaining": 0,
   "errors": [
-    "AssertionError [ERR_ASSERTION]: Red source not selected on Product card\n\nnull !== ''\n\n    at file:///__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:125:10"
+    "AssertionError [ERR_ASSERTION]: Cancel left visual item marks\n\n2 !== 0\n\n    at file:///__w/marineaqua-actions/marineaqua-actions/scripts/marineaqua-product-builder-live-qa.mjs:140:10"
   ],
-  "qa_run_id": 43486171941,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43486171941",
-  "recorded_at": "2026-11-13T18:49:47.675Z"
+  "qa_run_id": 43486527238,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43486527238",
+  "recorded_at": "2026-11-13T18:52:11.558Z"
 }
