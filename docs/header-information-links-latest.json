@@ -1,7 +1,43 @@
 {
-  "status": "FAIL",
+  "status": "PASS",
   "source": "https://admin.marine-aqua.io.vn",
-  "changes": [],
+  "changes": [
+    {
+      "id": 82511,
+      "label": "Chính sách đổi trả hàng",
+      "parent": "Chính sách và hướng dẫn",
+      "url": "chinh-sach-doi-tra-hang",
+      "changed": true
+    },
+    {
+      "id": 82512,
+      "label": "Phí ship hàng",
+      "parent": "Chính sách và hướng dẫn",
+      "url": "thong-bao",
+      "changed": true
+    },
+    {
+      "id": 82513,
+      "label": "Hướng dẫn mua hàng ở xa",
+      "parent": "Chính sách và hướng dẫn",
+      "url": "huong-dan-mua-hang-o-xa",
+      "changed": true
+    },
+    {
+      "id": 82514,
+      "label": "Hướng dẫn mua hàng tại nhà",
+      "parent": "Chính sách và hướng dẫn",
+      "url": "huong-dan-mua-hang-tai-nha",
+      "changed": true
+    },
+    {
+      "id": 82515,
+      "label": "Thời gian bán hàng",
+      "parent": null,
+      "url": "thoi-gian-ban-hang",
+      "changed": true
+    }
+  ],
   "targets": [
     {
       "label": "Chính sách đổi trả hàng",
@@ -29,9 +65,7 @@
       "parent": null
     }
   ],
-  "errors": [
-    "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('#edit-82511')\n    - locator resolved to <a id=\"edit-82511\" class=\"item-edit\" aria-label=\"Sửa mục trong menu\" href=\"https://admin.marine-aqua.io.vn/wp-admin/nav-menus.php?edit-menu-item=82511#menu-item-settings-82511\">…</a>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n      - waiting 100ms\n    58 × waiting for element to be visible, enabled and stable\n       - element is not vis"
-  ],
+  "errors": [],
   "before": [
     {
       "label": "Chính sách đổi trả hàng",
@@ -111,6 +145,7 @@
       "linkType": "none"
     }
   ],
-  "run_id": "43336022535",
-  "outcome": "failure"
+  "changed": true,
+  "run_id": "43336282791",
+  "outcome": "success"
 }
