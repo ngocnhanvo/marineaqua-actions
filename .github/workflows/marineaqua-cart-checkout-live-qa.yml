@@ -1,0 +1,39 @@
+name: Marine Aqua cart checkout live QA (no order)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-cart-checkout-live-qa.yml'
+      - 'scripts/marineaqua-cart-checkout-live-qa.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-cart-checkout-live-qa
+  cancel-in-progress: false
+jobs:
+  browser-qa:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check browser test syntax
+        run: node --check scripts/marineaqua-cart-checkout-live-qa.mjs
+      - name: Install matching Playwright driver
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Validate product to cart to checkout without placing order
+        run: node scripts/marineaqua-cart-checkout-live-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cart-checkout-live-qa
+          path: cart-checkout-evidence/
+          retention-days: 14
