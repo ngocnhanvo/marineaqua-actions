@@ -1,0 +1,116 @@
+{
+  "status": "FAIL",
+  "source": "https://admin.marine-aqua.io.vn",
+  "changes": [],
+  "targets": [
+    {
+      "label": "Chính sách đổi trả hàng",
+      "href": "/chinh-sach-doi-tra-hang",
+      "parent": "Chính sách và hướng dẫn"
+    },
+    {
+      "label": "Phí ship hàng",
+      "href": "/thong-bao",
+      "parent": "Chính sách và hướng dẫn"
+    },
+    {
+      "label": "Hướng dẫn mua hàng ở xa",
+      "href": "/huong-dan-mua-hang-o-xa",
+      "parent": "Chính sách và hướng dẫn"
+    },
+    {
+      "label": "Hướng dẫn mua hàng tại nhà",
+      "href": "/huong-dan-mua-hang-tai-nha",
+      "parent": "Chính sách và hướng dẫn"
+    },
+    {
+      "label": "Thời gian bán hàng",
+      "href": "/thoi-gian-ban-hang",
+      "parent": null
+    }
+  ],
+  "errors": [
+    "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('#edit-82511')\n    - locator resolved to <a id=\"edit-82511\" class=\"item-edit\" aria-label=\"Sửa mục trong menu\" href=\"https://admin.marine-aqua.io.vn/wp-admin/nav-menus.php?edit-menu-item=82511#menu-item-settings-82511\">…</a>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n      - waiting 100ms\n    58 × waiting for element to be visible, enabled and stable\n       - element is not vis"
+  ],
+  "before": [
+    {
+      "label": "Chính sách đổi trả hàng",
+      "id": 82511,
+      "href": "",
+      "slug": "",
+      "linkType": "none",
+      "parent": "Chính sách và hướng dẫn"
+    },
+    {
+      "label": "Phí ship hàng",
+      "id": 82512,
+      "href": "",
+      "slug": "",
+      "linkType": "none",
+      "parent": "Chính sách và hướng dẫn"
+    },
+    {
+      "label": "Hướng dẫn mua hàng ở xa",
+      "id": 82513,
+      "href": "",
+      "slug": "",
+      "linkType": "none",
+      "parent": "Chính sách và hướng dẫn"
+    },
+    {
+      "label": "Hướng dẫn mua hàng tại nhà",
+      "id": 82514,
+      "href": "",
+      "slug": "",
+      "linkType": "none",
+      "parent": "Chính sách và hướng dẫn"
+    },
+    {
+      "label": "Thời gian bán hàng",
+      "id": 82515,
+      "href": "",
+      "slug": "",
+      "linkType": "none",
+      "parent": null
+    }
+  ],
+  "toEdit": [
+    {
+      "id": 82511,
+      "label": "Chính sách đổi trả hàng",
+      "href": "",
+      "slug": "",
+      "linkType": "none"
+    },
+    {
+      "id": 82512,
+      "label": "Phí ship hàng",
+      "href": "",
+      "slug": "",
+      "linkType": "none"
+    },
+    {
+      "id": 82513,
+      "label": "Hướng dẫn mua hàng ở xa",
+      "href": "",
+      "slug": "",
+      "linkType": "none"
+    },
+    {
+      "id": 82514,
+      "label": "Hướng dẫn mua hàng tại nhà",
+      "href": "",
+      "slug": "",
+      "linkType": "none"
+    },
+    {
+      "id": 82515,
+      "label": "Thời gian bán hàng",
+      "href": "",
+      "slug": "",
+      "linkType": "none"
+    }
+  ],
+  "run_id": "43336022535",
+  "outcome": "failure"
+}
