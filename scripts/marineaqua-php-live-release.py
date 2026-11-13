@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install only TEMPLATE's GitHub Trigger + signed unzip PHP via verified FTPS.
+"""Install approved Marine Aqua PHP files via verified FTPS.
 
 One-shot release: input is checked-out marineaqua-php/master, target is the validated
 MARINE AQUA WordPress docroot. STOR temporary + verified readback; old files are renamed
@@ -30,6 +30,8 @@ FILES = (
     "wp-content/plugins/github-trigger/vcs-build-trigger.php",
     "wp-content/plugins/github-trigger/products/endpoint.php",
     "wp-content/plugins/github-trigger/vcs-build-trigger.js",
+    # Enables editing Product ESC Table display names, never API-backed cells.
+    "wp-content/plugins/esc-visual-builder/includes/site-config.php",
 )
 raw = os.environ.get("FTP_SERVER", "").strip()
 if "://" not in raw:
