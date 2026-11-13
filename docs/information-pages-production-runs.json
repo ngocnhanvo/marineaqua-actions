@@ -136,8 +136,8 @@
   "menuRuns": [
     {
       "id": 43336282791,
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "created_at": "2026-11-13T00:20:30Z",
       "html_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43336282791"
     },
