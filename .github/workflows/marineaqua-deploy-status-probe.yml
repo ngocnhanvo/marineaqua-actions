@@ -9,6 +9,7 @@ name: Marine Aqua read-only production deployment status probe
 # Watch featured media migration after sanitized WordPress search
 # Check subsequent migration after preserving Knowledge Page key
 # Check native WordPress media migration attempt
+# Confirm fast source content import after superseded run cancellation
 on:
   push:
     branches: [main]
