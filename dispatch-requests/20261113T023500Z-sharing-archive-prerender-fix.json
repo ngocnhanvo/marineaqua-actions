@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "85b9941093925d04c91f321109ce2bb2678ce393",
+  "reason": "Rebuild after excluding WordPress Posts archive Pages from SSG prerender",
+  "request_id": "20261113T023500Z-sharing-archive-prerender-fix",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
