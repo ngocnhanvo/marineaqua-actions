@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T045300Z-post-detail-header-active",
+  "reason": "Deploy Astro post-detail Header active menu fix",
+  "source_sha": "3046b755ac29abe89acb9bd35c25a58c779fa6fb",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
