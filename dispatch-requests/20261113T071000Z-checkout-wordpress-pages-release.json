@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T071000Z-checkout-wordpress-pages-release",
+  "reason": "Build verified real WooCommerce cart checkout and order-completion WordPress Pages into Astro production cache",
+  "source_sha": "a86c6ffa124dbcaad0891189268f0eef00d6a234",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
