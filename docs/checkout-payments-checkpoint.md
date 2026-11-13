@@ -17,7 +17,7 @@ Read-only reference source:
 - `ngocnhanvo/aquathanhxuan-php@master`: `f7d743c41bc7f6e54bfc594ed39396a2792e5a28`.
 - Aqua enables the real WooCommerce COD gateway and calls native `process_payment()`. It publishes COD as the first/default option and maps the native receipt to the storefront.
 - Marine already renders enabled WooCommerce metadata (ID/title/order), validates gateway availability before account/order writes, calls native payment processing, maps the receipt and clears browser cart state only on confirmed success.
-- Therefore configure real WooCommerce COD enabled/title/order and disable OnePayUS; retain existing BACS. No fake gateway, frontend-only renamed option, extra checkout API, or hardcoded payment list.
+- Therefore configure real WooCommerce COD enabled/title/order/eligibility and disable OnePayUS; retain existing BACS. No fake gateway, frontend-only renamed option, extra checkout API, or hardcoded payment list.
 - Unlike Aqua's frontend COD-only whitelist, Marine keeps its existing dynamic WordPress-owned payment list and bank transfer. Aqua's separate attempt/replay implementation is not transplanted in this narrowly scoped gateway change; existing Marine uncertainty/submission guards remain.
 - Both projects vendor the same native WooCommerce COD class, blob `e131cc670ff7c58c572f4e24e301bac048ff9a70` (WooCommerce 11.1.0). Positive COD uses native processing/on-hold status without calling payment_complete; zero-total behavior remains native. Native stock hooks remain responsible for stock transitions.
 - Native COD clears the server cart only when its hash matches the order. Marine's custom callback previously omitted this binding. The minimal PHP fix sets the order cart hash before saving/processing, preserving native protection against clearing a changed cart.
@@ -35,13 +35,50 @@ Read-only reference source:
 - PHP release [43445193201](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43445193201), job `131952701305`.
 - No Astro source change is needed: checkout reads current WooCommerce gateway settings at request time.
 
+## Verified PHP release
+
+- [PHP release 43445193201](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43445193201), job `131952701305`: **SUCCESS**, exact `d1361c8f5abeae239cea70fb09dc57693acd0c2d` source logged.
+- Existing checkout preflight/payment metadata/login regressions and **9 native COD contract groups passed** before upload.
+- Actual FTPS markers at 2026-11-13 14:42:58 UTC: TLS/identity/document-root PASS; only `checkout_endpoint.php` installed with SHA256 readback PASS; 12 allowlisted files checked. Ready marker passed at 14:42:59 UTC.
+- Existing bridge [43445147676](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43445147676) completed successfully.
+- No Astro source or build change: current checkout reads gateway settings for each private SSR request.
+
+## WooCommerce configuration and resolved ordering issue
+
+| Gateway | Final enabled | Final position | Visible checkout label |
+| --- | --- | --- | --- |
+| COD | true | 33 | Thanh toán khi nhận hàng |
+| BACS | true | 35 | Chuyển khoản ngân hàng trực tiếp |
+| Cheque | false | 36 | Hidden, unchanged |
+| OnePayUS | false | 37 | Hidden |
+
+COD's previous `enable_for_methods = ["free_shipping"]` restricted it to free shipping. It is now the native empty multiselect array (REST projects this as `""`), allowing the existing shipping methods. Global shipping rates/zones and the negotiated-shipping UI were not edited. `enable_for_virtual = "yes"` is retained.
+
+The real write scope was limited to two gateway records:
+- COD: enabled, title, order, and `settings.enable_for_methods`.
+- OnePayUS: enabled and its separate numeric order.
+- BACS received no write. Unrelated visible gateway settings were fingerprinted; BACS also had a full before/after equality check.
+
+### Actual sequence and evidence
+
+1. Initial apply [43445571550](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43445571550) stopped **before writes** when it found a nonempty COD shipping restriction. Changed 0, no rollback required.
+2. Read-only inventory [43446066963](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43446066963), source `48c4c5ac2faee88408066e0f919435426968cbab`: PASS, two GETs, no mutations. Confirmed COD disabled/order 37/free_shipping-only, OnePayUS enabled/order 33, BACS enabled/order 35 and Cheque disabled/order 36.
+3. Apply [43446505961](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43446505961), source `da30e4760c7b25596f0819d324e02e3ffad8cc90`: COD PUT returned 200 and saved the intended COD settings at order 33. Its following item GET returned 404, so the run correctly failed; rollback could not address the temporarily hidden COD registry item. OnePayUS had not yet been changed.
+4. Source inspection found the cause in native `WC_Payment_Gateways::init()`, blob `0630bd1a1ab88048b9a65682b96643c83a3efe6f`: gateway instances are keyed by numeric configured order. COD and OnePayUS at 33 collide, and the later-loaded OnePayUS overwrites COD. Disabled gateways participate too, so merely disabling OnePayUS would not resolve it.
+5. Recovery source `0bfbaf76fccb54b3d514c65ab5afe56cca32f7bc`, [43447409305](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43447409305), job `131960375555`: **PASS**. After pinning the observed three-entry registry and free slot 37, it moved only OnePayUS to disabled/order 37. COD reappeared at 33 with the already-saved native settings.
+6. Final collection and item GETs all returned 200. All four registry IDs have distinct positions, enabled order is exactly COD then BACS, COD has the requested title and empty restrictions, BACS is unchanged, errors and `cleanup_remaining` are empty.
+7. Recovery artifact `14049360684` (`marineaqua-checkout-payments`), workflow-provided SHA256 `739620784291f808fc2c293b2a16e8a3c28d1457bf7344a7617000aada80af06`, expires 2026-11-27. The verified job log contains the same structured result. No artifact-download digest verification has been claimed for this settings artifact.
+
+Future settings changes must preserve **unique numeric positions for every registered gateway, including disabled gateways**. Current recovery mode accepts the already-correct state without writing; order writes/rollbacks now reject visible collisions before PUT. The normal apply plan pins COD's intended position 33, rather than deriving it from the now-moved OnePayUS position.
+
+No customer order/account or payment was created by configuration. Native WooCommerce gateway-setting hooks were left intact; potential administrative notification delivery from enabling/disabling a gateway was not inspected or suppressed. Do not claim zero emails for the settings mutation.
+
 ## Current checkpoint
 
-**IN PROGRESS — PHP checks passed their workflow step; release still running.**
+**IN PROGRESS — PHP deployed and WooCommerce configuration verified; final browser QA pending.**
 
-Next, in order:
-1. Wait for exact PHP release success; inspect native COD regression output and FTPS hash readback.
-2. Commit/run scoped `marineaqua-checkout-payments.mjs` and workflow only after PHP release passes. Writes restricted to COD enabled/title/order and OnePayUS enabled; BACS/unrelated settings are fingerprinted unchanged. Before/after readback and bounded conditional rollback are mandatory.
-3. Commit/run existing live cart/checkout QA with `--scope=checkout-payments`, desktop 1366 and mobile 390. Every checkout POST and synthetic receipt is intercepted; no real orders or customer accounts.
-4. Verify screenshots, cleanup each owned temporary cart with zero-item readback, and record final workflow/artifact evidence.
-5. Save final checkpoint and exact `chatgpt/latest-response.md` before final response.
+- QA source: `e8fae7d57c7244c66173c5a2000aaaa5c3233a97`.
+- Existing cart/checkout workflow scope: `--scope=checkout-payments`; other scopes retained.
+- QA [43447691761](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43447691761), desktop 1366 × 900 and mobile 390 × 844.
+- Every checkout POST and synthetic receipt is intercepted. Test COD/default/order/title, BACS selection, validation, rejected/uncertain/successful client behavior, Header/storage reset, and owned transient-cart cleanup.
+- Next: wait for QA result, review screenshots, verify cleanup, then save final checkpoint and exact latest response.
