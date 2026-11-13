@@ -1,3 +1,4 @@
+// Production header QA after successful canonical deploy 43354941020.
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 const ROOT='https://marine-aqua.io.vn';
