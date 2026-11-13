@@ -1,10 +1,10 @@
 # Checkpoint — Tài khoản và tên sản phẩm trong giỏ hàng
 
 - Project: marine-aqua.vn
-- Updated: 2026-11-13 20:30 +07:00 (Asia/Ho_Chi_Minh)
+- Updated: 2026-11-13 20:34 +07:00 (Asia/Ho_Chi_Minh)
 - Code mode: auto-build
 - Source write gate: bypass
-- Status: PARTIAL — source, CMS và production đã cập nhật; live QA đang chạy.
+- Status: PARTIAL — production và main live QA 28/28 PASS; đang kiểm tra riêng một trạng thái payment unavailable trên mobile.
 - Frontend: https://marine-aqua.io.vn
 - WordPress: https://admin.marine-aqua.io.vn
 
@@ -59,13 +59,25 @@ Không sửa các Page Cart/Checkout/Done hoặc WordPress Menu. Không cần na
 - Final Astro release ae45df6: run [43433564180](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43433564180), job 131912829745 / bridge 43433521485 — SUCCESS. ASTRO_BUILD_COMPLETE, ASTRO_OUTPUT_VALIDATION, FTPS_UPLOAD và SIGNED_UNZIP_SUCCESS đều PASS.
 - Pipeline production, source branch policy, env/secrets, target, FTPS, signing, rollback và locks giữ nguyên. PHP allowlist thêm module login và test step trong workflow hiện có; không tạo pipeline khác.
 
-## Điểm tiếp tục bắt buộc
+## Main live QA đã PASS
 
-Live QA run [43433898583](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43433898583), job 131913988581 đang in_progress tại thời điểm ghi. Scope account-cart; source QA ef2b863ef9d24da6422d321bebf25cd568c73299.
+Run [43433898583](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43433898583), job 131913988581, QA source ef2b863ef9d24da6422d321bebf25cd568c73299 — SUCCESS, scope account-cart, 28/28 named checks PASS.
 
-1. Chờ run này hoàn tất, đọc report/log; không trigger hoặc deploy lại nếu chưa có lỗi thật.
-2. Kiểm chứng desktop/mobile: actual account navigation, guest API, negative cookies; positive login/profile/logout chỉ browser mocks. Cart/Checkout một tên chính, controls còn hiển thị, shipping/totals khớp và response headers private/no-store/Vary Cookie.
-3. Xác nhận checkout POST/order requests bằng 0; giỏ QA tạm được xóa và readback 0 item. Fixture simple product, nhánh variation phải ghi N/A, không khai PASS chưa chạy.
-4. Download artifact, đối chiếu digest và xem ảnh; sửa đúng lỗi nếu có, sau đó cập nhật checkpoint này thành DONE.
-5. Ghi nguyên văn phản hồi cuối vào chatgpt/latest-response.md, đọc lại SHA/content rồi mới kết thúc lượt.
+Desktop 1366×900 và mobile 390×844: actual Header/menu account navigation tới Page83459; guest và invalid-cookie API trả object rỗng, no-store. Positive login/profile/logout dùng browser mocks, được đánh dấu simulated. Tên sản phẩm chính xuất hiện một lần tại Cart/Checkout; shipping link và tổng tiền khớp. Bốn response HTML Cart/Checkout thực tế có Cache-Control private, no-store, max-age=0 và Vary Cookie,Accept-Encoding,User-Agent.
 
+Cleanup: hai giỏ tạm, mỗi giỏ xóa 1 item và readback remainingItems=0. Checkout POST/order requests/real orders đều 0. Simple-product fixture; variation branch N/A.
+
+Artifact14043125444, cart-checkout-live-qa, SHA256 dda50014f305f6ebed8e7621b3430b152fa1ed8fa394bee82282458a5a773a55. Đã download và đối chiếu digest. Tám ảnh đã được xem, không thấy lỗi tên/layout/profile trong phạm vi thay đổi.
+
+## Điểm tiếp tục — payment readiness riêng trên mobile
+
+Ảnh mobile-account-checkout.png có cảnh báo không tải được phương thức thanh toán, trong khi desktop có onepayUS và chuyển khoản. Main QA kiểm tên/privacy/shipping nhưng không assert gateway readiness; vì vậy KHÔNG suy main QA28 PASS thành payment-ready.
+
+Đã so sánh source trước/sau: CheckoutPage, paymentMethods.ts, PHP payment-gateways.php không đổi. Loader server-side chỉ nhận avas, không nhận cart, cookie, UA hay viewport; GET Woo payment_gateways có timeout10s và cache:no-store từ trước. Auth module chỉ áp dụng login route; private HTML headers không đổi outbound gateway request. Timing phù hợp lỗi upstream tạm thời nhưng chưa chứng minh nguyên nhân timeout.
+
+Actions agent đang chuẩn bị scope checkout-readiness trong workflow QA hiện hữu: mobile GET /thanh-toan chỉ đọc, không tạo cart, không auth/order/mutation. Empty-cart submit disabled là đúng; chỉ chứng minh gateway configuration hiển thị. Cho phép tối đa một GET mới khi trạng thái unavailable rõ ràng, ghi cả lần đầu và outcome.
+
+Bước tiếp theo:
+1. Review/commit scope QA hẹp này, chờ run hoàn tất; không chạy lại main28 hoặc production nếu không có lỗi source thật.
+2. Xác nhận radio payment methods hiển thị/khớp cấu hình và warning không còn; xem ảnh, ghi hạn chế nếu không phục hồi.
+3. Cập nhật checkpoint DONE với run/artifact mới và ghi nguyên văn phản hồi cuối vào chatgpt/latest-response.md; verify SHA/content trước khi kết thúc.
