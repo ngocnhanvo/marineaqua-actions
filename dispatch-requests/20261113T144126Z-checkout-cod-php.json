@@ -1,0 +1,11 @@
+{
+  "action": "workflow_dispatch",
+  "request_id": "20261113T144126Z-checkout-cod-php",
+  "reason": "Release native COD cart-hash binding with actual WooCommerce gateway regression checks",
+  "source_sha": "d1361c8f5abeae239cea70fb09dc57693acd0c2d",
+  "workflow": "marineaqua-php-release.yml",
+  "ref": "main",
+  "inputs": {
+    "confirm": "DEPLOY_PHP"
+  }
+}
