@@ -21,6 +21,7 @@ name: Marine Aqua read-only production deployment status probe
 # Reconcile postdeployment active menu QA after successful release
 # Observe second public-URL Header active state production build
 # Capture QA run after public URL Header fix deploy 43360791173
+# Verify newest sort label deployment status
 # Track unified search and sort toolbar deployment
 # Refresh state after postdeployment single-row layout QA
 # Observe corrected mobile gutter assertion QA run
