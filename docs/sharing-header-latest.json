@@ -1,0 +1,62 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": 82506,
+      "label": "Tổng quan về bể cá biển",
+      "slug": "tong-quan-ve-be-ca",
+      "url": "cat/tong-quan-ve-be-ca",
+      "postCount": 5
+    },
+    {
+      "id": 82507,
+      "label": "Setup bể cá biển mini",
+      "slug": "set-up-be-ca-bien-mini",
+      "url": "cat/set-up-be-ca-bien-mini",
+      "postCount": 4
+    },
+    {
+      "id": 82508,
+      "label": "Kinh nghiệm xử lý bể cá (rêu hại, tảo hại, bệnh cá, san hô...)",
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "url": "cat/kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "postCount": 48
+    },
+    {
+      "id": 82516,
+      "label": "Cách chọn muối, vi sinh và hóa chất tốt nhất cho bể cá",
+      "slug": "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+      "url": "cat/cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+      "postCount": 36
+    },
+    {
+      "id": 82517,
+      "label": "Cách chọn thức ăn tốt cho cá và san hô",
+      "slug": "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+      "url": "cat/cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+      "postCount": 16
+    },
+    {
+      "id": 82518,
+      "label": "Tin kiến thức",
+      "slug": "tin-kien-thuc",
+      "url": "cat/tin-kien-thuc",
+      "postCount": 24
+    },
+    {
+      "id": 82519,
+      "label": "Các thiết bị trong bể cá (đèn, skimmer, máy bơm…)",
+      "slug": "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+      "url": "cat/cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+      "postCount": 32
+    }
+  ],
+  "errors": [],
+  "modified": true,
+  "postsParity": {
+    "unique": 133,
+    "memberships": "PASS"
+  },
+  "run_id": "43352394338",
+  "outcome": "success"
+}
