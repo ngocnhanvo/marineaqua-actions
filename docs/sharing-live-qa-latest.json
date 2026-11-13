@@ -1,5 +1,5 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "views": [
     {
       "name": "desktop",
@@ -176,27 +176,10 @@
       "width": 390
     }
   ],
-  "articles": [
-    {
-      "slug": "muoi-bien-cho-be-ca-canh-tropic-marin-pro-reef-20-kg-box",
-      "status": 200,
-      "h1": "Muối biển cho bể cá cảnh TROPIC MARIN PRO – REEF 20 KG BOX",
-      "textLength": 4562
-    },
-    {
-      "slug": "cac-phuong-phap-loc-trong-be-ca-canh",
-      "status": 200,
-      "h1": "Các phương pháp lọc trong bể cá cảnh",
-      "textLength": 6551
-    },
-    {
-      "slug": "cac-thong-so-nuoc-danh-cho-be-ca-nuoc-man",
-      "status": 200,
-      "h1": "Các thông số nước dành cho bể cá nước mặn",
-      "textLength": 6342
-    }
+  "articles": [],
+  "errors": [
+    "Article Header sharing menu not active desktop muoi-bien-cho-be-ca-canh-tropic-marin-pro-reef-20-kg-box {\"h1\":\"Muối biển cho bể cá cảnh TROPIC MARIN PRO – REEF 20 KG BOX\",\"textLength\":4562,\"sharingFound\":true,\"sharingActive\":false,\"documentWidth\":1366}"
   ],
-  "errors": [],
-  "run_id": "43353305198",
-  "outcome": "success"
+  "run_id": "43368598847",
+  "outcome": "failure"
 }
