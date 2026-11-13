@@ -1,0 +1,55 @@
+name: Marine Aqua seven sharing pages live production QA
+on:
+  workflow_run:
+    workflows:
+      - Marine Aqua Astro deployment (WordPress Build Website only)
+    types: [completed]
+permissions:
+  contents: write
+concurrency:
+  group: marineaqua-sharing-production-qa
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-sharing-live-qa.mjs
+      - id: browser-qa
+        run: node scripts/marineaqua-sharing-live-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-sharing-live-qa
+          path: sharing-live-qa-evidence/
+          retention-days: 12
+      - name: Persist live sharing QA
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          GH_RUN_ID: ${{ github.run_id }}
+          OUTCOME: ${{ steps.browser-qa.outcome }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,existsSync} from 'node:fs';
+          const path='sharing-live-qa-evidence/result.json';
+          const report=existsSync(path)?JSON.parse(readFileSync(path,'utf8')):{status:'NO_EVIDENCE',errors:['No browser report']};
+          report.run_id=process.env.GH_RUN_ID;report.outcome=process.env.OUTCOME;
+          const uri='https://api.github.com/repos/'+process.env.GH_REPO+'/contents/docs/sharing-live-qa-latest.json';
+          const headers={Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};
+          const old=await fetch(uri,{headers}).then(r=>r.ok?r.json():null);
+          const body={message:'Record sharing production Playwright QA '+report.run_id,content:Buffer.from(JSON.stringify(report,null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
+          if(old?.sha)body.sha=old.sha;
+          const result=await fetch(uri,{method:'PUT',headers,body:JSON.stringify(body)});
+          if(!result.ok)throw Error('Cannot persist sharing QA '+result.status);
+          NODE
