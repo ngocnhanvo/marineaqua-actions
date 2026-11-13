@@ -1,0 +1,739 @@
+{
+  "status": "FAIL",
+  "checks": [
+    {
+      "viewport": 1366,
+      "slug": "tin-kien-thuc",
+      "http": 200,
+      "heading": "",
+      "h1Count": 1,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": {
+        "x": 51.21875,
+        "y": 285,
+        "width": 288,
+        "height": 38
+      },
+      "grid": {
+        "x": 0,
+        "y": 340,
+        "width": 1366,
+        "height": 2069.125
+      },
+      "topLevelText": [],
+      "document": 1366,
+      "cards": 27,
+      "pass": false
+    },
+    {
+      "viewport": 1366,
+      "slug": "tong-quan-ve-be-ca",
+      "http": 200,
+      "heading": "",
+      "h1Count": 1,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": {
+        "x": 51.21875,
+        "y": 337,
+        "width": 288,
+        "height": 38
+      },
+      "grid": {
+        "x": 0,
+        "y": 392,
+        "width": 1366,
+        "height": 1069.5625
+      },
+      "topLevelText": [],
+      "document": 1366,
+      "cards": 10,
+      "pass": false
+    },
+    {
+      "viewport": 1366,
+      "slug": "set-up-be-ca-bien-mini",
+      "http": 200,
+      "heading": "",
+      "h1Count": 1,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": {
+        "x": 51.21875,
+        "y": 337,
+        "width": 288,
+        "height": 38
+      },
+      "grid": {
+        "x": 0,
+        "y": 392,
+        "width": 1366,
+        "height": 1093.5625
+      },
+      "topLevelText": [],
+      "document": 1366,
+      "cards": 8,
+      "pass": false
+    },
+    {
+      "viewport": 1366,
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "http": 200,
+      "heading": "",
+      "h1Count": 1,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": {
+        "x": 51.21875,
+        "y": 337,
+        "width": 288,
+        "height": 38
+      },
+      "grid": {
+        "x": 0,
+        "y": 392,
+        "width": 1366,
+        "height": 2069.125
+      },
+      "topLevelText": [],
+      "document": 1366,
+      "cards": 28,
+      "pass": false
+    },
+    {
+      "viewport": 1366,
+      "slug": "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+      "http": 200,
+      "heading": "",
+      "h1Count": 1,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": {
+        "x": 51.21875,
+        "y": 337,
+        "width": 288,
+        "height": 38
+      },
+      "grid": {
+        "x": 0,
+        "y": 392,
+        "width": 1366,
+        "height": 2069.125
+      },
+      "topLevelText": [],
+      "document": 1366,
+      "cards": 28,
+      "pass": false
+    },
+    {
+      "viewport": 1366,
+      "slug": "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+      "http": 200,
+      "heading": "",
+      "h1Count": 1,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": {
+        "x": 51.21875,
+        "y": 337,
+        "width": 288,
+        "height": 38
+      },
+      "grid": {
+        "x": 0,
+        "y": 392,
+        "width": 1366,
+        "height": 2069.125
+      },
+      "topLevelText": [],
+      "document": 1366,
+      "cards": 27,
+      "pass": false
+    },
+    {
+      "viewport": 1366,
+      "slug": "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+      "http": 200,
+      "heading": "",
+      "h1Count": 1,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": {
+        "x": 51.21875,
+        "y": 337,
+        "width": 288,
+        "height": 38
+      },
+      "grid": {
+        "x": 0,
+        "y": 392,
+        "width": 1366,
+        "height": 2069.125
+      },
+      "topLevelText": [],
+      "document": 1366,
+      "cards": 28,
+      "pass": false
+    },
+    {
+      "viewport": 390,
+      "slug": "tin-kien-thuc",
+      "http": 200,
+      "heading": "",
+      "h1Count": 1,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": {
+        "x": 14.625,
+        "y": 200,
+        "width": 360.75,
+        "height": 38
+      },
+      "grid": {
+        "x": 0,
+        "y": 255,
+        "width": 390,
+        "height": 5375.5625
+      },
+      "topLevelText": [],
+      "document": 390,
+      "cards": 27,
+      "pass": false
+    },
+    {
+      "viewport": 390,
+      "slug": "tong-quan-ve-be-ca",
+      "http": 200,
+      "heading": "",
+      "h1Count": 1,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": {
+        "x": 14.625,
+        "y": 240,
+        "width": 360.75,
+        "height": 38
+      },
+      "grid": {
+        "x": 0,
+        "y": 295,
+        "width": 390,
+        "height": 2270.984375
+      },
+      "topLevelText": [],
+      "document": 390,
+      "cards": 10,
+      "pass": false
+    },
+    {
+      "viewport": 390,
+      "slug": "set-up-be-ca-bien-mini",
+      "http": 200,
+      "heading": "",
+      "h1Count": 1,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": {
+        "x": 14.625,
+        "y": 240,
+        "width": 360.75,
+        "height": 38
+      },
+      "grid": {
+        "x": 0,
+        "y": 295,
+        "width": 390,
+        "height": 1883.1875
+      },
+      "topLevelText": [],
+      "document": 390,
+      "cards": 8,
+      "pass": false
+    },
+    {
+      "viewport": 390,
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "http": 500,
+      "heading": "",
+      "h1Count": 0,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": null,
+      "grid": null,
+      "topLevelText": [],
+      "document": 390,
+      "cards": 0,
+      "pass": false
+    },
+    {
+      "viewport": 390,
+      "slug": "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+      "http": 503,
+      "heading": "",
+      "h1Count": 0,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": null,
+      "grid": null,
+      "topLevelText": [],
+      "document": 390,
+      "cards": 0,
+      "pass": false
+    },
+    {
+      "viewport": 390,
+      "slug": "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+      "http": 200,
+      "heading": "",
+      "h1Count": 1,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": {
+        "x": 14.625,
+        "y": 272,
+        "width": 360.75,
+        "height": 38
+      },
+      "grid": {
+        "x": 0,
+        "y": 327,
+        "width": 390,
+        "height": 5423.5625
+      },
+      "topLevelText": [],
+      "document": 390,
+      "cards": 27,
+      "pass": false
+    },
+    {
+      "viewport": 390,
+      "slug": "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+      "http": 200,
+      "heading": "",
+      "h1Count": 1,
+      "hero": null,
+      "headingBox": null,
+      "searchBox": {
+        "x": 14.625,
+        "y": 272,
+        "width": 360.75,
+        "height": 38
+      },
+      "grid": {
+        "x": 0,
+        "y": 327,
+        "width": 390,
+        "height": 5375.5625
+      },
+      "topLevelText": [],
+      "document": 390,
+      "cards": 28,
+      "pass": false
+    }
+  ],
+  "errors": [
+    {
+      "viewport": "desktop",
+      "slug": "tin-kien-thuc",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 1366,
+        "slug": "tin-kien-thuc",
+        "http": 200,
+        "heading": "",
+        "h1Count": 1,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": {
+          "x": 51.21875,
+          "y": 285,
+          "width": 288,
+          "height": 38
+        },
+        "grid": {
+          "x": 0,
+          "y": 340,
+          "width": 1366,
+          "height": 2069.125
+        },
+        "topLevelText": [],
+        "document": 1366,
+        "cards": 27,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "slug": "tong-quan-ve-be-ca",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 1366,
+        "slug": "tong-quan-ve-be-ca",
+        "http": 200,
+        "heading": "",
+        "h1Count": 1,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": {
+          "x": 51.21875,
+          "y": 337,
+          "width": 288,
+          "height": 38
+        },
+        "grid": {
+          "x": 0,
+          "y": 392,
+          "width": 1366,
+          "height": 1069.5625
+        },
+        "topLevelText": [],
+        "document": 1366,
+        "cards": 10,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "slug": "set-up-be-ca-bien-mini",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 1366,
+        "slug": "set-up-be-ca-bien-mini",
+        "http": 200,
+        "heading": "",
+        "h1Count": 1,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": {
+          "x": 51.21875,
+          "y": 337,
+          "width": 288,
+          "height": 38
+        },
+        "grid": {
+          "x": 0,
+          "y": 392,
+          "width": 1366,
+          "height": 1093.5625
+        },
+        "topLevelText": [],
+        "document": 1366,
+        "cards": 8,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 1366,
+        "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+        "http": 200,
+        "heading": "",
+        "h1Count": 1,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": {
+          "x": 51.21875,
+          "y": 337,
+          "width": 288,
+          "height": 38
+        },
+        "grid": {
+          "x": 0,
+          "y": 392,
+          "width": 1366,
+          "height": 2069.125
+        },
+        "topLevelText": [],
+        "document": 1366,
+        "cards": 28,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "slug": "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 1366,
+        "slug": "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+        "http": 200,
+        "heading": "",
+        "h1Count": 1,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": {
+          "x": 51.21875,
+          "y": 337,
+          "width": 288,
+          "height": 38
+        },
+        "grid": {
+          "x": 0,
+          "y": 392,
+          "width": 1366,
+          "height": 2069.125
+        },
+        "topLevelText": [],
+        "document": 1366,
+        "cards": 28,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "slug": "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 1366,
+        "slug": "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+        "http": 200,
+        "heading": "",
+        "h1Count": 1,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": {
+          "x": 51.21875,
+          "y": 337,
+          "width": 288,
+          "height": 38
+        },
+        "grid": {
+          "x": 0,
+          "y": 392,
+          "width": 1366,
+          "height": 2069.125
+        },
+        "topLevelText": [],
+        "document": 1366,
+        "cards": 27,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "desktop",
+      "slug": "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 1366,
+        "slug": "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+        "http": 200,
+        "heading": "",
+        "h1Count": 1,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": {
+          "x": 51.21875,
+          "y": 337,
+          "width": 288,
+          "height": 38
+        },
+        "grid": {
+          "x": 0,
+          "y": 392,
+          "width": 1366,
+          "height": 2069.125
+        },
+        "topLevelText": [],
+        "document": 1366,
+        "cards": 28,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "mobile",
+      "slug": "tin-kien-thuc",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 390,
+        "slug": "tin-kien-thuc",
+        "http": 200,
+        "heading": "",
+        "h1Count": 1,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": {
+          "x": 14.625,
+          "y": 200,
+          "width": 360.75,
+          "height": 38
+        },
+        "grid": {
+          "x": 0,
+          "y": 255,
+          "width": 390,
+          "height": 5375.5625
+        },
+        "topLevelText": [],
+        "document": 390,
+        "cards": 27,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "mobile",
+      "slug": "tong-quan-ve-be-ca",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 390,
+        "slug": "tong-quan-ve-be-ca",
+        "http": 200,
+        "heading": "",
+        "h1Count": 1,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": {
+          "x": 14.625,
+          "y": 240,
+          "width": 360.75,
+          "height": 38
+        },
+        "grid": {
+          "x": 0,
+          "y": 295,
+          "width": 390,
+          "height": 2270.984375
+        },
+        "topLevelText": [],
+        "document": 390,
+        "cards": 10,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "mobile",
+      "slug": "set-up-be-ca-bien-mini",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 390,
+        "slug": "set-up-be-ca-bien-mini",
+        "http": 200,
+        "heading": "",
+        "h1Count": 1,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": {
+          "x": 14.625,
+          "y": 240,
+          "width": 360.75,
+          "height": 38
+        },
+        "grid": {
+          "x": 0,
+          "y": 295,
+          "width": 390,
+          "height": 1883.1875
+        },
+        "topLevelText": [],
+        "document": 390,
+        "cards": 8,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "mobile",
+      "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 390,
+        "slug": "kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
+        "http": 500,
+        "heading": "",
+        "h1Count": 0,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": null,
+        "grid": null,
+        "topLevelText": [],
+        "document": 390,
+        "cards": 0,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "mobile",
+      "slug": "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 390,
+        "slug": "cach-chon-muoi-vi-sinh-va-hoa-chat-tot-nhat-cho-be-ca",
+        "http": 503,
+        "heading": "",
+        "h1Count": 0,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": null,
+        "grid": null,
+        "topLevelText": [],
+        "document": 390,
+        "cards": 0,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "mobile",
+      "slug": "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 390,
+        "slug": "cach-chon-thuc-an-tot-cho-ca-va-san-ho",
+        "http": 200,
+        "heading": "",
+        "h1Count": 1,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": {
+          "x": 14.625,
+          "y": 272,
+          "width": 360.75,
+          "height": 38
+        },
+        "grid": {
+          "x": 0,
+          "y": 327,
+          "width": 390,
+          "height": 5423.5625
+        },
+        "topLevelText": [],
+        "document": 390,
+        "cards": 27,
+        "pass": false
+      }
+    },
+    {
+      "viewport": "mobile",
+      "slug": "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+      "reason": "archive-hero-layout",
+      "row": {
+        "viewport": 390,
+        "slug": "cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
+        "http": 200,
+        "heading": "",
+        "h1Count": 1,
+        "hero": null,
+        "headingBox": null,
+        "searchBox": {
+          "x": 14.625,
+          "y": 272,
+          "width": 360.75,
+          "height": 38
+        },
+        "grid": {
+          "x": 0,
+          "y": 327,
+          "width": 390,
+          "height": 5375.5625
+        },
+        "topLevelText": [],
+        "document": 390,
+        "cards": 28,
+        "pass": false
+      }
+    }
+  ],
+  "run_id": "43354948719",
+  "outcome": "failure"
+}
