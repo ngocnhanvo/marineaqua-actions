@@ -5,8 +5,8 @@ import { mkdir,writeFile } from 'node:fs/promises';
 const WP='https://admin.marine-aqua.io.vn';
 const FRONT='https://marine-aqua.io.vn';
 const ACTIONS='ngocnhanvo/marineaqua-actions';
-const SHA='3ccaee45f8901dfaf0de697a78e565bc11a3bd63';
-const RELEASE_AT=Date.parse('2026-11-13T17:47:58Z')-15000;
+const SHA='3f31fdf39226cd713b38d4dcb3b2f1125e731e1a';
+const RELEASE_AT=Date.parse('2026-11-13T17:57:58Z')-15000;
 const DIR='home-builder-live-evidence';
 const report={status:'STARTED',sourceSha:SHA,production:{status:'PENDING'},cms:{status:'NOT_TESTED'},
   public:{status:'NOT_TESTED',views:[]},builder:{status:'NOT_TESTED'},errors:[]};
