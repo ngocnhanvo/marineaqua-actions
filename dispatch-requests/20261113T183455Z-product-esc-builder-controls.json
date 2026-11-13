@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261113T183455Z-product-esc-builder-controls",
+  "reason": "Publish validated Product ESC Table card identity, item add/delete and visual swap controls for Marine Aqua homepage",
+  "source_sha": "d79e13c3cf9a023b7a165eef390fe11b12e2d7fb",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
