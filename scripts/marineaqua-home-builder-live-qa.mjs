@@ -5,8 +5,8 @@ import { mkdir,writeFile } from 'node:fs/promises';
 const WP='https://admin.marine-aqua.io.vn';
 const FRONT='https://marine-aqua.io.vn';
 const ACTIONS='ngocnhanvo/marineaqua-actions';
-const SHA='3f31fdf39226cd713b38d4dcb3b2f1125e731e1a';
-const RELEASE_AT=Date.parse('2026-11-13T17:57:58Z')-15000;
+const SHA='c20902aef19e62281271915afd235e273ac641ce';
+const RELEASE_AT=Date.parse('2026-11-13T18:01:40Z')-15000;
 const DIR='home-builder-live-evidence';
 const report={status:'STARTED',sourceSha:SHA,production:{status:'PENDING'},cms:{status:'NOT_TESTED'},
   public:{status:'NOT_TESTED',views:[]},builder:{status:'NOT_TESTED'},errors:[]};
@@ -108,11 +108,23 @@ async function verifyCmsAndBuilder(){
  try{
   const username=process.env.WP_ADMIN_USERNAME,password=process.env.WP_ADMIN_PASSWORD;
   assert.ok(username&&password,'WordPress admin QA credentials unavailable');
-  await page.goto(WP+'/wp-login.php',{waitUntil:'domcontentloaded',timeout:45000});
-  await page.locator('#user_login').fill(username);
-  await page.locator('#user_pass').fill(password);
-  await page.locator('#wp-submit').click({timeout:20000});
-  assert.ok(!page.url().includes('wp-login.php'),'WordPress session failed');
+  // Do not bypass WordPress permissions. A transient login-page redirect
+  // can occur during concurrent site activity, so retry the native login.
+  let loggedIn=false;
+  const attempts=[];
+  for(let attempt=1;attempt<=3&&!loggedIn;attempt++){
+    await page.goto(WP+'/wp-login.php',{waitUntil:'domcontentloaded',timeout:45000});
+    await page.locator('#user_login').fill(username);
+    await page.locator('#user_pass').fill(password);
+    await page.locator('#wp-submit').click({timeout:25000});
+    await page.waitForLoadState('domcontentloaded',{timeout:15000}).catch(()=>{});
+    loggedIn=!page.url().includes('wp-login.php')&&
+      (await page.locator('#wpadminbar').count())>0;
+    attempts.push({attempt,authenticated:loggedIn,path:new URL(page.url()).pathname});
+    if(!loggedIn&&attempt<3)await page.waitForTimeout(1500*attempt);
+  }
+  report.cms.loginAttempts=attempts;
+  assert.ok(loggedIn,'WordPress session failed after native login retries');
   const res=await ctx.request.get(WP+'/wp-json/tablepress/v1/table/home_00',{timeout:30000});
   assert.equal(res.status(),200,'ESC Table unavailable after deployment');
   const data=await res.json();
