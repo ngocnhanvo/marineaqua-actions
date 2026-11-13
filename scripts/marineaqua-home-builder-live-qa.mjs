@@ -183,11 +183,14 @@ async function verifyCmsAndBuilder(){
   await brand.click({timeout:16000});
   await page.locator('#esc-vb-edit-title').waitFor({state:'visible',timeout:20000});
   const brandValue=(await brand.innerText()).trim();
-  await page.waitForFunction((expected)=>{
-    const value=document.querySelector('#esc-vb-edit-title')?.value||'';
-    return value.trim()===expected;
-  },brandValue,{timeout:22000});
+  await page.waitForTimeout(2200);
   report.builder.productTitleText=brandValue;
+  report.builder.productTitleEditorValue=await page.locator('#esc-vb-edit-title').inputValue();
+  report.builder.productTitleRow=await page.locator('#esc-vb-edit-row').inputValue().catch(()=>null);
+  report.builder.productTitleFeedback=await page.locator('#esc-vb-edit-feedback').innerText().catch(()=>null);
+  report.builder.productTitleCaption=await page.locator('#esc-vb-edit-caption').innerText().catch(()=>null);
+  report.builder.productTitlePageTail=(await page.locator('body').innerText()).slice(-1300);
+  assert.equal(report.builder.productTitleEditorValue.trim(),brandValue,'Product section title did not map to its WordPress source');
   report.builder.productTitleEditable=true;
   report.builder.status='PASS';
  }finally{await ctx.close();}
