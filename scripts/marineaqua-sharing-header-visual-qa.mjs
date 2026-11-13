@@ -25,11 +25,12 @@ try {
      hero:rect(hero),headingBox:rect(h1),searchBox:rect(search),grid:rect(grid),
      topLevelText:[...main?.childNodes||[]].filter(n=>n.nodeType===Node.TEXT_NODE&&n.textContent?.trim()).map(n=>n.textContent.trim().slice(0,120)),
      viewport:innerWidth,document:document.documentElement.scrollWidth,
-     cards:main?.querySelectorAll('#posts-grid a[href]').length||0};
+     cards:main?.querySelectorAll('#posts-grid a[href]').length||0,
+     eyebrowPresent:[...main?.querySelectorAll('p')||[]].some(p=>p.textContent?.trim()==='Góc kiến thức Marine Aqua')};
    });
    const valid=response?.status()===200&&item.heading&&item.h1Count===1&&item.hero&&item.searchBox&&item.grid&&item.cards>0&&
      item.searchBox.y>=item.hero.y+item.hero.height-1&&item.grid.y>=item.searchBox.y&&
-     item.headingBox.x>=10&&item.document<=item.viewport+2&&!item.topLevelText.length;
+     item.headingBox.x>=10&&item.document<=item.viewport+2&&!item.topLevelText.length&&!item.eyebrowPresent;
    const row={viewport:viewport.name,slug,http:response?.status(),...item,pass:Boolean(valid)};
    results.checks.push(row);
    if(!valid)results.errors.push({viewport:viewport.name,slug,reason:'archive-hero-layout',row});
