@@ -32,7 +32,10 @@ try{
       canSet:Boolean(tp?.editor?.setValueFromCoords),
       firstRow:Array.isArray(tp?.table?.data?.[0])?tp.table.data[0].map(x=>String(x||'').slice(0,90)):[],
       tableActions:Object.keys(tp?.table||{}).filter(key=>/row|col|data/i.test(key)).slice(0,40),
-      editorActions:Object.keys(tp?.editor||{}).filter(key=>/row|col|insert|delete|save/i.test(key)).slice(0,40)};
+      editorActions:Object.keys(tp?.editor||{}).filter(key=>/row|col|insert|delete|save/i.test(key)).slice(0,40),
+      insertColumnSignature:String(tp?.editor?.insertColumn||'').slice(0,2200),
+      getSelectedColumnsSignature:String(tp?.editor?.getSelectedColumns||'').slice(0,1400),
+      tableControls:[...document.querySelectorAll('button')].filter(el=>/Insert|Delete/i.test(el.textContent||'')).map(el=>({text:el.textContent?.trim(),outer:el.outerHTML.slice(0,500)})).slice(0,10)};
   });
   await page.screenshot({path:DIR+'/home00-editor.png',fullPage:false});
   await page.goto(WP+'/wp-admin/edit.php?post_type=page&page=esc-visual-builder&esc_vb_page=82454',
