@@ -1,3 +1,4 @@
+// Postdeployment layout verification for canonical run 43358461460.
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
 const OUT='sharing-unified-toolbar-evidence',SITE='https://marine-aqua.io.vn';
