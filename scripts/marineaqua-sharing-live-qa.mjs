@@ -64,7 +64,7 @@ try{
    const r=await article.goto(HOST+'/'+slug,{waitUntil:'domcontentloaded',timeout:60000});
    const detail=await article.evaluate(mobile=>{
     const root=document.querySelector(mobile?'#mobile-menu-container':'#desktop-menu');
-    const sharing=[...root?.querySelectorAll('button')||[]].find(b=>b.textContent?.replace(/\\s+/g,' ').trim()==='Chia sẻ');
+    const sharing=[...root?.querySelectorAll('button')||[]].find(b=>b.textContent?.replace(/\s+/g,' ').trim()==='Chia sẻ');
     return {h1:document.querySelector('main h1')?.textContent?.trim()||'',textLength:(document.querySelector('main')?.textContent||'').trim().length,
       sharingFound:Boolean(sharing),sharingActive:Boolean(sharing?.classList.contains('text-[#0B5FA5]')||sharing?.querySelector('.is-active')),
       documentWidth:document.documentElement.scrollWidth};
