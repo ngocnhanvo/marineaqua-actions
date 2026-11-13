@@ -121,8 +121,15 @@ try{
   await page.locator('#esc-vb-item-sort-open').click();
   await page.locator('#esc-vb-item-sort-body').waitFor({state:'visible',timeout:15000});
   await cards.first().waitFor({state:'visible',timeout:15000});
-  await page.waitForTimeout(900);
-  assert.equal(await cards.first().getAttribute('data-esc-vb-item-source'),'','Red source not selected on Product card');
+  await frame.locator('[data-esc-vb-item-source][data-esc-builder-product-id="'+originalIds[0]+'"]')
+    .waitFor({state:'attached',timeout:28000}).catch(()=>{});
+  report.builder.sortStatus=await page.locator('#esc-vb-item-sort-status').innerText().catch(()=>null);
+  report.builder.sortSourceText=await page.locator('#esc-vb-item-sort-source').innerText().catch(()=>null);
+  report.builder.sortFallbackVisible=await page.locator('#esc-vb-item-sort-preview-list').isVisible().catch(()=>null);
+  assert.equal(await cards.first().getAttribute('data-esc-vb-item-source'),'',
+    'Red source not selected; '+JSON.stringify({
+      status:report.builder.sortStatus,source:report.builder.sortSourceText,
+      fallback:report.builder.sortFallbackVisible}));
   assert.equal(await page.locator('#esc-vb-item-sort-preview-list').isVisible(),false,'Unexpected fallback ID list while cards are visible');
   await cards.nth(1).click({position:{x:45,y:40},timeout:18000});
   await page.waitForFunction(()=>!document.querySelector('#esc-vb-item-sort-save')?.disabled,null,{timeout:15000});
