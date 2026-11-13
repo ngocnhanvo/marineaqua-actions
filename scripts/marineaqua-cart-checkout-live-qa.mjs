@@ -6,7 +6,7 @@ const HOST = 'https://marine-aqua.io.vn';
 const DIR = 'cart-checkout-evidence';
 const STORAGE_KEY = 'esc-cart-storage';
 const args = process.argv.slice(2);
-assert.ok(args.length === 0 || (args.length === 1 && ['--scope=shipping-fee', '--scope=account-cart'].includes(args[0])), 'Supported scopes: shipping-fee, account-cart; omit the flag for the full suite');
+assert.ok(args.length === 0 || (args.length === 1 && ['--scope=shipping-fee', '--scope=account-cart', '--scope=checkout-readiness'].includes(args[0])), 'Supported scopes: shipping-fee, account-cart, checkout-readiness; omit the flag for the full suite');
 const QA_SCOPE = args.length ? args[0].split('=')[1] : 'full';
 const RESPONSE_TIMEOUT = 40000;
 const DOM_TIMEOUT = 15000;
@@ -653,6 +653,106 @@ async function accountCartQA(page, scope, saved) {
   assert.ok(scope.auth.records.every(record => record.simulated === true), 'Authentication request escaped browser mocks');
   report.checks.push({ type: 'account-cart-safety', viewport: scope.name, authSimulationOnly: true, checkoutPosts: 0, orderRequests: 0, realOrders: 0, ok: true });
 }
+async function installCheckoutReadinessGuard(scope) {
+  scope.readiness = { blocked: [], documentRequests: 0 };
+  await scope.context.route('**/*', async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const method = request.method();
+    const sensitivePath = /^\/api\/(?:user|orders?|cart)(?:\/|$)/.test(url.pathname) ||
+      /^\/wp-json\/.*\/(?:login|logout|users?|customers?|orders?)(?:\/|$)/.test(url.pathname);
+    const checkoutDocument = request.isNavigationRequest() && url.origin === HOST && url.pathname.replace(/\/+$/, '') === '/thanh-toan';
+    if (checkoutDocument) scope.readiness.documentRequests++;
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(method) || sensitivePath ||
+        (checkoutDocument && (url.search || scope.readiness.documentRequests > 2))) {
+      const blocked = { method, url: safeUrl(url.href) };
+      scope.readiness.blocked.push(blocked);
+      report.errors.push('Read-only payment QA blocked an unexpected request: ' + method + ' ' + blocked.url);
+      await route.abort('blockedbyclient');
+      return;
+    }
+    await route.fallback();
+  });
+}
+async function checkoutPaymentSnapshot(page, attempt) {
+  await page.locator('#checkout-form').waitFor({ state: 'visible' });
+  await page.locator('#checkout-cart-container [role="status"]').waitFor({ state: 'visible' });
+  const snapshot = await page.locator('#checkout-form').evaluate(form => {
+    const norm = value => String(value || '').normalize('NFC').replace(/\s+/g, ' ').trim();
+    const visible = element => Boolean(element && element.getClientRects().length && getComputedStyle(element).visibility !== 'hidden');
+    const messages = JSON.parse(form.dataset.checkoutMessages || '{}');
+    const section = document.querySelector('#checkout-cart-container + div');
+    const warningText = norm(messages.payment_unavailable);
+    const warnings = [...(section?.querySelectorAll('[role="status"]') || [])].filter(element => norm(element.textContent) === warningText);
+    const serverCart = JSON.parse(document.querySelector('#checkout-data-bridge')?.getAttribute('data-cart') || 'null');
+    return {
+      methods: JSON.parse(form.dataset.paymentMethods || 'null'),
+      radios: [...form.querySelectorAll('input[name="payment_method"]')].map(input => ({
+        id: input.value, title: norm(input.closest('label')?.textContent),
+        visible: visible(input), enabled: input.matches(':enabled'), checked: input.checked,
+      })),
+      paymentSectionPresent: Boolean(section?.querySelector('h4')),
+      warningLabelPresent: Boolean(warningText),
+      warningCount: warnings.length,
+      visibleWarnings: warnings.filter(visible).length,
+      cartUnavailable: form.dataset.cartUnavailable !== 'false',
+      builderPreview: form.dataset.builderPreview !== 'false',
+      serverCartKeyPresent: Boolean(serverCart?.cart_key),
+      serverCartItems: Array.isArray(serverCart?.items) ? serverCart.items.length : 0,
+      emptyCartVisible: [...form.querySelectorAll('#checkout-cart-container [role="status"]')].some(element => visible(element) && norm(element.textContent) === norm(messages.cart_empty)),
+      submitDisabled: form.querySelector('#submit-checkout-btn')?.disabled === true,
+    };
+  });
+  const navigation = report.navigation.at(-1);
+  Object.assign(snapshot, { attempt, http: navigation?.http, responseMs: navigation?.responseMs, elapsedMs: navigation?.elapsedMs });
+  report.paymentConfiguration.attempts.push(snapshot);
+  assert.ok(Array.isArray(snapshot.methods) && snapshot.methods.every(id => typeof id === 'string' && /^[a-zA-Z0-9_-]{1,80}$/.test(id)), 'Payment metadata must be an array of public gateway IDs');
+  assert.equal(new Set(snapshot.methods).size, snapshot.methods.length, 'Payment gateway IDs are duplicated');
+  assert.ok(snapshot.paymentSectionPresent && snapshot.warningLabelPresent, 'Payment section or localized unavailable label is missing');
+  assert.equal(snapshot.cartUnavailable, false, 'Empty-cart visit unexpectedly reports a cart-service failure');
+  assert.equal(snapshot.builderPreview, false, 'Payment readiness must use the production page');
+  assert.equal(snapshot.serverCartKeyPresent, false, 'Read-only payment QA must not use a server cart');
+  assert.equal(snapshot.serverCartItems, 0, 'Read-only payment QA must have no server cart items');
+  assert.ok(snapshot.emptyCartVisible && snapshot.submitDisabled, 'Empty-cart UI must remain visible and submission disabled');
+  const controlsMatch = snapshot.radios.length === snapshot.methods.length && snapshot.radios.every((radio, index) =>
+    radio.id === snapshot.methods[index] && radio.title && radio.visible && radio.enabled);
+  snapshot.ready = snapshot.methods.length > 0 && controlsMatch && snapshot.radios.filter(radio => radio.checked).length === 1 && snapshot.visibleWarnings === 0;
+  snapshot.coherentUnavailable = snapshot.methods.length === 0 && snapshot.radios.length === 0 && snapshot.warningCount === 1 && snapshot.visibleWarnings === 1;
+  snapshot.state = snapshot.ready ? 'READY' : snapshot.coherentUnavailable ? 'UNAVAILABLE' : 'INCONSISTENT';
+  console.log('MARINEAQUA_PAYMENT_CONFIGURATION', safeJson(snapshot));
+  await screenshot(page, scopeScreenshot(attempt));
+  const sectionName = scopeScreenshot(attempt).replace('.png', '-payment-section.png');
+  await page.locator('#checkout-cart-container + div').screenshot({ path: DIR + '/' + sectionName, animations: 'disabled', timeout: 5000 });
+  report.screenshots.push(sectionName);
+  return snapshot;
+}
+const scopeScreenshot = attempt => 'mobile-checkout-readiness-' + attempt + '.png';
+async function checkoutReadinessQA(page, scope) {
+  report.paymentConfiguration = {
+    purpose: 'payment-configuration-only; empty cart; no order-readiness claim',
+    viewport: scope.name, readOnly: true, maxFreshGetRetries: 1, retryUsed: false, outcome: 'STARTED', attempts: [],
+  };
+  await navigate(page, HOST + '/thanh-toan', scope.name + '-payment-configuration-initial');
+  const initial = await checkoutPaymentSnapshot(page, 'initial');
+  let final = initial;
+  // These options are server-rendered. Only the explicit unavailable state
+  // permits one fresh GET; a UI mismatch or navigation failure is never retried.
+  if (initial.coherentUnavailable) {
+    report.paymentConfiguration.retryUsed = true;
+    await navigate(page, HOST + '/thanh-toan', scope.name + '-payment-configuration-fresh-get');
+    final = await checkoutPaymentSnapshot(page, 'fresh-get');
+  }
+  report.paymentConfiguration.outcome = initial.ready ? 'FIRST_GET_READY' :
+    final.ready ? 'RECOVERED_AFTER_FRESH_GET' : final.coherentUnavailable ? 'STILL_UNAVAILABLE' : 'INCONSISTENT';
+  assert.equal(final.ready, true, 'Mobile payment configuration is not ready: ' + report.paymentConfiguration.outcome);
+  assert.equal(scope.readiness.documentRequests, report.paymentConfiguration.attempts.length, 'Unexpected checkout document navigation occurred');
+  assert.equal(scope.readiness.blocked.length, 0, 'A mutation, auth, order or cart request was blocked');
+  assert.equal(scope.mock.records.length, 0, 'Read-only payment QA attempted checkout');
+  const saved = await state(page);
+  assert.ok(!saved?.cartKey && !(saved?.items?.length) && scope.carts.size === 0, 'Read-only payment QA unexpectedly created a cart');
+  report.checks.push({ type: 'checkout-payment-configuration-readiness', viewport: scope.name, outcome: report.paymentConfiguration.outcome, firstGetReady: initial.ready, finalReady: true, freshGetRetries: Number(report.paymentConfiguration.retryUsed), methods: final.methods, visibleEnabledControls: final.radios.length, unavailableWarningVisible: false, emptyCartSubmitDisabled: true, ok: true });
+  report.checks.push({ type: 'checkout-readiness-read-only', viewport: scope.name, cartMutations: 0, authenticationRequests: 0, orderRequests: 0, checkoutPosts: 0, realOrders: 0, ok: true });
+}
 async function fillValidGuestForm(page) {
   for (const [name, value] of Object.entries(VALID_BILLING)) {
     privateValues.add(value);
@@ -799,8 +899,8 @@ async function cleanup(scope) {
 await mkdir(DIR, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 try {
-  for (const viewport of [{ name: 'desktop', width: 1366, height: 900 }, { name: 'mobile', width: 390, height: 844 }]) {
-    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, serviceWorkers: 'block' });
+  for (const viewport of [{ name: 'desktop', width: 1366, height: 900 }, { name: 'mobile', width: 390, height: 844 }].filter(viewport => QA_SCOPE !== 'checkout-readiness' || viewport.name === 'mobile')) {
+    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, serviceWorkers: 'block', ...(QA_SCOPE === 'checkout-readiness' ? { isMobile: true, hasTouch: true } : {}) });
     const page = await context.newPage();
     page.setDefaultTimeout(DOM_TIMEOUT);
     const scope = { name: viewport.name, context, page, carts: new Map(), mock: { records: [], expected: false, status: 422, held: Promise.resolve(), release: () => {}, dialogs: 0 } };
@@ -821,6 +921,7 @@ try {
       await route.fulfill({ status: mockHttp, contentType: 'application/json', headers: { 'Cache-Control': 'no-store' }, body: JSON.stringify({ ok: false, msg: marker }) });
     });
     if (QA_SCOPE === 'account-cart') await installAccountGuards(scope);
+    if (QA_SCOPE === 'checkout-readiness') await installCheckoutReadinessGuard(scope);
     page.on('response', response => {
       const request = response.request();
       const url = safeUrl(response.url());
@@ -836,6 +937,9 @@ try {
       await dialog.dismiss();
     });
     try {
+      if (QA_SCOPE === 'checkout-readiness') {
+        await checkoutReadinessQA(page, scope);
+      } else {
       if (QA_SCOPE === 'account-cart') await accountUiQA(page, scope);
       await navigate(page, HOST + '/san-pham/korallen-zucht', viewport.name + '-product-archive');
       const productUrl = await selectSimpleProduct(page, viewport.name);
@@ -905,6 +1009,7 @@ try {
       assert.equal((await readCart(context, bought.cartKey)).items.length, 1, 'Buy now did not retain its server cart');
       report.checks.push({ type: 'buy-now', viewport: viewport.name, cartKeyRetained: true, realOrders: 0, ok: true });
       }
+      }
       assert.equal(report.errors.length, 0, 'Unexpected browser/checkout errors occurred');
     } catch (error) {
       report.status = 'FAIL';
@@ -914,7 +1019,16 @@ try {
       catch (screenshotError) { report.screenshots.push({ error: redact(screenshotError?.message || screenshotError).slice(0, 300) }); }
       throw error;
     } finally {
-      await cleanup(scope);
+      if (QA_SCOPE === 'checkout-readiness') {
+        const remaining = await state(page).catch(() => null);
+        const empty = !remaining?.cartKey && !(remaining?.items?.length) && scope.carts.size === 0;
+        report.cleanup.push({ viewport: scope.name, readOnly: true, createdCarts: 0, mutations: 0, remainingItems: remaining?.items?.length || 0, ok: empty });
+        if (!empty) {
+          report.errors.push('Read-only payment QA unexpectedly retained cart state; no deletion was attempted');
+          report.status = 'FAIL';
+          process.exitCode = 1;
+        }
+      } else await cleanup(scope);
       await context.close();
     }
     if (report.status === 'FAIL') throw Error('Transient cart cleanup failed');
