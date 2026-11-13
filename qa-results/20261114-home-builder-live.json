@@ -1,17 +1,33 @@
 {
   "status": "FAIL",
-  "sourceSha": "3f31fdf39226cd713b38d4dcb3b2f1125e731e1a",
+  "sourceSha": "c20902aef19e62281271915afd235e273ac641ce",
   "production": {
     "status": "PASS",
-    "run_id": 43478024878,
-    "url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43478024878",
+    "run_id": 43478892728,
+    "url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43478892728",
     "attempt": 1,
     "conclusion": "success",
     "signedActivation": true,
     "sourceVerified": true
   },
   "cms": {
-    "status": "NOT_TESTED"
+    "status": "PASS",
+    "table": "home_00",
+    "itemCount": 4,
+    "fields": [
+      "title",
+      "image",
+      "link",
+      "mobile",
+      "eyebrow",
+      "heading",
+      "heading_emphasis",
+      "description",
+      "cta_text",
+      "cta_url",
+      "footnote"
+    ],
+    "source": "WordPress native TablePress REST"
   },
   "public": {
     "status": "PASS",
@@ -47,12 +63,23 @@
     ]
   },
   "builder": {
-    "status": "FAIL"
+    "status": "FAIL",
+    "selectedField": "heading",
+    "headingText": "Chạm gần hơn với",
+    "editorVisible": true,
+    "editorValue": "Chạm gần hơn với",
+    "pageSnippet": " lựa dễ dàng hơn cho\nDòng 3 · Nội dung giới thiệu — Thiết bị, vật tư và phụ kiện cho hồ cá cảnh biển — chọn lựa dễ dàng hơn cho\nDòng 4 · Nội dung giới thiệu — Thiết bị, vật tư và phụ kiện cho hồ cá cảnh biển — chọn lựa dễ dàng hơn cho\nDòng 1 · cta_text — Khám phá danh mục\nDòng 2 · cta_text — Khám phá danh mục\nDòng 3 · cta_text — Khám phá danh mục\nDòng 4 · cta_text — Khám phá danh mục\nDòng 1 · cta_url — /san-pham\nDòng 2 · cta_url — /san-pham\nDòng 3 · cta_url — /san-pham\nDòng 4 · cta_url — /san-pham\nDòng 1 · footnote — Marine Aqua • Thiết bị & phụ kiện cá cảnh biển\nDòng 2 · footnote — Marine Aqua • Thiết bị & phụ kiện cá cảnh biển\nDòng 3 · footnote — Marine Aqua • Thiết bị & phụ kiện cá cảnh biển\nDòng 4 · footnote — Marine Aqua • Thiết bị & phụ kiện cá cảnh biển\nDòng 1 · heading\nLưu WordPress\nHủy thay đổi\n\nĐang chỉnh bản nháp. Chỉ lưu khi bấm Lưu WordPress.\n\nChọn chữ trong vùng WordPress Editor để sửa trực tiếp nội dung Page. ESC Table vẫn có trình sửa riêng. Bản xem trước cập nhật tức thì và không tải lại iframe; bản production chỉ đổi sau khi build.\n\nESC Table · Quản lý item\n\nhome_00 · dòng 1\n\n+ Thêm item\nNhân bản item đang chọn\nXóa item đang chọn\n↕ Sắp xếp item\n\n↔ Hoán đổi section",
+    "textFieldSelector": "0:heading",
+    "imageHitPoint": {
+      "x": 442,
+      "y": 90
+    },
+    "imageEditorVisible": true
   },
   "errors": [
-    "BUILDER: WordPress session failed"
+    "BUILDER: page.waitForFunction: Timeout 22000ms exceeded."
   ],
-  "qa_run_id": 43477997590,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43477997590",
-  "recorded_at": "2026-11-13T18:00:14.753Z"
+  "qa_run_id": 43478827338,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43478827338",
+  "recorded_at": "2026-11-13T18:06:28.292Z"
 }
