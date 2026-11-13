@@ -1,0 +1,60 @@
+name: Marine Aqua bind five Header information links
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-header-information-links.mjs'
+      - '.github/workflows/marineaqua-header-information-links.yml'
+permissions:
+  contents: write
+concurrency:
+  group: marineaqua-header-information-links
+  cancel-in-progress: false
+jobs:
+  bind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-header-information-links.mjs
+      - id: bind-menu
+        name: Set only five existing Header links and verify untouched items
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-header-information-links.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-header-information-links-evidence
+          path: header-information-links-evidence/
+          retention-days: 10
+      - name: Persist migration evidence for checkpoint
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          GH_RUN_ID: ${{ github.run_id }}
+          JOB_OUTCOME: ${{ steps.bind-menu.outcome }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,existsSync} from 'node:fs';
+          const file='header-information-links-evidence/result.json';
+          const evidence=existsSync(file)?JSON.parse(readFileSync(file,'utf8')):{status:'NO_EVIDENCE',errors:['No result file']};
+          const record={...evidence,run_id:process.env.GH_RUN_ID,outcome:process.env.JOB_OUTCOME};
+          const endpoint='https://api.github.com/repos/'+process.env.GH_REPO+'/contents/docs/header-information-links-latest.json';
+          const headers={Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'};
+          const old=await fetch(endpoint,{headers}).then(r=>r.ok?r.json():null);
+          const body={message:'Record Header information links '+process.env.GH_RUN_ID,content:Buffer.from(JSON.stringify(record,null,2)+String.fromCharCode(10)).toString('base64'),branch:'main'};
+          if(old?.sha)body.sha=old.sha;
+          const r=await fetch(endpoint,{method:'PUT',headers,body:JSON.stringify(body)});
+          if(!r.ok)throw Error('Evidence write HTTP '+r.status);
+          console.log('HEADER_INFORMATION_LINKS_EVIDENCE='+JSON.stringify({run_id:record.run_id,status:record.status}));
+          NODE
