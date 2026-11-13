@@ -6,7 +6,7 @@ const WP='https://admin.marine-aqua.io.vn';
 const FRONT='https://marine-aqua.io.vn';
 const ACTIONS='ngocnhanvo/marineaqua-actions';
 const SHA='2954c59725a1774ece1da5ef766a114ba93931e9';
-const RELEASE_AT=Date.parse('2026-11-13T17:34:00Z')-15000;
+const RELEASE_AT=Date.parse('2026-11-13T17:32:39Z')-15000;
 const DIR='home-builder-live-evidence';
 const report={status:'STARTED',sourceSha:SHA,production:{status:'PENDING'},cms:{status:'NOT_TESTED'},
   public:{status:'NOT_TESTED',views:[]},builder:{status:'NOT_TESTED'},errors:[]};
