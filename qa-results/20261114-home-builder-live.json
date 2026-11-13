@@ -2,11 +2,11 @@
   "status": "FAIL",
   "sourceSha": "6f713e284a18f576e6463891b196ecfaff8cc508",
   "production": {
-    "status": "FAIL",
+    "status": "PASS",
     "run_id": 43475503614,
     "url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43475503614",
     "attempt": 1,
-    "conclusion": null,
+    "conclusion": "success",
     "signedActivation": true,
     "sourceVerified": true
   },
@@ -68,13 +68,13 @@
     "headingText": "Chạm gần hơn với",
     "editorVisible": true,
     "editorValue": "",
-    "pageSnippet": " hàng tại nhà\nHướng dẫn mua hàng ở xa\nPhí ship hàng\nChính sách đổi trả hàng\nTin kiến thức\nLiên hệ\nSản phẩm\nTrang chủ\nMở trang\nGiao diện:\nDesktop\nMobile\n\nBuilder tải dữ liệu mới nhất từ WordPress. Bấm vào chữ hoặc hình ảnh trong trang xem trước để chỉnh sửa. Thay đổi hiển thị ngay trong Builder; chỉ ghi vào WordPress khi bấm Lưu WordPress. Kiểm tra hoặc làm mới section không kích hoạt build.\n\nSection đang chọn\n\nhome_00 · Chạm gần hơn với thế giới san hô.\n\nXem thông tin kỹ thuật (JSON)\nLàm mới section từ WordPress\nKiểm tra thay đổi\nLàm mới tất cả (0)\n\nBuilder đã kiểm tra WordPress: 6 ESC Table có dữ liệu mới nhất.\n\n2 nguồn đang chờ build. ESC Table: 145, khuyen_mai_01, home_00 (chỉ làm mới khi bấm nút)\n\nChỉnh sửa chữ trực quan\n\nESC Table home_00 · đang đọc dữ liệu WordPress...\n\nDòng nội dung\nTiêu đề (title)\nLưu WordPress\nHủy thay đổi\n\nChọn chữ trong vùng WordPress Editor để sửa trực tiếp nội dung Page. ESC Table vẫn có trình sửa riêng. Bản xem trước cập nhật tức thì và không tải lại iframe; bản production chỉ đổi sau khi build.\n\nESC Table · Quản lý item\n\nhome_00 · chọn item để nhân bản hoặc xóa\n\n+ Thêm item\nNhân bản item đang chọn\nXóa item đang chọn\n↕ Sắp xếp item\n\n↔ Hoán đổi section"
+    "pageSnippet": " cho hồ cá cảnh biển — chọn lựa dễ dàng hơn cho\nDòng 4 · Nội dung giới thiệu — Thiết bị, vật tư và phụ kiện cho hồ cá cảnh biển — chọn lựa dễ dàng hơn cho\nDòng 1 · cta_text — Khám phá danh mục\nDòng 2 · cta_text — Khám phá danh mục\nDòng 3 · cta_text — Khám phá danh mục\nDòng 4 · cta_text — Khám phá danh mục\nDòng 1 · cta_url — /san-pham\nDòng 2 · cta_url — /san-pham\nDòng 3 · cta_url — /san-pham\nDòng 4 · cta_url — /san-pham\nDòng 1 · footnote — Marine Aqua • Thiết bị & phụ kiện cá cảnh biển\nDòng 2 · footnote — Marine Aqua • Thiết bị & phụ kiện cá cảnh biển\nDòng 3 · footnote — Marine Aqua • Thiết bị & phụ kiện cá cảnh biển\nDòng 4 · footnote — Marine Aqua • Thiết bị & phụ kiện cá cảnh biển\nChưa có chữ có thể chỉnh sửa\nLưu WordPress\nHủy thay đổi\n\nKhông có tọa độ ESC Table hợp lệ cho chữ này. Hãy làm mới preview hoặc sửa trực tiếp ESC Table.\n\nChọn chữ trong vùng WordPress Editor để sửa trực tiếp nội dung Page. ESC Table vẫn có trình sửa riêng. Bản xem trước cập nhật tức thì và không tải lại iframe; bản production chỉ đổi sau khi build.\n\nESC Table · Quản lý item\n\nhome_00 · chọn item để nhân bản hoặc xóa\n\n+ Thêm item\nNhân bản item đang chọn\nXóa item đang chọn\n↕ Sắp xếp item\n\n↔ Hoán đổi section",
+    "textFieldSelector": ""
   },
   "errors": [
-    "PRODUCTION: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'in_progress'\n- 'completed'\n",
     "BUILDER: Builder picked wrong field content\n+ actual - expected\n\n+ ''\n- 'Chạm gần hơn với'\n"
   ],
-  "qa_run_id": 43475488802,
-  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43475488802",
-  "recorded_at": "2026-11-13T17:45:15.329Z"
+  "qa_run_id": 43475987192,
+  "qa_url": "https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43475987192",
+  "recorded_at": "2026-11-13T17:47:20.151Z"
 }
