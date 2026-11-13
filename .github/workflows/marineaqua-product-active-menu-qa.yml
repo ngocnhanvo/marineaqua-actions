@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   verify:
-    if: github.repository == 'ngocnhanvo/marineaqua-actions' && github.event.workflow_run.conclusion == 'success'
+    if: github.repository == 'ngocnhanvo/marineaqua-actions' && (github.event_name == 'push' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
