@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "e484ba9cdf5f4c82eb2bd254de9c9b08d0a6df5f",
+  "reason": "Pass canonical public path to desktop and mobile Header for sharing active submenu",
+  "request_id": "20261113T042700Z-header-active-public-url",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
