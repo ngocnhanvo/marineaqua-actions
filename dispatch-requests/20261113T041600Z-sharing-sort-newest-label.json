@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "0bfe3d696356525fe4570a1603acf9a28857f10a",
+  "reason": "Rename article listing default sort option from Mặc định to Mới nhất",
+  "request_id": "20261113T041600Z-sharing-sort-newest-label",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
