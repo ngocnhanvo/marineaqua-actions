@@ -1,0 +1,72 @@
+name: Marine Aqua dispatch existing PHP release for product headings
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-product-heading-php-launch.yml'
+permissions:
+  contents: write
+  actions: write
+jobs:
+  launch:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 17
+    steps:
+      - name: Verify exact PHP master and dispatch existing PHP-only release
+        uses: actions/github-script@v7
+        env:
+          SOURCE_REPO_PAT: ${{ secrets.SOURCE_REPO_PAT }}
+        with:
+          script: |
+            const owner=context.repo.owner,repo=context.repo.repo;
+            const expected='94388d16a37f632c376cf2358fb38ba452f0afb8';
+            const path='qa-results/20261114-product-heading-php-release.json';
+            const results={source_repo:'ngocnhanvo/marineaqua-php',source_sha:expected,
+              target:'marineaqua-php-release.yml',trigger:'workflow_dispatch',
+              status:'STARTED',checks:[],errors:[]};
+            let failure=null;
+            try {
+              if(!process.env.SOURCE_REPO_PAT)throw Error('SOURCE_REPO_PAT is not configured');
+              const source=await github.request('GET /repos/ngocnhanvo/marineaqua-php/branches/master',{
+                headers:{authorization:'Bearer '+process.env.SOURCE_REPO_PAT}});
+              if(source.data.commit.sha!==expected)throw Error('PHP master has moved; refusing unexpected release');
+              results.checks.push('Exact PHP master SHA verified');
+              const existing=await github.rest.actions.listWorkflowRuns({owner,repo,
+                workflow_id:'marineaqua-php-release.yml',per_page:12});
+              if(existing.data.workflow_runs.some(r=>r.status!=='completed'))
+                throw Error('Another PHP release already in progress; not dispatching duplicate');
+              const created=Date.now();
+              await github.rest.actions.createWorkflowDispatch({owner,repo,
+                workflow_id:'marineaqua-php-release.yml',ref:'main',inputs:{confirm:'DEPLOY_PHP'}});
+              results.status='TRIGGERED';results.checks.push('Called existing manual PHP release, not another deploy pipeline');
+              let run=null;
+              for(let i=0;i<30;i++){
+                await new Promise(resolve=>setTimeout(resolve,4000));
+                const found=await github.rest.actions.listWorkflowRuns({owner,repo,
+                  workflow_id:'marineaqua-php-release.yml',per_page:15});
+                run=found.data.workflow_runs.find(r=>r.event==='workflow_dispatch'&&Date.parse(r.created_at)>=created-10000);
+                if(run)break;
+              }
+              if(!run)throw Error('PHP release dispatch not visible');
+              results.run_id=run.id;results.run_url=run.html_url;
+              for(let i=0;i<85 && run.status!=='completed';i++){
+                await new Promise(resolve=>setTimeout(resolve,10000));
+                run=(await github.rest.actions.getWorkflowRun({owner,repo,run_id:run.id})).data;
+              }
+              results.conclusion=run.conclusion;results.status=run.conclusion==='success'?'PASS':'FAIL';
+              if(results.status!=='PASS')throw Error('Existing PHP release did not succeed: '+run.status+'/'+run.conclusion);
+              const jobs=await github.rest.actions.listJobsForWorkflowRun({owner,repo,run_id:run.id,per_page:50});
+              if(!jobs.data.jobs.length||jobs.data.jobs.some(j=>j.conclusion!=='success'))
+                throw Error('PHP release has non-success job');
+              results.checks.push('Existing PHP-only FTPS release and readback PASS');
+            }catch(error){failure=error;results.status='FAIL';results.errors.push(String(error.message||error));}
+            results.checked_at=new Date().toISOString();
+            let sha;
+            try{sha=(await github.rest.repos.getContent({owner,repo,path,ref:'main'})).data.sha;}
+            catch(e){if(e.status!==404)throw e;}
+            await github.rest.repos.createOrUpdateFileContents({owner,repo,path,branch:'main',sha,
+              message:'Lưu kết quả phát hành PHP cho tiêu đề section',
+              content:Buffer.from(JSON.stringify(results,null,2)+'\n').toString('base64')});
+            core.info('MARINEAQUA_HEADING_PHP_RELEASE='+JSON.stringify(results));
+            if(failure)throw failure;
