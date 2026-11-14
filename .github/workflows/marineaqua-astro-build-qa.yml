@@ -67,6 +67,15 @@ jobs:
           const commerceCart = read('src/astro/pages/CartPage.astro');
           const commerceDone = read('src/astro/pages/CheckoutDonePage.astro');
           assert.ok(commerceCart.includes('homePage?.slug || ""'));
+          const cartDefaultLabels = [...commerceCart.matchAll(/^\s*([a-z_][a-z0-9_]*): mtlang\?/gm )].map(match => match[1]);
+          const expectedCartLabels = Object.keys(JSON.parse(read('src/data/i18n/cart.json')));
+          assert.deepEqual(new Set(cartDefaultLabels), new Set(expectedCartLabels),
+            'Cart ESC Table must own the same 18 keys as WordPress');
+          const shippingSection = read('src/astro/components/Cart/ShippingFee.astro');
+          assert.ok(commerceCart.includes('basename={basename} labels={t} />'));
+          assert.ok(shippingSection.includes('labels.summary_shipping ??'));
+          assert.ok(shippingSection.includes('labels.summary_shipping_agreement ??'));
+
           assert.ok(commerceDone.includes('<main id="main-content"'));
           assert.ok(commerceDone.includes('t.order_thank_you_desc_1'));
           assert.ok(commerceDone.includes('t.order_thank_you_desc_2'));
