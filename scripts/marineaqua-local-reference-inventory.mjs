@@ -81,8 +81,8 @@ try {
  report.cmsPageCount=allPages.length;
  report.cmsPages=allPages.map(p=>{
   const raw=String(p.content?.raw||p.content?.rendered||'');
-  const ids=[...raw.matchAll(/\\[table\\s+id\\s*=\\s*[\"']?([a-zA-Z0-9_-]+)[\"']?\\s*\\/\\]/gi)].map(m=>m[1]);
-  const native=[...raw.matchAll(/\\[tablepress\\s+id\\s*=\\s*[\"']?([a-zA-Z0-9_-]+)[\"']?[^\\]]*\\]/gi)].map(m=>m[1]);
+  const ids=[...raw.matchAll(/\[table\s+id\s*=\s*[\"']?([a-zA-Z0-9_-]+)[\"']?\s*\/\]/gi)].map(m=>m[1]);
+  const native=[...raw.matchAll(/\[tablepress\s+id\s*=\s*[\"']?([a-zA-Z0-9_-]+)[\"']?[^\]]*\]/gi)].map(m=>m[1]);
   return {id:p.id,slug:p.slug,status:p.status,action:p.acf?.action||'',key:p.acf?.key||'',title:p.title?.raw||p.title?.rendered||'',contentLength:raw.length,shortcodes:[...new Set([...ids,...native])],rawShortcodeCount:ids.length+native.length,hasBuilderSource:ids.length+native.length>0,modified_gmt:p.modified_gmt||''};
  }).sort((a,b)=>a.slug.localeCompare(b.slug));
  report.cmsPageAudit={published:report.cmsPages.filter(p=>p.status==='publish').length,withEscShortcode:report.cmsPages.filter(p=>p.hasBuilderSource).length,withoutEscShortcode:report.cmsPages.filter(p=>!p.hasBuilderSource&&p.status==='publish').map(p=>({id:p.id,slug:p.slug,action:p.action,contentLength:p.contentLength})),sourceTypes:Object.fromEntries(Object.entries(report.sources).map(([k,v])=>[k,v.length]))};
