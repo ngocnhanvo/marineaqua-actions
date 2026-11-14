@@ -1,0 +1,39 @@
+name: Marine Aqua transaction Pages SEO metadata
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-yoast-system-pages.mjs'
+      - '.github/workflows/marineaqua-yoast-system-pages.yml'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-yoast-cms-write
+  cancel-in-progress: false
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-yoast-system-pages.mjs
+      - name: Add transaction-specific metadata and noindex to four system Pages
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-yoast-system-pages.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-system-pages-seo
+          path: yoast-system-pages/
+          retention-days: 14
