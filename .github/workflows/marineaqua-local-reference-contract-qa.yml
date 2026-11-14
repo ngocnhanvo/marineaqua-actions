@@ -1,0 +1,37 @@
+name: Marine Aqua native local reference item contracts (NO DEPLOY)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-local-reference-contract-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  local-reference-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout owner production PHP master
+        uses: actions/checkout@v4
+        with:
+          repository: ngocnhanvo/marineaqua-php
+          ref: master
+          token: ${{ secrets.SOURCE_REPO_PAT }}
+          persist-credentials: false
+      - name: PHP native item mutations and scoped ownership in isolated fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l wp-content/plugins/esc-visual-builder/includes/item-section-ui.php
+          php -l wp-content/plugins/esc-visual-builder/includes/item-sections.php
+          php wp-content/plugins/esc-visual-builder/tests/items-and-sections.test.php
+          php wp-content/plugins/esc-visual-builder/tests/nested-ownership.test.php
+      - name: Verify PHP-rendered item picker JavaScript and ticket authorization
+        shell: bash
+        run: |
+          set -euo pipefail
+          php wp-content/plugins/esc-visual-builder/tests/item-ui-script.test.php > /tmp/marineaqua-local-reference-popup.js
+          node --check /tmp/marineaqua-local-reference-popup.js
+          node wp-content/plugins/esc-visual-builder/tests/item-ui-ticket.test.cjs /tmp/marineaqua-local-reference-popup.js
+          echo 'LOCAL_REFERENCE_CONTRACTS=PASS (isolated fixtures; no WordPress writes)' >> "$GITHUB_STEP_SUMMARY"
