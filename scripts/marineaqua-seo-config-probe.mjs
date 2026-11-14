@@ -74,7 +74,7 @@ try {
     .replace(/&amp;/gi, '&')
     .replace(/&quot;/gi, '"')
     .replace(/&#39;|&apos;/gi, "'")
-    .replace(/\\s+/g, ' ').trim();
+    .replace(/\s+/g, ' ').trim();
   const metaDescription = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)/i)?.[1]
     || html.match(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i)?.[1] || '';
   const jsonLdBlocks = [...html.matchAll(/<script[^>]+type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)]
@@ -98,8 +98,8 @@ try {
             id: row.id, slug: row.slug, status: row.status,
             title: String(row.title?.rendered || ''),
             link: row.link || '',
-            excerpt: String(row.excerpt?.rendered || '').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim().slice(0,500),
-            content: String(row.content?.rendered || '').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim().slice(0,1000)
+            excerpt: String(row.excerpt?.rendered || '').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,500),
+            content: String(row.content?.rendered || '').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,1000)
           }))
         : [];
     } catch (error) {
