@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261114T102100Z-wordpress-api-parallel-cache",
+  "reason": "Verify Pages and Redirects concurrent reads with per-table TablePress cache",
+  "source_sha": "5874f0c8cfda6acceca1de252712014216014959",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
