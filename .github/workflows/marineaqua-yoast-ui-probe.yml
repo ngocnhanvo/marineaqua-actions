@@ -1,0 +1,36 @@
+name: Marine Aqua Yoast SEO editor UI probe (read only)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-yoast-ui-probe.mjs'
+      - '.github/workflows/marineaqua-yoast-ui-probe.yml'
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-yoast-ui-probe.mjs
+      - name: Inspect native Yoast controls without changing WordPress
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-yoast-ui-probe.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-yoast-ui-probe
+          path: yoast-ui-probe/
+          retention-days: 7
