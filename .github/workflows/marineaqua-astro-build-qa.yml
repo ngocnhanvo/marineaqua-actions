@@ -64,6 +64,13 @@ jobs:
           const pagesLoader = read('src/lib/wordpress/pages/index.ts');
           const desktopNav = read('src/astro/components/Menu/Desktop.astro');
           const footer = read('src/astro/components/Layout/Footer.astro');
+          const commerceCart = read('src/astro/pages/CartPage.astro');
+          const commerceDone = read('src/astro/pages/CheckoutDonePage.astro');
+          assert.ok(commerceCart.includes('homePage?.slug || ""'));
+          assert.ok(commerceDone.includes('<main id="main-content"'));
+          assert.ok(commerceDone.includes('t.order_thank_you_desc_1'));
+          assert.ok(commerceDone.includes('t.order_thank_you_desc_2'));
+
           // Prefer the exact CMS knowledge archive over an arbitrary posts Page.
           assert.ok(footer.includes('pop()?.toLowerCase() === "tin-kien-thuc"'));
 
