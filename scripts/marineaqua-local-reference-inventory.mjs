@@ -31,7 +31,18 @@ try {
  const collect=(v)=>Array.isArray(v)?v:Object.values(v||{}).find(Array.isArray)||[];
  let entries=collect(raw);
  if(!entries.length && raw?.tables)entries=collect(raw.tables);
- const ids=[...new Set(entries.map(v=>String(typeof v==='string'||typeof v==='number'?v:v?.id??v?.ID??'')).filter(v=>/^[a-zA-Z0-9_-]{1,80}$/.test(v)))];
+ let ids=[...new Set(entries.map(v=>String(typeof v==='string'||typeof v==='number'?v:v?.id??v?.ID??'')).filter(v=>/^[a-zA-Z0-9_-]{1,80}$/.test(v)))];
+ if(!ids.length){
+  const tablepress=await page.goto(WP+'/wp-admin/admin.php?page=tablepress',{waitUntil:'domcontentloaded',timeout:45000});
+  report.tablepressAdminStatus=tablepress?.status()||0;
+  const discovered=await page.locator('a[href*="table_id="],a[href*="tablepress&action=edit"]').evaluateAll(nodes=>nodes.map(a=>{
+   try{return new URL(a.href).searchParams.get('table_id')||'';}catch{return '';}
+  }));
+  ids=[...new Set(discovered.filter(v=>/^[a-zA-Z0-9_-]{1,80}$/.test(v)))];
+  report.adminTableLinks=discovered.length;
+  report.tablepressAdminTitle=await page.title();
+ }
+ if(!ids.length)throw new Error('No native TablePress table IDs discovered; REST list status '+list.status);
  report.tableCount=ids.length;
  for(const id of ids.slice(0,250)){
    const result=await request('POST','esc-builder/v1/item-schema',{table_id:id});
