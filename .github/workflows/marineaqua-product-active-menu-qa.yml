@@ -1,5 +1,5 @@
 name: Marine Aqua product category active menu live QA
-# Verify every original product category URL plus retired product and tag redirects.
+# Verify every source product category using bounded HTTP redirect checks.
 on:
   push:
     branches: [main]
