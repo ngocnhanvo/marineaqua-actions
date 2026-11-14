@@ -116,8 +116,9 @@ jobs:
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
           const page=readFileSync('src/astro/pages/PostsPage.astro','utf8');
-          assert.match(page, /ExtractHTML page=\{page\} props=\{archiveRouterProps\}/);
-          assert.match(page, /const archiveIntro = String\(page\?\.content/);
+          assert.match(page, /ExtractHTML page=\{archiveRenderPage\} props=\{archiveRouterProps\}/);
+          assert.match(page, /const rawArchiveIntro = String\(page\?\.content/);
+          assert.match(page, /const archiveRenderPage = archiveIntro === page\?\.content/);
           assert.doesNotMatch(page, /archiveSummary|archiveDescription/);
           console.log('POSTS_WORDPRESS_EDITOR_INTRO=PASS');
           NODE
