@@ -1,0 +1,35 @@
+name: Marine Aqua legacy URL inventory (READ ONLY)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-legacy-url-inventory.yml'
+      - 'scripts/marineaqua-legacy-url-inventory.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-legacy-url-inventory
+  cancel-in-progress: false
+jobs:
+  inventory:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate inventory script
+        run: node --check scripts/marineaqua-legacy-url-inventory.mjs
+      - name: Compare old and current public sitemap inventories
+        run: node scripts/marineaqua-legacy-url-inventory.mjs
+      - name: Upload URL mapping and unresolved inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: marineaqua-legacy-url-inventory
+          path: legacy-url-inventory/
+          retention-days: 30
