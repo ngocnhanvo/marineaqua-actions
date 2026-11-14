@@ -365,6 +365,18 @@ for (const [oldPath, oldUrl] of oldByPath) {
     candidates = ['/cat/tin-kien-thuc'];
     titleMatch = 'knowledge-archive-alias';
   }
+  const retiredProductCategoryAliases = {
+    '/san-pham/dung-dich-hieu-chinh-ong-nhom-do-man-continuum-aquatics-usa': 'thiet-bi-do',
+    '/san-pham/muoi-bien-tropic-marin-pro-reef-4-kg-box': 'muoi-bien',
+    '/san-pham/prodibio-stop-ammo-khu-doc-nuoc-hop-30-ong': 'hoa-chat-bo-sung-va-thuoc-dac-tri',
+    '/san-pham/tropic-marin-a-elements-250-ml-khoang-vi-luong-cho-san-ho': 'hoa-chat-bo-sung-va-thuoc-dac-tri',
+    '/san-pham/tropic-marin-all-for-reef-250-ml-dinh-duong-khoang-cho-be-ca-bien': 'tropic-marin',
+  };
+  const retiredCategory = retiredProductCategoryAliases[oldPath];
+  if (candidates.length === 0 && retiredCategory && currentRestRoutes.has('/san-pham/' + retiredCategory)) {
+    candidates = ['/san-pham/' + retiredCategory];
+    titleMatch = 'retired-product-category-alias';
+  }
   if (candidates.length === 0 && oldPath.startsWith('/tu-khoa/') && currentRestRoutes.has('/san-pham')) {
     const tagSlug = oldPath.split('/').filter(Boolean).at(-1);
     candidates = ['/san-pham?q=' + encodeURIComponent(String(tagSlug || '').replace(/-/g, ' '))];
