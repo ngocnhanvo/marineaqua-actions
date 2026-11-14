@@ -1,4 +1,4 @@
-name: Marine Aqua Cart WordPress ESC label Save and Rollback QA
+name: Marine Aqua commerce WordPress ESC label Save and Rollback QA
 on:
   push:
     branches: [main]
@@ -28,14 +28,18 @@ jobs:
       - name: Verify test syntax before any WordPress mutation
         run: node --check scripts/marineaqua-cart-label-save-rollback-qa.mjs
       - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
-      - name: Save one scoped Cart ESC label, native REST readback and guaranteed rollback
+      - name: Save and restore one scoped label in each commerce Page (serial)
         env:
           WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
           WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
-        run: node scripts/marineaqua-cart-label-save-rollback-qa.mjs
+        run: |
+          set -e
+          for target in cart checkout done account; do
+            MARINEAQUA_QA_TARGET="$target" node scripts/marineaqua-cart-label-save-rollback-qa.mjs
+          done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: cart-native-label-save-rollback
+          name: commerce-native-label-save-rollback
           path: artifacts/cart-label-save-rollback/
           retention-days: 14
