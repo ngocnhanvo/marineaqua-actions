@@ -130,6 +130,24 @@ try{
    assert.equal(await page.locator('#esc-vb-edit-row').inputValue(),record.directSourceRow,
      'Direct commerce label did not select its physical ESC row');
    record.directEditable='PASS';
+   if(target.slug==='thanh-toan' || target.slug==='tai-khoan'){
+     const formSelector=target.slug==='thanh-toan'
+       ? '#checkout-form [data-esc-builder-cell-field="label"]:visible'
+       : '#login-form [data-esc-builder-cell-field="label"]:visible';
+     const nested=frame.locator(formSelector);
+     assert.ok((await nested.count())>0,'Nested commerce form labels not selectable');
+     const formLabel=nested.first();
+     record.formLabel=(await formLabel.innerText()).trim();
+     record.formRow=await formLabel.getAttribute('data-esc-builder-cell-row');
+     await formLabel.click({timeout:15000});
+     await page.waitForFunction(expected=>
+       String(document.querySelector('#esc-vb-edit-title')?.value||'').trim()===expected,
+       record.formLabel,{timeout:25000});
+     assert.equal(await page.locator('#esc-vb-edit-row').inputValue(),record.formRow,
+       'Nested form selected wrong native ESC row');
+     record.formDirectEditable='PASS';
+   }
+
    if(target.slug==='dat-hang-thanh-cong'){
      // Preview must render a synthetic success state without real order data.
      record.previewDemoOrder=await frame.locator('main#main-content').innerText();
