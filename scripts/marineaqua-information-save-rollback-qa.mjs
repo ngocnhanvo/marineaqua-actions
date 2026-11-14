@@ -79,32 +79,22 @@ try{
  await inspector.waitFor({state:'visible',timeout:50000});
  const data=await sourceRead();
  const input=page.locator('#esc-vb-edit-title');
- const targets=inspector.locator('h1,h2,h3,h4,p,li').filter({visible:true});
- const n=Math.min(25,await targets.count());
- let display='',selectedRow=null;
- for(let i=0;i<n;i++){
-  try{
-   await targets.nth(i).click({timeout:10000,position:{x:12,y:12}});
-   await page.waitForFunction(()=>String(document.querySelector('#esc-vb-edit-title')?.value||'').trim().length>0,null,{timeout:9000});
-   const rowKey=await page.locator('#esc-vb-edit-row').inputValue();
-   const candidate=data.rows?.find(r=>r.id===rowKey);
-   const value=String(candidate?.title||'');
-   if(!candidate?.editable||value.length<4||value.length>120||/[<>&\[\]\r\n]/.test(value))continue;
-   if((original.split(value).length-1)!==1)continue;
-   const clickedText=String(await targets.nth(i).innerText()).replace(/\s+/g,' ').trim();
-   if(clickedText!==value.replace(/\s+/g,' ').trim())continue;
-   await page.waitForFunction(expected=>
-     String(document.querySelector('#esc-vb-edit-title')?.value||'').replace(/\s+/g,' ').trim()===expected,
-     clickedText,{timeout:8000});
-   if((await input.inputValue()).trim()!==value)continue;
-   display=value;
-   selectedRow=candidate;
-   report.selected_candidate_index=i;
-   break;
-  }catch{continue;}
- }
- assert.ok(selectedRow,'No single-occurrence raw Page text token safe for reversible UI QA');
- selected={id:selectedRow.id,part:selectedRow.part,title:display};
+ // Only use the exact second native paragraph verified by the independent
+ // read-only Page DOM ↔ parent editor ↔ REST manifest run 43560892567.
+ const target=inspector.locator('p').filter({visible:true}).nth(1);
+ const display=(await target.innerText()).replace(/\s+/g,' ').trim();
+ assert.equal(display,'– Bắt đầu từ 8h30 sáng','Target WordPress text changed');
+ const native=data.rows?.find(row=>row.title===display&&row.editable);
+ assert.ok(native && native.id==='0:56','Native token identity changed');
+ assert.equal(original.split(display).length-1,1,'Target no longer unique in raw WordPress HTML');
+ await target.click({timeout:20000,position:{x:15,y:12}});
+ await page.waitForFunction(expected=>
+   String(document.querySelector('#esc-vb-edit-title')?.value||'').replace(/\s+/g,' ').trim()===expected
+   && document.querySelector('#esc-vb-edit-row')?.value==='0:56',
+   display,{timeout:20000});
+ assert.equal((await input.inputValue()).replace(/\s+/g,' ').trim(),display,'Wrong Page Editor input');
+ selected={id:native.id,part:native.part,title:display};
+ report.source_token=native.id;
  marker=' QA'+String(process.env.GITHUB_RUN_ID||'1').replace(/\D/g,'').slice(-12);
  report.source_token=selectedRow.id;
  report.phase='save';
