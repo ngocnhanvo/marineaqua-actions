@@ -33,6 +33,7 @@ FILES = (
     # Enables editing Product ESC Table display names, never API-backed cells.
     "wp-content/plugins/esc-visual-builder/includes/site-config.php",
     "wp-content/plugins/esc-visual-builder/includes/item-manager.php",
+    "wp-content/plugins/esc-visual-builder/includes/item-section-ui.php",
 )
 raw = os.environ.get("FTP_SERVER", "").strip()
 if "://" not in raw:
