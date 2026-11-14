@@ -5,10 +5,18 @@ import {mkdir,writeFile} from 'node:fs/promises';
 // Scoped, real save/readback/restore QA; never writes Product/Order/Account data.
 // A missing cleanup is a HARD FAIL and is recorded for a human to recover.
 const WP='https://admin.marine-aqua.io.vn';
-const TARGET={pageId:83449,table:'cart_semantics_vi',key:'cart_select'};
+const TARGETS={
+ cart:{pageId:83449,table:'cart_semantics_vi',key:'cart_select',count:18},
+ checkout:{pageId:83451,table:'checkout_semantics_vi',key:'billing_title',count:51},
+ done:{pageId:83453,table:'checkout_done_semantics_vi',key:'order_back_home',count:32},
+ account:{pageId:83459,table:'account_semantics_vi',key:'profile_title',count:24},
+};
+const targetName=process.env.MARINEAQUA_QA_TARGET || 'cart';
+const TARGET=TARGETS[targetName];
+assert.ok(TARGET,'Unknown scoped commerce QA target');
 const report={status:'STARTED',target:TARGET,phase:'start',writes:0,cleanup_remaining:null,errors:[]};
 const labelUrl=WP+'/wp-json/tablepress/v1/table/'+TARGET.table;
-const output='artifacts/cart-label-save-rollback';
+const output='artifacts/cart-label-save-rollback/'+targetName;
 await mkdir(output,{recursive:true});
 const browser=await chromium.launch({headless:true});
 let ctx,page,snapshot,original,index,changed,nonce,ticket;
@@ -16,7 +24,7 @@ const extractItem=async()=>{
  const res=await ctx.request.get(labelUrl,{timeout:30000,failOnStatusCode:false});
  assert.equal(res.status(),200,'Source TablePress REST unavailable');
  const data=await res.json();
- assert.ok(Array.isArray(data?.items) && data.items.length===18,'Unexpected native cart label schema');
+ assert.ok(Array.isArray(data?.items) && data.items.length===TARGET.count,'Unexpected native cart label schema');
  return data;
 };
 const checkSame=(a,b)=>JSON.stringify(a?.items)===JSON.stringify(b?.items)
@@ -68,7 +76,7 @@ try{
  index=snapshot.items.findIndex(r=>r.key===TARGET.key);
  assert.ok(index>=0 && Number.isInteger(index),'Required non-sensitive label not found');
  original=String(snapshot.items[index].label||'');
- assert.ok(original.length>0&&original.length<120&&!original.includes('[QA-'),'Unsafe original label');
+ assert.ok(original.length>0&&original.length<120&&!original.includes('[QA-'),'Unsafe original semantic label');
  changed=original+' [QA-'+String(process.env.GITHUB_RUN_ID||'local').replace(/[^0-9]/g,'').slice(0,14)+']';
  report.phase='select';
  const open=await page.goto(WP+'/wp-admin/edit.php?post_type=page&page=esc-visual-builder&esc_vb_page='+TARGET.pageId,
@@ -127,7 +135,7 @@ try{
    report.cleanup_remaining=checkSame(snapshot,final)?0:1;
    if(report.cleanup_remaining!==0)report.errors.push('CLEANUP_FAILED: native ESC Table differs from snapshot');
   }catch(e){report.cleanup_remaining=1;report.errors.push('CLEANUP_FAILED: '+String(e).slice(0,550));}
- }else if(!report.errors.length)report.errors.push('No initial CMS snapshot');
+ }else if(!report.errors.length)report.errors.push('No initial WordPress ESC snapshot');
  report.status=report.errors.length===0&&report.writes>=2&&report.changed_cells===1&&report.cleanup_remaining===0?'PASS':'FAIL';
  report.phase='completed';
  process.exitCode=report.status==='PASS'?0:1;
