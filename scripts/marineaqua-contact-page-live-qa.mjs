@@ -26,6 +26,17 @@ try {
       assert.equal(await main.locator('h1').count(),1,'Exactly one visible contact H1 required');
       assert.equal((await main.locator('h1').textContent()).trim(),'Liên hệ Marine Aqua');
       assert.equal(await main.locator('#contact-details-title').isVisible(),true);
+      // Semantic text must come from the native WordPress Page ESC Table,
+      // with physical row coordinates available to Visual Builder.
+      assert.equal(await main.getAttribute('data-esc-source-table'),'contact_semantics_vi');
+      const semanticCells=main.locator('[data-esc-builder-cell-row][data-esc-builder-cell-field="label"]');
+      assert.ok(await semanticCells.count()>=16,'Contact semantic labels are not bound to ESC Table cells');
+      const cellCoordinates=await semanticCells.evaluateAll(nodes=>nodes.map(node=>({
+        row:node.getAttribute('data-esc-builder-cell-row'),
+        field:node.getAttribute('data-esc-builder-cell-field'),
+      })));
+      assert.ok(cellCoordinates.every(cell=>/^\\d+$/.test(cell.row||'')&&cell.field==='label'),
+        'Contact labels lack stable ESC Table source coordinates');
       const footer=page.locator('#footer-contact-info');
       const full = await main.textContent();
       assert.ok(full.includes('Liên hệ mua hàng đại lý và tuyển dụng'),'Source-backed recruitment section missing');
