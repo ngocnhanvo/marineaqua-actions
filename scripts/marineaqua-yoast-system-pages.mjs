@@ -25,26 +25,20 @@ try{
   const title=page.locator('#yoast-google-preview-title-metabox'),desc=page.locator('#yoast-google-preview-description-metabox');
   await title.waitFor({state:'visible',timeout:25000});await desc.waitFor({state:'visible',timeout:25000});
   await title.fill(p.seoTitle);
-  await page.evaluate(() => {
-    const editor = document.querySelector('#yoast-google-preview-title-metabox');
-    if (editor) editor.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
-    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-  });
-  await page.waitForTimeout(500);
-  await desc.fill(p.description);
-  await page.evaluate(() => {
-    const editor = document.querySelector('#yoast-google-preview-description-metabox');
-    if (editor) editor.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
-    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-  });
+  // DraftJS replaces editor nodes during React state updates. Do not keep
+  // stale locators or force blur between the title and description fields.
+  await page.locator('#yoast-google-preview-description-metabox').fill(p.description);
   await page.waitForFunction(({ title, description }) => {
     const titleField = document.querySelector('#yoast_wpseo_title');
     const descriptionField = document.querySelector('#yoast_wpseo_metadesc');
     return titleField?.value === title && descriptionField?.value === description;
-  }, { title: p.seoTitle, description: p.description }, { timeout: 12000 });
-  const state=await page.evaluate(()=>({title:document.querySelector('#yoast_wpseo_title')?.value||'',description:document.querySelector('#yoast_wpseo_metadesc')?.value||''}));
-  assert.equal(state.title,p.seoTitle,'Yoast title did not bind to native field');
-  assert.equal(state.description,p.description,'Yoast description did not bind to native field');
+  }, { title: p.seoTitle, description: p.description }, { timeout: 15000 });
+  const state = await page.evaluate(() => ({
+    title: document.querySelector('#yoast_wpseo_title')?.value || '',
+    description: document.querySelector('#yoast_wpseo_metadesc')?.value || ''
+  }));
+  assert.equal(state.title, p.seoTitle, 'Yoast title did not bind to native field');
+  assert.equal(state.description, p.description, 'Yoast description did not bind to native field');
   await page.locator('#publish').click({timeout:20000});
   let after=null;const deadline=Date.now()+25000;while(Date.now()<deadline){const res=await ctx.request.get(WP+'/wp-json/wp/v2/pages/'+p.id);if(res.ok()){after=await res.json();if(after.yoast_head_json?.title===p.seoTitle&&after.yoast_head_json?.description===p.description)break;}await page.waitForTimeout(700);}
   assert.ok(after);assert.equal(after.slug,p.slug);assert.equal(after.status,'publish');assert.equal(after.yoast_head_json?.title,p.seoTitle);assert.equal(after.yoast_head_json?.description,p.description);
