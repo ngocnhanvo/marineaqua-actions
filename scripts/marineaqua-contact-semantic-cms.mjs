@@ -134,9 +134,24 @@ try {
      {waitUntil:'domcontentloaded',timeout:45000});
   await page.waitForTimeout(650);
   const textTab=page.locator('#content-html');
-  if(await textTab.count())await textTab.click();
   const textarea=page.locator('#content');
-  await textarea.waitFor({state:'visible',timeout:15000});
+  for(let editorAttempt=0;editorAttempt<4;editorAttempt++){
+    if(await textarea.isVisible())break;
+    if(await textTab.count()){
+      await textTab.click({timeout:12000}).catch(()=>{});
+    }
+    await page.evaluate(()=>{
+      if(window.switchEditors?.go)window.switchEditors.go('content','html');
+    }).catch(()=>{});
+    await page.waitForTimeout(650);
+  }
+  report.editorTab={
+    textTabExists:(await textTab.count())>0,
+    textTabClass:await textTab.getAttribute('class').catch(()=>null),
+    contentVisible:await textarea.isVisible(),
+    quicktagVisible:await page.locator('#qt_content_tablepress_quicktags_button').isVisible().catch(()=>false),
+  };
+  assert.ok(report.editorTab.contentVisible,'WordPress native Text editor remained hidden: '+JSON.stringify(report.editorTab));
   assert.equal(await textarea.inputValue(),precontent,'Page content differs since REST snapshot');
   await textarea.evaluate(el=>{
     window.wpActiveEditor='content';
