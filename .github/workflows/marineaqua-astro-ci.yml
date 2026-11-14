@@ -1,5 +1,5 @@
 name: Marine Aqua Astro source checks Product Builder (NO DEPLOY)
-# Recheck legacy category, retired product and Knowledge archive redirect aliases on Astro master.
+# Recheck legacy category, product-tag search, retired product and archive redirects on Astro master.
 # Regression checks now include redirect-alias and nested brand route Vitest cases.
 on:
   push:
@@ -10,6 +10,7 @@ on:
       - 'scripts/marineaqua-bind-home-products.mjs'
       - 'scripts/redirect-rules.mjs'
       - 'scripts/inject-handler.redirects.test.ts'
+      - 'src/pages/ssr/products/[slug]/[page].astro'
   workflow_dispatch:
 permissions:
   contents: read
