@@ -1,0 +1,39 @@
+name: Marine Aqua trigger official WordPress Build Website
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-wordpress-build-trigger.mjs'
+      - '.github/workflows/marineaqua-wordpress-build-trigger.yml'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-official-wordpress-build
+  cancel-in-progress: false
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-wordpress-build-trigger.mjs
+      - name: Trigger and wait for official WordPress Build Website
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-wordpress-build-trigger.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-wordpress-build-trigger
+          path: wordpress-build-trigger/
+          retention-days: 14
