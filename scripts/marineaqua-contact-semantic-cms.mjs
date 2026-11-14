@@ -73,7 +73,7 @@ try {
  assert.equal(original.acf?.product_lang?.value||original.acf?.product_lang,'vi');
  let precontent=String(original.content?.raw??'');
  const shortcode='[table id='+TABLE+' /]';
- const shortcodeRegex=new RegExp('\\\\[table id='+TABLE+'\\\\s*\\\\/\\\\]','g');
+ const shortcodeRegex=new RegExp('\\[table id='+TABLE+'\\s*\\/\\]','g');
  let already=(precontent.match(shortcodeRegex)||[]).length;
  report.existingShortcodes=already;
  if(already>1){
