@@ -60,6 +60,38 @@ try {
    assert.ok(record.editorValue?.trim(),'Editor field did not bind to WordPress source text');
    record.feedback=(await page.locator('#esc-vb-edit-feedback').innerText().catch(()=>'' )).slice(0,200);
    assert.ok(record.selectable,'Native WordPress Editor selection did not open for '+target.slug);
+   if(target.slug==='thong-bao'){
+    // Read-only end-to-end Page Title: native post_title must be independent
+    // from Page Editor and ESC Table text; Cancel must restore iframe H1.
+    const h1=frame.locator('[data-esc-page-title]');
+    await h1.waitFor({state:'visible',timeout:20000});
+    record.pageH1Before=(await h1.innerText()).trim();
+    await h1.click({timeout:20000});
+    const titleField=page.locator('#esc-vb-page-title-input');
+    await titleField.waitFor({state:'visible',timeout:20000});
+    await page.waitForFunction(()=>
+      Boolean(document.querySelector('#esc-vb-page-title-input')?.value?.trim()),null,{timeout:20000});
+    record.pageTitleValue=await titleField.inputValue();
+    assert.equal(record.pageTitleValue.trim(),record.pageH1Before,
+      'Page Title editor does not match the selected WordPress H1');
+    record.pageTitleCaption=await page.locator('#esc-vb-title-status').innerText();
+    assert.ok(record.pageTitleCaption.includes('/thong-bao'),
+      'Page Title editor did not preserve canonical slug');
+    const draft=record.pageTitleValue+' QA draft only';
+    await titleField.fill(draft);
+    await page.waitForFunction(expected=>
+      document.querySelector('iframe#esc-vb-frame')?.contentDocument
+        ?.querySelector('[data-esc-page-title]')?.textContent===expected,
+      draft,{timeout:12000});
+    assert.equal(await h1.innerText(),draft,'H1 draft did not render in iframe');
+    await page.locator('#esc-vb-page-title-cancel').click();
+    await page.waitForFunction(expected=>
+      document.querySelector('iframe#esc-vb-frame')?.contentDocument
+        ?.querySelector('[data-esc-page-title]')?.textContent===expected,
+      record.pageH1Before,{timeout:12000});
+    assert.equal(await titleField.inputValue(),record.pageTitleValue,'Cancel changed WordPress Page Title');
+    record.pageTitleDraftCancel='PASS';
+   }
    if(target.slug==='thoi-gian-ban-hang'){
     record.tokenSelections=[];
     const scripts=await page.locator('script').allTextContents();
