@@ -1,0 +1,41 @@
+name: Marine Aqua Cart WordPress ESC label Save and Rollback QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-cart-label-save-rollback-qa.yml'
+      - 'scripts/marineaqua-cart-label-save-rollback-qa.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-cart-wordpress-label-save-rollback
+  cancel-in-progress: false
+jobs:
+  qa:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify test syntax before any WordPress mutation
+        run: node --check scripts/marineaqua-cart-label-save-rollback-qa.mjs
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Save one scoped Cart ESC label, native REST readback and guaranteed rollback
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-cart-label-save-rollback-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cart-native-label-save-rollback
+          path: artifacts/cart-label-save-rollback/
+          retention-days: 14
