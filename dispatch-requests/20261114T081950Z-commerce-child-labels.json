@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "1197f27d5588b8bf3d9b53284a46103c578777f1",
+  "reason": "Publish native ESC editing for commerce form, account and shipping labels on four Marine Aqua pages",
+  "request_id": "20261114T081950Z-commerce-child-labels",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
