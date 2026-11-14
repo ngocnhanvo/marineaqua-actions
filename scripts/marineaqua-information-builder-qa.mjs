@@ -47,8 +47,10 @@ try {
    const ui=await page.locator('body').innerText();
    record.editorControls=await page.locator('input,textarea,[contenteditable="true"]')
      .evaluateAll(els=>els.filter(e=>e.getClientRects().length).map(e=>({id:e.id,tag:e.tagName,name:e.getAttribute('name')||'',placeholder:e.getAttribute('placeholder')||''})).slice(-35));
+   await page.waitForFunction(()=>String(document.querySelector('#esc-vb-edit-title')?.value||'').trim().length>0,null,{timeout:25000});
    record.selectable=await page.locator('#esc-vb-edit-title').isVisible().catch(()=>false);
    record.editorValue=record.selectable?await page.locator('#esc-vb-edit-title').inputValue():null;
+   assert.ok(record.editorValue?.trim(),'Editor field did not bind to WordPress source text');
    record.feedback=(await page.locator('#esc-vb-edit-feedback').innerText().catch(()=>'' )).slice(0,200);
    assert.ok(record.selectable,'Native WordPress Editor selection did not open for '+target.slug);
   }catch(e){record.errors.push(String(e).slice(0,500));}
