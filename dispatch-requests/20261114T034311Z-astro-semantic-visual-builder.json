@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261114T034311Z-astro-semantic-visual-builder",
+  "reason": "Release tested Astro commerce semantic ESC Table labels and corrected CMS knowledge footer after PHP Visual Builder deployment",
+  "source_sha": "6c6ac7bfe378ea70910f6a8ad563ac14a378e232",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
