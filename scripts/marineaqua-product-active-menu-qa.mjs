@@ -63,7 +63,7 @@ try {
       assert.equal(sourceCategoryResponse.status,200,
         'Original WordPress product category sitemap must be readable');
       const sourceCategoryXml = await sourceCategoryResponse.text();
-      const sourceCategoryPaths = [...sourceCategoryXml.matchAll(/<loc>\\s*([^<]+?)\\s*<\\/loc>/gi)]
+      const sourceCategoryPaths = [...sourceCategoryXml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)]
         .map(match => new URL(match[1].trim()).pathname)
         .filter(path => path.startsWith('/danh-muc/'));
       assert.ok(sourceCategoryPaths.length >= 30,
