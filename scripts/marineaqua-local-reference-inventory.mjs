@@ -67,6 +67,17 @@ try {
    report.tables.push({id,source:result.body?.source_api||'',status:result.status,code:result.body?.code||''});
  }
  assert.ok(report.tables.some(t=>t.status===200),'No authenticated Builder schema succeeded; first errors '+JSON.stringify(report.tables.slice(0,3)));
+ const pagesResponse=await ctx.request.get(WP+'/wp-json/wp/v2/pages?per_page=100&context=edit',{headers:{'X-WP-Nonce':nonce},timeout:30000,failOnStatusCode:false});
+ report.pagesRestStatus=pagesResponse.status();
+ if(pagesResponse.ok()){
+  const pages=await pagesResponse.json();
+  report.cmsPages=pages.map(p=>({
+   id:p.id,slug:p.slug,action:p.acf?.action||'',key:p.acf?.key||'',
+   title:p.title?.raw||p.title?.rendered||'',
+   contentLength:String(p.content?.raw||p.content?.rendered||'').length,
+   shortcodes:[...String(p.content?.raw||p.content?.rendered||'').matchAll(/\\[table id=([a-zA-Z0-9_-]+)\\s*\\/\\]/g)].map(m=>m[1]),
+  })).filter(p=>/lien-he|san-pham|khuyen-mai|tin-kien-thuc|chinh-sach|thong-bao|huong-dan|thoi-gian|trang-chu/.test(p.slug)).slice(0,50);
+ }
  report.status='PASS';
 } catch(e){report.status='FAIL';report.errors.push(String(e.stack||e).slice(0,1800));process.exitCode=1;}
 finally {await writeFile(OUT+'/result.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_REFERENCE_INVENTORY='+JSON.stringify(report));await browser.close();}
