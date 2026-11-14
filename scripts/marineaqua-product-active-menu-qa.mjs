@@ -69,27 +69,23 @@ try {
       assert.ok(sourceCategoryPaths.length >= 30,
         'Original sitemap should enumerate all product category paths');
       for (const from of sourceCategoryPaths) {
-        let sourceResponse;
-        const capture = response => {
-          if (response.url() === HOST + from && response.request().isNavigationRequest()) {
-            sourceResponse = response;
-          }
-        };
-        page.on('response', capture);
-        const finalResponse = await page.goto(HOST + from, {
-          waitUntil:'domcontentloaded',timeout:60000
+        const sourceResponse = await page.request.get(HOST + from, {
+          maxRedirects:0,timeout:15000
         });
-        page.off('response', capture);
-        const finalUrl = new URL(page.url());
-        const ok = sourceResponse?.status() === 301 &&
-          finalResponse?.status() === 200 &&
-          finalUrl.pathname.startsWith('/san-pham/');
+        const location = sourceResponse.headers()['location'] || '';
+        const destination = location ? new URL(location, HOST) : null;
+        const finalResponse = destination
+          ? await page.request.get(destination.href, { timeout:15000 })
+          : null;
+        const ok = sourceResponse.status() === 301 &&
+          destination?.origin === HOST &&
+          destination.pathname.startsWith('/san-pham/') &&
+          finalResponse?.status() === 200;
         report.checks.push({
           viewport:viewport.name,type:'all-source-product-category-redirect',
-          from,status:sourceResponse?.status(),
-          location:sourceResponse?.headers()['location'],
+          from,status:sourceResponse.status(),location,
           finalStatus:finalResponse?.status(),
-          finalUrl:finalUrl.pathname+finalUrl.search,ok
+          finalUrl:destination ? destination.pathname+destination.search : '',ok
         });
         assert.ok(ok,'Source product category redirect mismatch '+JSON.stringify(report.checks.at(-1)));
       }
