@@ -20,6 +20,8 @@ try{
   assert.equal(await page.locator('#post_name').inputValue(),p.slug,'slug mismatch');
   const before=await ctx.request.get(WP+'/wp-json/wp/v2/pages/'+p.id);assert.equal(before.status(),200);
   const old=await before.json();assert.equal(old.status,'publish');
+  await page.locator('#wpseo_meta').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(1200);
   const title=page.locator('#yoast-google-preview-title-metabox'),desc=page.locator('#yoast-google-preview-description-metabox');
   await title.waitFor({state:'visible',timeout:25000});await desc.waitFor({state:'visible',timeout:25000});
   await title.fill(p.seoTitle);
