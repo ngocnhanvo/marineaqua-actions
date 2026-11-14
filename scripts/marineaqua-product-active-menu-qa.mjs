@@ -21,6 +21,8 @@ try {
       {from:'/san-pham/tropic-marin-a-elements-250-ml-khoang-vi-luong-cho-san-ho',to:'/san-pham/hoa-chat-bo-sung-va-thuoc-dac-tri'},
       {from:'/san-pham/tropic-marin-all-for-reef-250-ml-dinh-duong-khoang-cho-be-ca-bien',to:'/san-pham/tropic-marin'},
       {from:'/bai-viet?utm_source=legacy',to:'/cat/tin-kien-thuc',query:{utm_source:'legacy'}},
+      {from:'/tu-khoa/activated-carbon?utm_source=legacy',to:'/san-pham',query:{q:'activated carbon',utm_source:'legacy'}},
+      {from:'/tu-khoa/cut-chu-t-20mm',to:'/san-pham',query:{q:'cut chu t 20mm'}},
     ];
     for (const item of legacyCases) {
       let sourceResponse;
