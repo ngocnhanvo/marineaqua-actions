@@ -22,7 +22,7 @@ try {
       {from:'/san-pham/tropic-marin-all-for-reef-250-ml-dinh-duong-khoang-cho-be-ca-bien',to:'/san-pham/tropic-marin'},
       {from:'/bai-viet?utm_source=legacy',to:'/cat/tin-kien-thuc',query:{utm_source:'legacy'}},
       {from:'/tu-khoa/activated-carbon?utm_source=legacy',to:'/san-pham',query:{q:'activated carbon',utm_source:'legacy'}},
-      {from:'/tu-khoa/cut-chu-t-20mm',to:'/san-pham',query:{q:'cut chu t 20mm'}},
+      {from:'/tu-khoa/cut-chu-t-20mm',to:'/san-pham/ong-nuoc'},
     ];
     for (const item of legacyCases) {
       let sourceResponse;
@@ -47,19 +47,19 @@ try {
         finalStatus:finalResponse?.status(),finalUrl:finalUrl.pathname+finalUrl.search,ok
       });
       assert.ok(ok,'Legacy category redirect mismatch '+JSON.stringify(report.checks.at(-1)));
-      if (item.from.includes('/tu-khoa/cut-chu-t-20mm')) {
-        const searchValue = await page.locator('#search-input').inputValue();
-        const productCount = await page.locator('article.group').count();
-        assert.equal(searchValue, 'cut chu t 20mm',
-          'Legacy tag redirect must preserve the normalized product search');
-        assert.ok(productCount > 0,
-          'Legacy tag search should return matching current products');
-        report.checks.push({
-          viewport:viewport.name,type:'legacy-tag-search-results',
-          searchValue,productCount,ok:true
-        });
-      }
     }
+    const searchResponse = await page.goto(HOST + '/san-pham?q=muoi%20bien', {
+      waitUntil:'domcontentloaded',timeout:60000
+    });
+    const searchValue = await page.locator('#search-input').inputValue();
+    const productCount = await page.locator('article.group').count();
+    assert.equal(searchResponse?.status(),200,'Product search route must return 200');
+    assert.equal(searchValue,'muoi bien','Search query should retain the normalized term');
+    assert.ok(productCount > 0,'Accent-insensitive search should find Muối biển products');
+    report.checks.push({
+      viewport:viewport.name,type:'accent-insensitive-product-search',
+      searchValue,productCount,ok:true
+    });
     const categoryPanel = viewport.name === 'desktop'
       ? '#header-product-catalog-panel'
       : '#mobile-menu-container .marine-mobile-menu-categories';
