@@ -283,10 +283,14 @@ try {
   }
   assert.ok(updated.includes(shortcode),'Native Insert Code did not insert ESC shortcode');
   assert.ok(updated.includes(precontent),'Existing Page content was replaced');
-  report.beforeSaveMode=await page.evaluate(()=>({
+  report.beforeSaveMode=await page.evaluate(()=>{
+    const active=window.tinymce?.get?.('content');
+    if(active&&!active.isHidden())active.hide();
+    return {
     tinyVisible:window.tinymce?.get?.('content')?.isHidden?.()===false,
     hasShortcode:document.getElementById('content')?.value?.includes('[table id=contact_semantics_vi /]')
-  }));
+    };
+  });
   assert.ok(!report.beforeSaveMode.tinyVisible,'TinyMCE reactivated before Save');
   const save=page.locator('#publish');
   assert.ok(await save.count(),'Page Update button missing');
