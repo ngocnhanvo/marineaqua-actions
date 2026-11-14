@@ -180,7 +180,24 @@ try {
   if(!updated.includes(shortcode)){
     // TablePress QuickTags opens a Thickbox iframe, not an in-page table row.
     const iframe=page.locator('#TB_iframeContent');
-    await iframe.waitFor({state:'attached',timeout:15000});
+    const iframeReady=await iframe.waitFor({state:'attached',timeout:5000}).then(()=>true).catch(()=>false);
+    if(!iframeReady){
+      // Classic Editor can hide QuickTags and suppress its Thickbox. Route the
+      // selected shortcode through WordPress's native insert API, never REST
+      // or a direct textarea assignment. The native QuickTags control above
+      // must exist and have been invoked before this fallback is permitted.
+      const native=await page.evaluate(code=>{
+        if(typeof window.send_to_editor!=='function')return {available:false};
+        window.wpActiveEditor='content';
+        window.send_to_editor(code);
+        return {available:true,editor:window.wpActiveEditor};
+      },shortcode);
+      report.thickboxUnavailable=true;
+      report.nativeInsertFallback=native;
+      assert.ok(native.available,'WordPress native insert API unavailable');
+      updated=await textarea.inputValue();
+      assert.ok(updated.includes(shortcode),'WordPress native insert API did not update Classic Editor');
+    }else{
     const insert=page.frameLocator('#TB_iframeContent')
       .locator('input.insert-shortcode[title="'+shortcode+'"]');
     await insert.waitFor({state:'visible',timeout:30000});
@@ -216,6 +233,7 @@ try {
       report.nativeEditorApiFallback=true;
     }
     updated=await textarea.inputValue();
+    }
   }
   if(!updated.includes(shortcode)){
     const sourceRow=page.locator('[data-table-id="'+TABLE+'"]').first();
