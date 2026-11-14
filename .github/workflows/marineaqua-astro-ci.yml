@@ -1,5 +1,5 @@
 name: Marine Aqua Astro source checks Product Builder (NO DEPLOY)
-# Recheck legacy pipe-fitting tag mapping and accent-insensitive product search.
+# Recheck legacy URL redirects and complete WordPress-generated sitemap inventory.
 # Regression checks now include redirect-alias and nested brand route Vitest cases.
 on:
   push:
@@ -11,6 +11,9 @@ on:
       - 'scripts/redirect-rules.mjs'
       - 'scripts/inject-handler.redirects.test.ts'
       - 'src/pages/ssr/products/[slug]/[page].astro'
+      - 'scripts/patch-entry.mjs'
+      - 'scripts/sync-seo-files.mjs'
+      - 'scripts/sync-seo-files.test.ts'
   workflow_dispatch:
 permissions:
   contents: read
