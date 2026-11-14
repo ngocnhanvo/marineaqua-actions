@@ -1,0 +1,11 @@
+{
+  "action": "workflow_dispatch",
+  "request_id": "20261114T003300Z-semantic-key-permissions-release",
+  "reason": "Enforce immutable semantic ESC Table technical key while retaining editable label and href",
+  "source_sha": "2413dbff883307c1152ffd55318408b9bf010f14",
+  "workflow": "marineaqua-php-release.yml",
+  "ref": "main",
+  "inputs": {
+    "confirm": "DEPLOY_PHP"
+  }
+}
