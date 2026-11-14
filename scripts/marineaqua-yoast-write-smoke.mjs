@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
 const WP='https://admin.marine-aqua.io.vn';
-const PAGE={id:83273,slug:'thong-bao',title:'Thông báo phí ship hàng',
+const PAGE={id:83273,slug:'thong-bao',title:'THÔNG BÁO PHÍ SHIP HÀNG',
  seoTitle:'THÔNG BÁO PHÍ SHIP HÀNG - Marine Aqua',
  description:'Marine Aqua hỗ trợ phí vận chuyển đến 30.000đ cho đơn hàng trên 500.000đ đủ điều kiện; khách hàng VIP được hưởng ưu đãi miễn phí vận chuyển.'};
 const OUT='yoast-write-smoke';await mkdir(OUT,{recursive:true});
@@ -36,10 +36,12 @@ try{
  const seoDescription=page.locator('#yoast-google-preview-description-metabox');
  await seoTitle.waitFor({state:'visible',timeout:25000});
  await seoDescription.waitFor({state:'visible',timeout:25000});
+ await seoTitle.scrollIntoViewIfNeeded();
  await seoTitle.fill(PAGE.seoTitle);
- await seoTitle.press('Tab');
+ await seoTitle.evaluate(el=>el.blur());
+ await seoDescription.scrollIntoViewIfNeeded();
  await seoDescription.fill(PAGE.description);
- await seoDescription.press('Tab');
+ await seoDescription.evaluate(el=>el.blur());
  await page.waitForFunction(()=>String(document.querySelector('#yoast_wpseo_title')?.value||'').length>0 &&
   String(document.querySelector('#yoast_wpseo_metadesc')?.value||'').length>0,null,{timeout:15000});
  report.formState=await page.evaluate(()=>({
