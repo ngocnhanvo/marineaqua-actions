@@ -161,6 +161,13 @@ jobs:
             assert.ok(source.includes("resolveSemanticPage(currentPage, '" + table + "'"));
             assert.match(source,/SemanticPagePreview/);
           }
+          const cartPage = read('src/astro/pages/CartPage.astro');
+          assert.match(cartPage,/homePage\\?\\.slug \\|\\| ""/);
+          const donePage = read('src/astro/pages/CheckoutDonePage.astro');
+          assert.match(donePage,/<main id="main-content"/);
+          assert.match(donePage,/t\\.order_thank_you_desc_1/);
+          assert.match(donePage,/t\\.order_thank_you_desc_2/);
+          assert.doesNotMatch(donePage,/mtlang\\.order_thank_you_desc_[12]\\[lang\\]/);
           assert.match(read('src/astroutils/CheckoutPage/InfoForm.astro'),/labels=|labels\?:/);
           assert.match(read('src/astroutils/CheckoutPage/LoginFormSSG.astro'),/labels\?:/);
           console.log('COMMERCE_ESC_SEMANTIC_SOURCE=PASS pages=4');
