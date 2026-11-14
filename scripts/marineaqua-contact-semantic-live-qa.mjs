@@ -104,8 +104,8 @@ try{
  assert.equal((await readNative()).items[index].key,'details_description');
  report.checks.push('TECHNICAL_KEY_WRITE_REJECTED_PASS');
  temporary=original+' (kiểm thử tự động)';
+ modified=true; // cleanup even if the Save response is lost after WordPress commits
  await save({...fieldRow,version:baseline.version},temporary);
- modified=true;
  assert.equal(String((await readNative()).items[index].label),temporary,'Native REST readback mismatch');
  assert.equal((await read()).rows.find(row=>row.row===index&&row.field==='label')?.title,temporary,'Builder REST readback mismatch');
  report.checks.push('SAVE_REST_READBACK_PASS');
