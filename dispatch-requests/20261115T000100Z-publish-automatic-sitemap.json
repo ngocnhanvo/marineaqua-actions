@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261115T000100Z-publish-automatic-sitemap",
+  "reason": "Publish WordPress automatic sitemap using the existing Astro production pipeline",
+  "source_sha": "dde39c674eb7cdae8c2f3ccea81842c083ed4105",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
