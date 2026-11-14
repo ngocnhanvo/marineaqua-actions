@@ -1,4 +1,5 @@
 name: Marine Aqua product category active menu live QA
+# Re-run desktop/mobile URL alias checks after the final legacy redirect release.
 on:
   push:
     branches: [main]
