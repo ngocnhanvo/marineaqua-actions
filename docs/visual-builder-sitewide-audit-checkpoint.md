@@ -49,3 +49,22 @@ State: PAGE_TICKET_SCOPE_PASS, CMS_WRITES_ZERO, SITEWIDE_EDIT_SAVE_QA_PENDING, S
 Chế độ code: auto-build
 Cổng ghi source: bypass
 Trạng thái: PARTIAL — chưa hoàn tất
+
+
+## 2026-11-14 — Production commerce semantic Editor and cleanup evidence
+
+Production source and QA:
+- Astro master `2427d32f0ed728d897490f43b6130c505014f012` (Cart's 18 native CMS keys, shipping labels), deployed canonical run [43557249216](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43557249216) SUCCESS, build validation [43556830449](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43556830449) SUCCESS.
+- Production read-only Visual Builder QA [43557404285](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43557404285) SUCCESS, writes=0: 4 native Page tables: cart 18, checkout 51, checkout_done 32, account 24. First/last source cell selected, native coordinate confirmed, public HTTP 200 and main landmark.
+- Scoped ESC Table Save/readback/UI restore [43557798935](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43557798935) SUCCESS: Page 83449 `cart_semantics_vi`, key `cart_select`, one cell changed, two actual writes, full-table restored and `cleanup_remaining=0`.
+- Information Page Editor 5-page first selected token read-only QA [43560198154](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43560198154) SUCCESS; clicked text equals editor input for all 5. Focused `thoi-gian-ban-hang` read-only QA [43560375019](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43560375019) showed correct three token matches `0:3`, `0:56`, `0:95`, but overall run FAILED due unrelated transient timeout in `huong-dan-mua-hang-o-xa`; do not call sitewide QA PASS from this run.
+
+Page Editor write QA is NOT finished:
+- Earlier test [43558167264](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43558167264) wrote a temporary marker; restored in run [43559756668](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43559756668).
+- More recent test [43559892576](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43559892576) selected a stale input while clicking a neighboring text element and changed the wrong paragraph of WordPress Page ID 83285. **Full exact pre-test HTML was restored**, checked in [43560037615](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43560037615) SUCCESS, `cleanup_remaining=0`, `errors=[]`, source is again `<p>Thời gian &nbsp;bán hàng của cửa hàng</p><p>– Bắt đầu từ 8h30 sáng</p><p>– Kết thúc sau 6h30 tối.</p>`.
+- Guarded rerun [43560576726](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43560576726) FAILED BEFORE ANY WRITE (`writes=0`, `cleanup_remaining=0`), because no safe unique raw token was selected by that test. **Do not claim Save Page Editor passed**.
+- `.github/workflows/marineaqua-information-save-rollback-qa.yml` is manual-only until exact source coordinate matching and test harness selection are proven. Do not automatically re-enable WordPress Page writes or invent fixtures.
+- Investigate Preview HTML text position ↔ PHP Page token manifest ↔ parent Editor token selection on all adjacent tokens; add a nonwriting exact click-to-source test and only then scoped save/readback/rollback with concurrency guard and assured finally cleanup. No real transaction/customer/product data may be changed.
+- Local `ProductCategory` and `Page` reference sources still have no truly shortcode-backed authorized Page in the inventory; PHP/unit logic is not equivalent to live add/delete/swap/save/readback. Keep this explicitly pending. Never bypass Page-ticket permissions by testing a table from another Page.
+
+State: COMMERCE_SEMANTIC_CMS_PASS, BUILDER_UI_PASS, CART_SAVE_RESTORE_PASS, DEPLOY_PASS; INFORMATION_EDITOR_READONLY_PARTIAL_PASS, INFORMATION_EDITOR_SAVE_PENDING, LOCAL_PAGE_CATEGORY_WRITE_QA_PENDING, SITEWIDE_DONE_NOT_YET.
