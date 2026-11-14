@@ -131,8 +131,9 @@ try {
  }
  if(already===0){
   await page.goto(WP+'/wp-admin/post.php?post='+PAGE_ID+'&action=edit',
-     {waitUntil:'domcontentloaded',timeout:45000});
-  await page.waitForTimeout(650);
+     {waitUntil:'commit',timeout:60000});
+  await page.locator('#content-html').waitFor({state:'attached',timeout:60000});
+  await page.waitForTimeout(500);
   const textTab=page.locator('#content-html');
   const textarea=page.locator('#content');
   for(let editorAttempt=0;editorAttempt<4;editorAttempt++){
