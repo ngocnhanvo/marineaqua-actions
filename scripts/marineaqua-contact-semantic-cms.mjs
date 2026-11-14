@@ -146,6 +146,17 @@ try {
     }).catch(()=>{});
     await page.waitForTimeout(650);
   }
+  // Force Classic Editor Text mode at the WordPress API boundary; a live
+  // TinyMCE instance can otherwise overwrite the QuickTags textarea on Save.
+  report.nativeEditorMode=await page.evaluate(()=>{
+    const tiny=window.tinymce?.get?.('content');
+    if(tiny&&!tiny.isHidden())tiny.hide();
+    if(window.switchEditors?.go)window.switchEditors.go('content','html');
+    const current=window.tinymce?.get?.('content');
+    return {tinymceHidden:!current||current.isHidden(),
+      textareaVisible:!!document.getElementById('content')?.getClientRects().length};
+  });
+  assert.ok(report.nativeEditorMode.tinymceHidden,'Cannot safely save Text content while TinyMCE remains active');
   report.editorTab={
     textTabExists:(await textTab.count())>0,
     textTabClass:await textTab.getAttribute('class').catch(()=>null),
@@ -272,6 +283,11 @@ try {
   }
   assert.ok(updated.includes(shortcode),'Native Insert Code did not insert ESC shortcode');
   assert.ok(updated.includes(precontent),'Existing Page content was replaced');
+  report.beforeSaveMode=await page.evaluate(()=>({
+    tinyVisible:window.tinymce?.get?.('content')?.isHidden?.()===false,
+    hasShortcode:document.getElementById('content')?.value?.includes('[table id=contact_semantics_vi /]')
+  }));
+  assert.ok(!report.beforeSaveMode.tinyVisible,'TinyMCE reactivated before Save');
   const save=page.locator('#publish');
   assert.ok(await save.count(),'Page Update button missing');
   await Promise.all([page.waitForLoadState('domcontentloaded',{timeout:30000}).catch(()=>{}),save.click()]);
