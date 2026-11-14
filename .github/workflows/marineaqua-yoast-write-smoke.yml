@@ -1,0 +1,39 @@
+name: Marine Aqua Yoast SEO write smoke (single approved Page)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-yoast-write-smoke.mjs'
+      - '.github/workflows/marineaqua-yoast-write-smoke.yml'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-yoast-cms-write
+  cancel-in-progress: false
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-yoast-write-smoke.mjs
+      - name: Update only verified Page 83273 using WordPress native Yoast UI
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-yoast-write-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-yoast-write-smoke
+          path: yoast-write-smoke/
+          retention-days: 14
