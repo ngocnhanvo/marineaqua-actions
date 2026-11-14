@@ -58,6 +58,20 @@ try{
    const browserRes=await page.goto(WP+'/wp-admin/edit.php?post_type=page&page=esc-visual-builder&esc_vb_page='+target.id,
      {waitUntil:'domcontentloaded',timeout:45000});
    assert.equal(browserRes?.status(),200);
+   // Probe the exact signed Preview URL through Playwright's API client.
+   // Report metadata only: never log the ticket or the Page HTML.
+   const signedIframe=await page.locator('#esc-vb-frame').getAttribute('src');
+   if(signedIframe){
+    try{
+     const probe=await ctx.request.get(signedIframe,{timeout:30000,maxRedirects:2});
+     const body=await probe.body();
+     record.previewApi={status:probe.status(),bytes:body.length,
+       contentType:probe.headers()['content-type']||'',
+       serverTiming:probe.headers()['server-timing']||''};
+    }catch(e){
+     record.previewApi={error:String(e).replace(/ticket=[^&\\s]+/g,'ticket=REDACTED').slice(0,360)};
+    }
+   }
    const frame=page.frameLocator('iframe#esc-vb-frame');
    const inspector=frame.locator('[data-esc-semantic-inspector][data-esc-source-table="'+target.table+'"]');
    try {
