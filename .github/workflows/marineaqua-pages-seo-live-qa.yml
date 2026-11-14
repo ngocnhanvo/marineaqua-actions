@@ -1,0 +1,33 @@
+name: Marine Aqua all Pages SEO live QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-pages-seo-live-qa.mjs'
+      - '.github/workflows/marineaqua-pages-seo-live-qa.yml'
+permissions:
+  contents: read
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-pages-seo-live-qa.mjs
+      - name: Verify all published Page routes and production SEO output
+        run: node scripts/marineaqua-pages-seo-live-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-pages-seo-live-qa
+          path: pages-seo-live-qa/
+          retention-days: 14
