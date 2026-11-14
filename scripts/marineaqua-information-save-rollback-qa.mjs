@@ -96,7 +96,6 @@ try{
  selected={id:native.id,part:native.part,title:display};
  report.source_token=native.id;
  marker=' QA'+String(process.env.GITHUB_RUN_ID||'1').replace(/\D/g,'').slice(-12);
- report.source_token=selectedRow.id;
  report.phase='save';
  await input.fill(display+marker);
  const save=page.locator('#esc-vb-edit-save');
