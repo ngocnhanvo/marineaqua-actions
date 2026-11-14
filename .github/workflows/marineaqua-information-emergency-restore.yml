@@ -1,0 +1,40 @@
+name: Marine Aqua WordPress Page Editor QA marker emergency recovery
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-information-emergency-restore.yml'
+      - 'scripts/marineaqua-information-emergency-restore.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-page-editor-save-rollback
+  cancel-in-progress: false
+jobs:
+  restore:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check scripts/marineaqua-information-emergency-restore.mjs
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Restore ONLY the known scoped WordPress Page QA marker
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-information-emergency-restore.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: page-editor-qa-marker-recovery
+          path: artifacts/page-editor-recovery/
+          retention-days: 14
