@@ -228,7 +228,7 @@ try {
     finalUrl: response.url,
     bytes: xml.length,
     locCount: locs(xml).length,
-    xmlRoot: (xml.match(/<(urlset|sitemapindex)\\b/i) || [])[1] || null,
+    xmlRoot: (xml.match(/<(urlset|sitemapindex)\b/i) || [])[1] || null,
   };
 } catch (error) {
   REPORT.errors.push({ scope: 'public-sitemap', error: String(error?.message || error).slice(0, 500) });
@@ -241,11 +241,11 @@ try {
     signal: AbortSignal.timeout(20000),
   });
   const html = await response.text();
-  const title = html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1]
-    ?.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim() || '';
+  const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]
+    ?.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || '';
   const canonical = html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)/i)?.[1]
     || html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["']canonical["']/i)?.[1] || '';
-  const h1 = html.match(/<h1[^>]*>([\\s\\S]*?)<\\/h1>/i)?.[1]
+  const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1]
     ?.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim() || '';
   REPORT.unresolvedRouteSource = {
     requestedUrl: OLD_ORIGIN + '/818641-2',
