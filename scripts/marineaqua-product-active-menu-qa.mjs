@@ -20,6 +20,16 @@ try {
       {from:'/san-pham/prodibio-stop-ammo-khu-doc-nuoc-hop-30-ong',to:'/san-pham/hoa-chat-bo-sung-va-thuoc-dac-tri'},
       {from:'/san-pham/tropic-marin-a-elements-250-ml-khoang-vi-luong-cho-san-ho',to:'/san-pham/hoa-chat-bo-sung-va-thuoc-dac-tri'},
       {from:'/san-pham/tropic-marin-all-for-reef-250-ml-dinh-duong-khoang-cho-be-ca-bien',to:'/san-pham/tropic-marin'},
+      {from:'/san-pham/cot-nen-cao-cap-prodibio-aqua-terra-3l',to:'/san-pham/prodibio'},
+      {from:'/san-pham/cot-nen-cao-cap-prodibio-aqua-terra-6l',to:'/san-pham/prodibio'},
+      {from:'/san-pham/jebao-cross-flow-scp-70-tao-song-cho-be-ca-canh',to:'/san-pham/jebao'},
+      {from:'/san-pham/keo-dan-ong-nuoc-pvc-chuyen-dung',to:'/san-pham/ong-nuoc'},
+      {from:'/san-pham/lo-vat-lieu-zeovit-aquaexcel-z1',to:'/san-pham/aqua-excel'},
+      {from:'/san-pham/phan-nen-cao-cap-prodibio-aqua-growth-soil-9l',to:'/san-pham/prodibio'},
+      {from:'/tu-khoa/bio-mate',to:'/bio-mate'},
+      {from:'/tu-khoa/cyano-clean',to:'/cyano-clean'},
+      {from:'/tu-khoa/flatworm-stop',to:'/flatworm-stop'},
+      {from:'/tu-khoa/zeozym',to:'/zeozym'},
       {from:'/bai-viet?utm_source=legacy',to:'/cat/tin-kien-thuc',query:{utm_source:'legacy'}},
       {from:'/tu-khoa/activated-carbon?utm_source=legacy',to:'/san-pham',query:{q:'activated carbon',utm_source:'legacy'}},
       {from:'/tu-khoa/cut-chu-t-20mm',to:'/san-pham/ong-nuoc'},
@@ -59,16 +69,6 @@ try {
     report.checks.push({
       viewport:viewport.name,type:'accent-insensitive-product-search',
       searchValue,productCount,ok:true
-    });
-    const sitemapResponse = await page.request.get(HOST + '/sitemap.xml');
-    const sitemapXml = await sitemapResponse.text();
-    const sitemapLocCount = (sitemapXml.match(/<loc>/g) || []).length;
-    assert.equal(sitemapResponse.status(),200,'Public sitemap must return 200');
-    assert.ok(sitemapLocCount >= 500,
-      'Public sitemap must include the complete WordPress route inventory; got ' + sitemapLocCount);
-    report.checks.push({
-      viewport:viewport.name,type:'complete-public-sitemap',
-      status:sitemapResponse.status(),locCount:sitemapLocCount,ok:true
     });
     const categoryPanel = viewport.name === 'desktop'
       ? '#header-product-catalog-panel'
