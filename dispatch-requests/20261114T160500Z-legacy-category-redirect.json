@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "bb54c1012955f68cc40e932118f3513ba6b85286",
+  "reason": "Release verified legacy product category URL redirects",
+  "request_id": "20261114T160500Z-legacy-category-redirect",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
