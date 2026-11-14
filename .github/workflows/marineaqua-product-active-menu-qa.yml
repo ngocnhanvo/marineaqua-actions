@@ -1,5 +1,5 @@
 name: Marine Aqua product category active menu live QA
-# Re-run desktop/mobile URL alias checks after the final legacy redirect release.
+# Verify final production redirects, product search and complete sitemap inventory.
 on:
   push:
     branches: [main]
