@@ -1,0 +1,40 @@
+name: Marine Aqua commerce Page semantic ESC Tables
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-commerce-semantic-cms.yml'
+      - 'scripts/marineaqua-commerce-semantic-cms.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-commerce-semantic-cms
+  cancel-in-progress: false
+jobs:
+  cms:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check scripts/marineaqua-commerce-semantic-cms.mjs
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Create or verify WordPress semantic labels through native Insert Code
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-commerce-semantic-cms.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: commerce-semantic-cms
+          path: artifacts/commerce-semantic-cms/
+          retention-days: 14
