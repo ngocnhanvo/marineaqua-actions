@@ -91,20 +91,34 @@ jobs:
           test ! -d source/src/lib/nckh
           test ! -d source/src/pages/api/nckh
           test ! -d source/src/pages/api/auth/google
-      - name: Check signed unzip staging destination before any build or FTP
+      - name: Verify signed staging destination and fetch reusable inventory concurrently
         shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m py_compile actions-hub/scripts/marineaqua-remote-unzip.py
-          python3 actions-hub/scripts/marineaqua-remote-unzip.py verify
-      - name: Read signed reusable-asset inventory (READ ONLY)
-        shell: bash
+        timeout-minutes: 2
         run: |
           set -euo pipefail
           set +x
-          # Sitemap is generated from WordPress source during the Astro build.
-          # Never read the currently deployed sitemap or its revision here.
-          python3 actions-hub/scripts/marineaqua-remote-unzip.py manifest
+          python3 -m py_compile actions-hub/scripts/marineaqua-remote-unzip.py
+          # Both calls are authenticated, read-only, and independent. Do not
+          # build or upload until BOTH checks have completed successfully.
+          verify_log="$(mktemp)"
+          inventory_log="$(mktemp)"
+          trap 'rm -f "$verify_log" "$inventory_log"' EXIT
+          python3 actions-hub/scripts/marineaqua-remote-unzip.py verify >"$verify_log" 2>&1 &
+          verify_pid=$!
+          # Sitemap is generated from WordPress during build; inventory only
+          # tracks signed reusable assets, never the deployed sitemap revision.
+          python3 actions-hub/scripts/marineaqua-remote-unzip.py manifest >"$inventory_log" 2>&1 &
+          inventory_pid=$!
+          verify_status=0
+          inventory_status=0
+          wait "$verify_pid" || verify_status=$?
+          wait "$inventory_pid" || inventory_status=$?
+          cat "$verify_log"
+          cat "$inventory_log"
+          if (( verify_status != 0 || inventory_status != 0 )); then
+            echo "::error::Signed preflight or asset inventory failed; deployment stopped."
+            exit 1
+          fi
       # GitHub-hosted runners are ephemeral: reuse downloaded packages
       # keyed by the Astro production lockfile. Never cache node_modules or .env.
       - name: Set up pnpm 9 (without installing project dependencies)
