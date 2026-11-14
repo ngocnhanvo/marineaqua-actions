@@ -8,6 +8,8 @@ on:
       - '.github/workflows/marineaqua-astro-ci.yml'
       - 'scripts/marineaqua-import-home-products.mjs'
       - 'scripts/marineaqua-bind-home-products.mjs'
+      - 'scripts/redirect-rules.mjs'
+      - 'scripts/inject-handler.redirects.test.ts'
   workflow_dispatch:
 permissions:
   contents: read
