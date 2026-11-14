@@ -1,0 +1,30 @@
+name: Marine Aqua read-only SEO config and legacy URL probe
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-seo-config-probe.yml'
+      - 'scripts/marineaqua-seo-config-probe.mjs'
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate probe
+        run: node --check scripts/marineaqua-seo-config-probe.mjs
+      - name: Read public WordPress SEO config, sitemap and unresolved source URL
+        run: node scripts/marineaqua-seo-config-probe.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-seo-config-probe
+          path: marineaqua-seo-config-probe/
+          retention-days: 14
