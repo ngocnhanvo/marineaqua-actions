@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "d41d11ea8519ce13c7caab51107e568dc60b61e6",
+  "reason": "Release tested legacy URL redirect aliases to production",
+  "request_id": "20261114T165000Z-final-legacy-url-redirects",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
