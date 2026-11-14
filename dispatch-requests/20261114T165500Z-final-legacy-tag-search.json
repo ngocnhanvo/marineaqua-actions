@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "f72c196a9bb9ed127c9b8ecd4cc4087d2c29e43d",
+  "reason": "Release verified legacy tag search and retired URL redirects",
+  "request_id": "20261114T165500Z-final-legacy-tag-search",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
