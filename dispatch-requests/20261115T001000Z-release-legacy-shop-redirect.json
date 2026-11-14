@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261115T001000Z-release-legacy-shop-redirect",
+  "reason": "Release verified legacy WooCommerce shop Page redirect to ProductsSSRPage",
+  "source_sha": "bf816302f00ff5a5ef3f82146f12ffaf0ac4799a",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
