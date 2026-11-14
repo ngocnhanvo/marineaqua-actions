@@ -1,0 +1,43 @@
+name: Marine Aqua all published Pages SEO parity audit (read only)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-pages-seo-audit.yml'
+      - 'scripts/marineaqua-pages-seo-audit.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-pages-seo-audit
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate audit script
+        run: node --check scripts/marineaqua-pages-seo-audit.mjs
+      - name: Install matching Playwright driver (Chromium preinstalled)
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - id: audit
+        name: Inventory every published WordPress Page and compare original versus production SEO
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-pages-seo-audit.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-all-pages-seo-audit
+          path: pages-seo-audit-evidence/
+          retention-days: 14
