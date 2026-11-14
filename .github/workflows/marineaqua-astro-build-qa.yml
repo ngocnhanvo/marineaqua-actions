@@ -223,7 +223,7 @@ jobs:
           pages=[p for p in common.get('pages',[]) if p.get('lang')=='vi']
           if not {'lien-he','tin-kien-thuc'}.issubset({p.get('slug') for p in pages}):
               raise SystemExit('MARINEAQUA_FOOTER=FAIL genuine destination Pages absent from CMS build')
-          expected={'contact':'/lien-he','knowledge':'/tin-kien-thuc'}
+          expected={'contact':'/lien-he','knowledge':'/cat/tin-kien-thuc'}
           for key,href in expected.items():
               if not re.search(r'data-marine-footer-link="'+key+r'"[^>]*href="'+href+r'"',home):
                   # Astro may serialize attributes in the opposite order.
