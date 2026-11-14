@@ -185,7 +185,28 @@ try {
       textareaLength:document.getElementById('content')?.value?.length,
       tinyMcePreview:window.tinymce?.get?.('content')?.getContent?.().slice(-120)||''
     }));
-    console.log('CONTACT_INSERT_DEBUG='+JSON.stringify({before:report.editorBeforeInsert,button:report.iframeButton,after:report.afterNativeInsert}));
+    report.insertHandlerProbe=await insert.evaluate(el=>{
+      const jq=window.jQuery;
+      const root=el.closest('.tablepress-editor-button-list');
+      const target=window.dialogArguments||window.opener||window.parent||window.top;
+      return {
+        rootFound:!!root,jquery:typeof jq,
+        jqueryHandler:!!(root&&jq?jq._data(root,'events')?.click:undefined),
+        dialogArgs:!!window.dialogArguments,opener:!!window.opener,
+        targetSend:typeof target?.send_to_editor,parentSend:typeof window.parent?.send_to_editor
+      };
+    });
+    console.log('CONTACT_INSERT_DEBUG='+JSON.stringify({before:report.editorBeforeInsert,button:report.iframeButton,after:report.afterNativeInsert,probe:report.insertHandlerProbe}));
+    if(!(await textarea.inputValue()).includes(shortcode)){
+      // The selected native TablePress Insert Shortcode control may have a
+      // broken delegated click handler in the installed plugin. Reuse the
+      // exact WordPress send_to_editor method and the clicked native button
+      // title; never write the Page through REST or modify its HTML directly.
+      assert.equal(report.insertHandlerProbe.parentSend,'function','WordPress native send_to_editor unavailable');
+      await insert.evaluate(el=>window.parent.send_to_editor(el.title));
+      await page.waitForTimeout(350);
+      report.nativeEditorApiFallback=true;
+    }
     updated=await textarea.inputValue();
   }
   if(!updated.includes(shortcode)){
