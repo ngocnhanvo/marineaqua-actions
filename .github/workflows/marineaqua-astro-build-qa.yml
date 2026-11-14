@@ -63,6 +63,10 @@ jobs:
           const branch = read('src/astro/components/Product/ProductCategorySidebarBranch.astro');
           const pagesLoader = read('src/lib/wordpress/pages/index.ts');
           const desktopNav = read('src/astro/components/Menu/Desktop.astro');
+          const footer = read('src/astro/components/Layout/Footer.astro');
+          // Prefer the exact CMS knowledge archive over an arbitrary posts Page.
+          assert.ok(footer.includes('pop()?.toLowerCase() === "tin-kien-thuc"'));
+
           const style = read('src/styles/marine-aqua-approved.css');
           assert.match(header, /data-header-catalog-trigger/);
           assert.match(header, /header-product-catalog-panel/);
