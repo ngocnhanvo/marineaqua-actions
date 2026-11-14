@@ -63,7 +63,7 @@ try {
    if(target.slug==='thoi-gian-ban-hang'){
     record.tokenSelections=[];
     const scripts=await page.locator('script').allTextContents();
-    const nonce=scripts.map(s=>s.match(/const nonce\\s*=\\s*["']([^"']+)["']/)?.[1]).find(Boolean);
+    const nonce=scripts.map(s=>s.match(/const nonce\s*=\s*["']([^"']+)["']/)?.[1]).find(Boolean);
     const ticket=await page.evaluate(()=>window.escVBGetTicket?.());
     assert.ok(nonce&&ticket,'Missing native WordPress authorization for read-only manifest');
     const resp=await ctx.request.post(WP+'/wp-json/esc-builder/v1/editable-page-text',
