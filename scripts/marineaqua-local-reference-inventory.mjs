@@ -75,7 +75,7 @@ try {
    id:p.id,slug:p.slug,action:p.acf?.action||'',key:p.acf?.key||'',
    title:p.title?.raw||p.title?.rendered||'',
    contentLength:String(p.content?.raw||p.content?.rendered||'').length,
-   shortcodes:[...String(p.content?.raw||p.content?.rendered||'').matchAll(/\\[table id=([a-zA-Z0-9_-]+)\\s*\\/\\]/g)].map(m=>m[1]),
+   shortcodes:[...String(p.content?.raw||p.content?.rendered||'').matchAll(/\[table id=([a-zA-Z0-9_-]+)\s*\/\]/g)].map(m=>m[1]),
   })).filter(p=>/lien-he|san-pham|khuyen-mai|tin-kien-thuc|chinh-sach|thong-bao|huong-dan|thoi-gian|trang-chu/.test(p.slug)).slice(0,50);
  }
  report.status='PASS';
