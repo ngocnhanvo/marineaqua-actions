@@ -42,8 +42,14 @@ try{
     rec.alternativeRoutes=[];
     for(const alt of ['/cat/'+p.slug,'/ssr/posts/'+p.slug+'/1','/'+p.slug]){
      if(alt===rec.route)continue;
-     const response=await ctx.request.get(FRONT+alt,{timeout:20000,maxRedirects:3});
-     rec.alternativeRoutes.push({route:alt,status:response.status(),finalUrl:response.url()});
+     let response=null,lastError=null;
+     for(let attempt=0;attempt<3&&!response;attempt++){
+      try{response=await ctx.request.get(FRONT+alt,{timeout:25000,maxRedirects:3});}
+      catch(error){lastError=String(error.message||error);if(attempt<2)await page.waitForTimeout(800*(attempt+1));}
+     }
+     rec.alternativeRoutes.push(response
+      ? {route:alt,status:response.status(),finalUrl:response.url()}
+      : {route:alt,error:lastError||'request_failed'});
     }
    }
   }catch(e){rec.issues.push('ERROR');rec.error=String(e.message||e).slice(0,220)}
