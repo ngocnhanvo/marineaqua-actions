@@ -1,0 +1,41 @@
+name: Marine Aqua contact WordPress native semantic ESC Table
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-contact-semantic-cms.yml'
+      - 'scripts/marineaqua-contact-semantic-cms.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-contact-semantic-cms
+  cancel-in-progress: false
+jobs:
+  cms:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check native CMS script syntax
+        run: node --check scripts/marineaqua-contact-semantic-cms.mjs
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Create or verify Contact Page ESC labels via native WordPress UI
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-contact-semantic-cms.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: contact-semantic-cms
+          path: artifacts/contact-semantic-cms/
+          retention-days: 14
