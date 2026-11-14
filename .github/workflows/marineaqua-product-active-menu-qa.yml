@@ -1,5 +1,5 @@
 name: Marine Aqua product category active menu live QA
-# Verify final production redirects, product search and complete sitemap inventory.
+# Verify deployed legacy category, retired product and tag redirects.
 on:
   push:
     branches: [main]
