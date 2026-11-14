@@ -22,10 +22,13 @@ try{
   const old=await before.json();assert.equal(old.status,'publish');
   const title=page.locator('#yoast-google-preview-title-metabox'),desc=page.locator('#yoast-google-preview-description-metabox');
   await title.waitFor({state:'visible',timeout:25000});await desc.waitFor({state:'visible',timeout:25000});
-  await title.fill(p.seoTitle);await title.evaluate(el=>el.blur());await desc.fill(p.description);await desc.evaluate(el=>el.blur());
-  const hidden=page.locator('#yoast_wpseo_meta-robots-noindex');await hidden.fill('1');
-  const state=await page.evaluate(()=>({title:document.querySelector('#yoast_wpseo_title')?.value,description:document.querySelector('#yoast_wpseo_metadesc')?.value,noindex:document.querySelector('#yoast_wpseo_meta-robots-noindex')?.value}));
-  assert.equal(state.title,p.seoTitle);assert.equal(state.description,p.description);assert.equal(state.noindex,'1');
+  await title.fill(p.seoTitle);
+  await page.keyboard.press('Tab');
+  await desc.fill(p.description);
+  await page.keyboard.press('Tab');
+  const state=await page.evaluate(()=>({title:document.querySelector('#yoast_wpseo_title')?.value||'',description:document.querySelector('#yoast_wpseo_metadesc')?.value||''}));
+  assert.equal(state.title,p.seoTitle,'Yoast title did not bind to native field');
+  assert.equal(state.description,p.description,'Yoast description did not bind to native field');
   await page.locator('#publish').click({timeout:20000});
   let after=null;const deadline=Date.now()+25000;while(Date.now()<deadline){const res=await ctx.request.get(WP+'/wp-json/wp/v2/pages/'+p.id);if(res.ok()){after=await res.json();if(after.yoast_head_json?.title===p.seoTitle&&after.yoast_head_json?.description===p.description)break;}await page.waitForTimeout(700);}
   assert.ok(after);assert.equal(after.slug,p.slug);assert.equal(after.status,'publish');assert.equal(after.yoast_head_json?.title,p.seoTitle);assert.equal(after.yoast_head_json?.description,p.description);
