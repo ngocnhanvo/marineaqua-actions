@@ -9,6 +9,10 @@ const targets=[
  {id:83275,slug:'huong-dan-mua-hang-tai-nha'},
  {id:83285,slug:'thoi-gian-ban-hang'},
 ];
+async function assertEventually(read,expected){
+ for(let i=0;i<30;i++){if((await read()).trim()===expected)return;await new Promise(ok=>setTimeout(ok,200));}
+ assert.equal((await read()).trim(),expected);
+}
 const report={status:'STARTED',pages:[],writes:0,errors:[]};
 await mkdir('artifacts/information-builder-qa',{recursive:true});
 const browser=await chromium.launch({headless:true});
@@ -79,16 +83,11 @@ try {
       'Page Title editor did not preserve canonical slug');
     const draft=record.pageTitleValue+' QA draft only';
     await titleField.fill(draft);
-    await page.waitForFunction(expected=>
-      document.querySelector('iframe#esc-vb-frame')?.contentDocument
-        ?.querySelector('[data-esc-page-title]')?.textContent===expected,
-      draft,{timeout:12000});
+    await h1.waitFor({state:'visible',timeout:12000});
+    await assertEventually(async()=>await h1.innerText(),draft);
     assert.equal(await h1.innerText(),draft,'H1 draft did not render in iframe');
     await page.locator('#esc-vb-page-title-cancel').click();
-    await page.waitForFunction(expected=>
-      document.querySelector('iframe#esc-vb-frame')?.contentDocument
-        ?.querySelector('[data-esc-page-title]')?.textContent===expected,
-      record.pageH1Before,{timeout:12000});
+    await assertEventually(async()=>await h1.innerText(),record.pageH1Before);
     assert.equal(await titleField.inputValue(),record.pageTitleValue,'Cancel changed WordPress Page Title');
     record.pageTitleDraftCancel='PASS';
    }
