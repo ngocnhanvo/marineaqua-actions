@@ -121,6 +121,24 @@ jobs:
           assert.doesNotMatch(page, /archiveSummary|archiveDescription/);
           console.log('POSTS_WORDPRESS_EDITOR_INTRO=PASS');
           NODE
+      - name: Verify Contact Page semantics are WordPress ESC Table-owned
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const contact=readFileSync('src/astro/pages/ContactPage.astro','utf8');
+          const label=readFileSync('src/astro/components/SemanticEscLabel.astro','utf8');
+          assert.match(contact,/CONTACT_SEMANTIC_ESC_TABLE_MISSING/);
+          assert.match(contact,/data-tablepress-preview=\{semanticTableId\}/);
+          assert.match(contact,/SemanticEscLabel item=\{meaning\("hero_title"\)\}/);
+          assert.match(contact,/SemanticEscLabel item=\{meaning\("dealer_email_label"\)\}/);
+          assert.match(label,/data-esc-builder-cell-row=\{item.sourceRow\}/);
+          assert.match(label,/data-esc-builder-cell-field="label"/);
+          assert.doesNotMatch(contact,/const heading = en \?|Liên hệ mua hàng đại lý và tuyển dụng|const description = en/);
+          console.log('CONTACT_WORDPRESS_ESC_SEMANTICS=PASS');
+          NODE
       - name: Run Astro unit tests including Product ESC Table reference mapping
         run: pnpm run test:run
       # Validate approved Marine Aqua design integration with local Quicksand, CMS-only menu and prices.
