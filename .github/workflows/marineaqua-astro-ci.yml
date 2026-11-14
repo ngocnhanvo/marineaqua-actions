@@ -167,14 +167,14 @@ jobs:
           const cartLabels = [...cartPage.matchAll(/^\s*([a-z_][a-z0-9_]*): mtlang\?/gm)].map(match => match[1]);
           assert.deepEqual(new Set(cartLabels), new Set(cartKeys), 'All native 18 Cart semantic labels must be rendered');
           const shipping = read('src/astro/components/Cart/ShippingFee.astro');
-          assert.ok(cartPage.includes('<ShippingFee pages={pages} language={language} basename={basename} labels={t} />'));
+          assert.ok(cartPage.includes('<ShippingFee pages={pages} language={language} basename={basename} labels={t} semanticRows={semantic.rows} semanticTableId={semantic.tableId} />'));
           assert.ok(shipping.includes('labels.summary_shipping ??'));
           assert.ok(shipping.includes('labels.summary_shipping_agreement ??'));
 
           const donePage = read('src/astro/pages/CheckoutDonePage.astro');
           assert.match(donePage,/<main id="main-content"/);
-          assert.ok(donePage.includes('t.order_thank_you_desc_1'));
-          assert.ok(donePage.includes('t.order_thank_you_desc_2'));
+          assert.ok(donePage.includes("word('order_thank_you_desc_1')"));
+          assert.ok(donePage.includes("word('order_thank_you_desc_2')"));
           assert.ok(!donePage.includes('mtlang.order_thank_you_desc_1[lang]'));
           assert.match(read('src/astroutils/CheckoutPage/InfoForm.astro'),/labels=|labels\?:/);
           assert.match(read('src/astroutils/CheckoutPage/LoginFormSSG.astro'),/labels\?:/);
