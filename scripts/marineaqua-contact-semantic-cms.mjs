@@ -70,7 +70,7 @@ try {
  assert.equal(original.status,'publish');
  assert.equal(original.acf?.key,'contact');
  assert.equal(original.acf?.action,'HomePage');
- assert.equal(original.acf?.product_lang,'vi');
+ assert.equal(original.acf?.product_lang?.value||original.acf?.product_lang,'vi');
  const precontent=String(original.content?.raw??'');
  const shortcode='[table id='+TABLE+' /]';
  const already=(precontent.match(new RegExp('\\[table id='+TABLE+'\\s*\\/\\]','g'))||[]).length;
