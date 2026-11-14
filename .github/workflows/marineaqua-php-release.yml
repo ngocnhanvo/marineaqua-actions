@@ -41,6 +41,7 @@ jobs:
           php -l source-php/tests/visual-builder-product-section-title.test.php
           php source-php/tests/visual-builder-product-section-title.test.php
           php -l source-php/wp-content/plugins/esc-visual-builder/includes/item-manager.php
+          php -l source-php/wp-content/plugins/esc-visual-builder/includes/item-section-ui.php
           php -l source-php/tests/visual-builder-product-columns.test.php
           php source-php/tests/visual-builder-product-columns.test.php
           php -l source-php/wp-content/plugins/github-trigger/vcs-build-trigger.php
