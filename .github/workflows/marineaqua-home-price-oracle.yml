@@ -1,0 +1,52 @@
+name: Marine Aqua homepage WooCommerce price integrity (READ ONLY)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-home-price-oracle.yml'
+permissions:
+  contents: read
+jobs:
+  prices:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Inspect exact native ESC references against public WooCommerce prices
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from urllib.request import Request,urlopen
+          from urllib.parse import urlencode
+          base='https://admin.marine-aqua.io.vn'
+          def get(path):
+              with urlopen(Request(base+path,headers={'Accept':'application/json'}),timeout=30) as response:
+                  return json.load(response)
+          tables={}
+          ids=[]
+          for name in [f'home_{i:02d}' for i in range(4,9)]:
+              table=get('/wp-json/tablepress/v1/table/'+name)
+              rows=table.get('items',[])
+              tables[name]=rows
+              local=[]
+              for row in rows:
+                  key=str(row.get('key','')).strip()
+                  if key.isdecimal():local.append(int(key))
+              ids+=local
+              print('ESC_NATIVE',name,'references',len(rows),'numeric_ids',local,flush=True)
+          try:
+              products=get('/wp-json/wc/store/v1/products?'+urlencode({'include':','.join(map(str,ids)),'per_page':'100'}))
+              found={int(p['id']):p for p in products}
+              for name,rows in tables.items():
+                  for row in rows:
+                      pid=int(row.get('key','0')) if str(row.get('key','')).isdecimal() else 0
+                      product=found.get(pid)
+                      prices=product.get('prices',{}) if product else {}
+                      print('PRODUCT_PRICE',name,pid,'found',bool(product),'name',str(product.get('name','') if product else '')[:65],'price',prices.get('price'),'regular',prices.get('regular_price'),'sale',prices.get('sale_price'),'currency_minor_unit',prices.get('currency_minor_unit'),flush=True)
+              print('PRICE_ORACLE_RESULT fetched',len(found),'expected',len(set(ids)),flush=True)
+          except Exception as exc:
+              print('PRICE_ORACLE_UNAVAILABLE',type(exc).__name__,str(exc)[:350],flush=True)
+              raise
+          PY
