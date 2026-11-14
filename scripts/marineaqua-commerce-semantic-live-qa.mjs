@@ -51,6 +51,7 @@ try{
    await first.click({timeout:15000});
    const textarea=page.locator('#esc-vb-edit-title');
    await textarea.waitFor({state:'visible',timeout:20000});
+   await page.waitForFunction(()=>String(document.querySelector('#esc-vb-edit-title')?.value||'').trim().length>0,null,{timeout:25000});
    record.selectedValue=await textarea.inputValue();
    assert.equal(record.selectedValue.trim(),before,'Builder selected wrong source label');
    record.row=await page.locator('#esc-vb-edit-row').inputValue().catch(()=>null);
