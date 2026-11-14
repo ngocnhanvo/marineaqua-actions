@@ -47,6 +47,18 @@ try {
         finalStatus:finalResponse?.status(),finalUrl:finalUrl.pathname+finalUrl.search,ok
       });
       assert.ok(ok,'Legacy category redirect mismatch '+JSON.stringify(report.checks.at(-1)));
+      if (item.from.includes('/tu-khoa/cut-chu-t-20mm')) {
+        const searchValue = await page.locator('#search-input').inputValue();
+        const productCount = await page.locator('article.group').count();
+        assert.equal(searchValue, 'cut chu t 20mm',
+          'Legacy tag redirect must preserve the normalized product search');
+        assert.ok(productCount > 0,
+          'Legacy tag search should return matching current products');
+        report.checks.push({
+          viewport:viewport.name,type:'legacy-tag-search-results',
+          searchValue,productCount,ok:true
+        });
+      }
     }
     const categoryPanel = viewport.name === 'desktop'
       ? '#header-product-catalog-panel'
