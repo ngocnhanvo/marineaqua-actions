@@ -22,7 +22,9 @@ try {
  const nonce=scriptTexts.map(t=>t.match(/const nonce\s*=\s*["']([^"']+)["']/)?.[1]).find(Boolean);
  assert.ok(nonce,'Builder REST nonce missing');
  const request=async(method,path,body)=> {
-  const r=await ctx.request.fetch(WP+'/wp-json/'+path,{method,headers:{'X-WP-Nonce':nonce,'Content-Type':'application/json'},data:body?JSON.stringify(body):undefined,timeout:30000,failOnStatusCode:false});
+  const withTicket=path.startsWith('esc-builder/v1/')
+    ? {page_id:82454,...body,ticket:await page.evaluate(()=>window.escVBGetTicket())} : body;
+  const r=await ctx.request.fetch(WP+'/wp-json/'+path,{method,headers:{'X-WP-Nonce':nonce,'Content-Type':'application/json'},data:withTicket?JSON.stringify(withTicket):undefined,timeout:30000,failOnStatusCode:false});
   return {status:r.status(),body:await r.json().catch(()=>({}))};
  };
  const list=await request('GET','tablepress/v1/tables');
@@ -33,23 +35,25 @@ try {
  if(!entries.length && raw?.tables)entries=collect(raw.tables);
  let ids=[...new Set(entries.map(v=>String(typeof v==='string'||typeof v==='number'?v:v?.id??v?.ID??'')).filter(v=>/^[a-zA-Z0-9_-]{1,80}$/.test(v)))];
  if(!ids.length){
-  const tablepress=await page.goto(WP+'/wp-admin/admin.php?page=tablepress',{waitUntil:'domcontentloaded',timeout:45000});
+  const listPage=await ctx.newPage();
+  const tablepress=await listPage.goto(WP+'/wp-admin/admin.php?page=tablepress',{waitUntil:'domcontentloaded',timeout:45000});
   report.tablepressAdminStatus=tablepress?.status()||0;
-  const discovered=await page.locator('a[href*="table_id="],a[href*="tablepress&action=edit"]').evaluateAll(nodes=>nodes.map(a=>{
+  const discovered=await listPage.locator('a[href*="table_id="],a[href*="tablepress&action=edit"]').evaluateAll(nodes=>nodes.map(a=>{
    try{return new URL(a.href).searchParams.get('table_id')||'';}catch{return '';}
   }));
   ids=[...new Set(discovered.filter(v=>/^[a-zA-Z0-9_-]{1,80}$/.test(v)))];
   report.adminTableLinks=discovered.length;
-  report.tablepressAdminTitle=await page.title();
+  report.tablepressAdminTitle=await listPage.title();
+  await listPage.close();
  }
  if(!ids.length)throw new Error('No native TablePress table IDs discovered; REST list status '+list.status);
  report.tableCount=ids.length;
- for(const id of ids.slice(0,250)){
+ for(const id of ids.slice(0,100)){
    const result=await request('POST','esc-builder/v1/item-schema',{table_id:id});
    if(result.status===200&&['Product','ProductCategory','Page'].includes(result.body.source_api)){
      report.sources[result.body.source_api].push({id,count:result.body.count,can_add:result.body.can_add});
    }
-   report.tables.push({id,source:result.body?.source_api||'',status:result.status});
+   report.tables.push({id,source:result.body?.source_api||'',status:result.status,code:result.body?.code||''});
  }
  report.status='PASS';
 } catch(e){report.status='FAIL';report.errors.push(String(e.stack||e).slice(0,1800));process.exitCode=1;}
