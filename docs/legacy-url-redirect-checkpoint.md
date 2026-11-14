@@ -56,7 +56,7 @@ Production build evidence:
 
 - Astro logged `Sitemap route inventory: 548 WordPress routes`.
 - Astro converted the WordPress SEO Files source and packaged the generated sitemap.
-- Public production `/sitemap.xml`: HTTP 200, XML `urlset`, 54,? KB, 548 `<loc>` entries.
+- Public production `/sitemap.xml`: HTTP 200, valid XML `urlset`, 548 `<loc>` entries.
 - Final Playwright QA verified 548 entries on both desktop and mobile.
 
 Related runs:
