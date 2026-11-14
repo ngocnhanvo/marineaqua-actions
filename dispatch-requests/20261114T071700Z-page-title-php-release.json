@@ -1,0 +1,11 @@
+{
+  "action": "workflow_dispatch",
+  "source_sha": "07c763a44f96263a1d67215c69365006e48d758c",
+  "reason": "Deploy guarded WordPress Page Title editing controls and REST routes for Visual Builder",
+  "request_id": "20261114T071700Z-page-title-php-release",
+  "inputs": {
+    "confirm": "DEPLOY_PHP"
+  },
+  "ref": "main",
+  "workflow": "marineaqua-php-release.yml"
+}
