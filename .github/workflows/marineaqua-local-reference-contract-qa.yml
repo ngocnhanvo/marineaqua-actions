@@ -24,7 +24,7 @@ jobs:
         run: |
           set -euo pipefail
           php -l wp-content/plugins/esc-visual-builder/includes/item-section-ui.php
-          php -l wp-content/plugins/esc-visual-builder/includes/item-sections.php
+          php -l wp-content/plugins/esc-visual-builder/includes/item-manager.php
           php wp-content/plugins/esc-visual-builder/tests/items-and-sections.test.php
           php wp-content/plugins/esc-visual-builder/tests/nested-ownership.test.php
       - name: Verify PHP-rendered item picker JavaScript and ticket authorization
