@@ -73,7 +73,8 @@ jobs:
            const mobileCategories = read("src/astro/components/Menu/MobileProductCategoryBranch.astro");
            assert.match(header, /categoryRootUrl=\{categoryRootUrl\}/);
            assert.match(mobile, /MobileProductCategoryBranch/);
-           assert.match(mobileCategories, /data-menu-toggle/);
+           assert.match(mobileCategories, /<details class="marine-category-tree-details"/);
+           assert.match(mobileCategories, /<summary/);
            assert.match(style, /min-width:1024px/);
            assert.match(style, /max-width:1023px/);
           assert.doesNotMatch(header, /id="header-hotline"/);
