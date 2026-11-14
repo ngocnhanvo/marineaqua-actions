@@ -121,7 +121,7 @@ async function fetchRestCollection(restBase, kind, routeFor) {
   const seen = new Set();
   for (let page = 1; page <= 100; page++) {
     const url = currentWpOrigin + '/wp-json/wp/v2/' + encodeURIComponent(restBase) +
-      '?status=publish&per_page=100&page=' + page + '&_fields=slug,link,status';
+      '?status=publish&per_page=100&page=' + page + '&_fields=slug,link,status,title';
     const response = await fetch(url, {
       headers: { accept: 'application/json', 'user-agent': 'MarineAqua-Legacy-URL-Audit/1.0' },
       signal: AbortSignal.timeout(20000),
@@ -141,7 +141,7 @@ async function fetchRestCollection(restBase, kind, routeFor) {
         throw new Error('Duplicate live REST route ' + path);
       }
       seen.add(slug);
-      currentRestRoutes.set(path, { kind, slug, sourceLink: String(row?.link || '') });
+      currentRestRoutes.set(path, { kind, slug, title: String(row?.title?.rendered || row?.title || ''), sourceLink: String(row?.link || '') });
     }
     if (rows.length < 100) break;
     if (page === 100) throw new Error(kind + ' REST inventory exceeded 100 pages');
@@ -192,9 +192,85 @@ for (const [path, metadata] of currentRestRoutes) {
   if (!newByPath.has(path)) newByPath.set(path, NEW_ORIGIN + path);
 }
 const newPaths = [...newByPath.keys()];
+
+function normalizeTitle(value) {
+  return String(value || '').replace(/<[^>]*>/g, ' ').replace(/&amp;/g, '&')
+    .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ').trim().replace(/\\s+/g, ' ');
+}
+const currentByTitle = new Map();
+for (const [path, metadata] of currentRestRoutes) {
+  const title = normalizeTitle(metadata.title);
+  if (!title) continue;
+  if (!currentByTitle.has(title)) currentByTitle.set(title, []);
+  currentByTitle.get(title).push({ path, ...metadata });
+}
+const oldWpProducts = new Map();
+const oldWpPages = new Map();
+try {
+  const oldTypesResponse = await fetch(OLD_ORIGIN + '/wp-json/wp/v2/types?context=view', {
+    headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20000),
+  });
+  if (oldTypesResponse.ok) {
+    const oldTypes = await oldTypesResponse.json();
+    const oldProductType = Object.values(oldTypes).find(item => item?.slug === 'product' || item?.rest_base === 'product');
+    const oldPageType = Object.values(oldTypes).find(item => item?.slug === 'page' || item?.rest_base === 'pages');
+    async function collectOld(restBase, target) {
+      for (let page = 1; page <= 100; page++) {
+        const url = OLD_ORIGIN + '/wp-json/wp/v2/' + encodeURIComponent(restBase) +
+          '?status=publish&per_page=100&page=' + page + '&_fields=slug,title';
+        const response = await fetch(url, {
+          headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20000),
+        });
+        if (!response.ok) {
+          if ((response.status === 400 || response.status === 404) && page > 1) break;
+          throw new Error('Old ' + restBase + ' REST inventory HTTP ' + response.status);
+        }
+        const rows = await response.json();
+        if (!Array.isArray(rows)) throw new Error('Old ' + restBase + ' REST inventory malformed');
+        for (const row of rows) {
+          const slug = String(row?.slug || '');
+          const title = normalizeTitle(row?.title?.rendered || row?.title || '');
+          if (slug && title) target.set(slug, title);
+        }
+        if (rows.length < 100) break;
+        if (page === 100) throw new Error('Old ' + restBase + ' inventory exceeded 100 pages');
+      }
+    }
+    if (oldProductType?.rest_base) await collectOld(oldProductType.rest_base, oldWpProducts);
+    if (oldPageType?.rest_base) await collectOld(oldPageType.rest_base, oldWpPages);
+    REPORT.sitemapSources.oldWordPressRest = {
+      origin: OLD_ORIGIN,
+      products: oldWpProducts.size,
+      pages: oldWpPages.size,
+    };
+  } else {
+    throw new Error('Old WP types registry HTTP ' + oldTypesResponse.status);
+  }
+} catch (error) {
+  REPORT.errors.push({ scope: 'old-wordpress-rest', error: String(error?.message || error).slice(0, 500) });
+}
 for (const [oldPath, oldUrl] of oldByPath) {
   if (newByPath.has(oldPath)) continue;
-  const candidates = candidatePaths(oldPath, newPaths);
+  let candidates = candidatePaths(oldPath, newPaths);
+  let titleMatch = null;
+  if (candidates.length === 0 && oldPath.startsWith('/san-pham/')) {
+    const oldSlug = oldPath.split('/').filter(Boolean).at(-1);
+    const title = oldWpProducts.get(oldSlug);
+    const matches = title ? (currentByTitle.get(title) || []).filter(item => item.kind === 'product') : [];
+    if (matches.length === 1) {
+      candidates = [matches[0].path];
+      titleMatch = 'exact-product-title';
+    }
+  }
+  if (candidates.length === 0 && oldWpPages.has(oldPath.split('/').filter(Boolean).at(-1))) {
+    const title = oldWpPages.get(oldPath.split('/').filter(Boolean).at(-1));
+    const matches = title ? (currentByTitle.get(title) || []).filter(item => item.kind === 'page') : [];
+    if (matches.length === 1) {
+      candidates = [matches[0].path];
+      titleMatch = 'exact-page-title';
+    }
+  }
   if (candidates.length === 1) {
     REPORT.mappings.push({
       from: oldPath,
