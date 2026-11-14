@@ -29,20 +29,25 @@ async function sourceRead(){
 async function restoreIfRequired(){
  const latest=await current();
  if(latest===original)return 'already-restored';
- if(!selected||!marker||latest.indexOf(marker)<0)throw Error('CLEANUP_CONFLICT: missing QA marker');
- const fresh=await sourceRead();
- const row=fresh.rows?.find(r=>r.title===selected.title+marker && r.part===selected.part);
- assert.ok(row,'CLEANUP_CONFLICT: exact source token not found');
- const res=await ctx.request.post(route('save-page-text'),
-  {headers:headers(),data:{page_id:PAGE_ID,ticket,
-   part:row.part,offset:row.offset,title:selected.title,
-   original_hash:row.hash,expected_version:fresh.version},
-   timeout:30000,failOnStatusCode:false});
- assert.equal(res.status(),200,'CLEANUP_FAILED: REST page restore failed');
- const payload=await res.json();
- assert.equal(payload.saved,true,'CLEANUP_FAILED: restore not saved');
+ if(!selected||!marker||latest.split(marker).length!==2)
+  throw Error('CLEANUP_CONFLICT: marker missing or duplicated');
+ const expected=original.replace(selected.title,selected.title+marker);
+ if(latest!==expected)
+  throw Error('CLEANUP_CONFLICT: Page changed beyond exact QA token');
+ const check=await ctx.request.get(WP+'/wp-json/wp/v2/pages/'+PAGE_ID+'?context=edit',
+  {headers:headers(),timeout:30000,failOnStatusCode:false});
+ assert.equal(check.status(),200,'Native Page cannot be rechecked');
+ const entry=await check.json();
+ assert.equal(Number(entry.id),PAGE_ID);
+ assert.equal(entry.slug,'thoi-gian-ban-hang');
+ assert.equal(String(entry.content?.raw||''),latest,'Concurrent Page edit');
+ const save=await ctx.request.post(WP+'/wp-json/wp/v2/pages/'+PAGE_ID,
+  {headers:headers(),data:{content:original},timeout:30000,failOnStatusCode:false});
+ assert.equal(save.status(),200,'CLEANUP_FAILED: native WordPress Page REST');
+ assert.equal(Number((await save.json()).id),PAGE_ID,'Unexpected restored Page ID');
  report.writes++;
- return 'authenticated-REST-fallback';
+ assert.equal(await current(),original,'CLEANUP_FAILED: restored Page differs');
+ return 'authenticated-native-page-rest';
 }
 try{
  assert.ok(process.env.WP_ADMIN_USERNAME&&process.env.WP_ADMIN_PASSWORD,'WordPress QA credentials missing');
@@ -95,7 +100,7 @@ try{
  }
  assert.ok(selectedRow,'No single-occurrence raw Page text token safe for reversible UI QA');
  selected={id:selectedRow.id,part:selectedRow.part,title:display};
- marker=' [QA'+String(process.env.GITHUB_RUN_ID||'1').replace(/\D/g,'').slice(-12)+']';
+ marker=' QA'+String(process.env.GITHUB_RUN_ID||'1').replace(/\D/g,'').slice(-12);
  report.source_token=selectedRow.id;
  report.phase='save';
  await input.fill(display+marker);
@@ -114,16 +119,8 @@ try{
  assert.equal(live,original.replace(display,display+marker),'Page Save modified unrelated source bytes');
  report.changed_tokens=1;
  report.phase='restore';
- await input.fill(display);
- await save.click({timeout:20000});
- let restored=false;
- for(let i=0;i<20&&!restored;i++){
-  restored=(await current())===original;
-  if(!restored)await page.waitForTimeout(700);
- }
- assert.ok(restored,'UI restore not yet confirmed; fallback will run');
- report.writes++;
- report.restored_with='Visual Builder Save';
+ report.restored_with=await restoreIfRequired();
+ assert.equal(await current(),original,'Save/rollback Page snapshot mismatch');
 }catch(e){report.errors.push(String(e.stack||e).slice(0,850));}
 finally{
  if(original!==undefined&&ctx&&nonce&&ticket){
