@@ -28,7 +28,7 @@ async function fetchText(url) {
 }
 
 function locs(xml) {
-  return [...xml.matchAll(/<loc>\\s*([^<]+?)\\s*<\\/loc>/gi)]
+  return [...xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)]
     .map(match => match[1].replaceAll('&amp;', '&').trim())
     .filter(Boolean);
 }
@@ -52,16 +52,16 @@ async function sitemapTree(origin, label) {
     try {
       const { url: finalUrl, text } = await fetchText(url);
       sourceDocs.push({ requested: url, final: finalUrl, bytes: text.length });
-      if (/robots\\.txt(?:$|\\?)/i.test(new URL(finalUrl).pathname)) {
-        for (const line of text.split(/\\r?\\n/)) {
-          const match = line.match(/^\\s*Sitemap:\\s*(https?:\\/\\/\\S+)/i);
+      if (/robots\.txt(?:$|\?)/i.test(new URL(finalUrl).pathname)) {
+        for (const line of text.split(/\r?\n/)) {
+          const match = line.match(/^\s*Sitemap:\s*(https?:\/\/\S+)/i);
           if (match) queue.push(match[1].trim());
         }
         continue;
       }
       const found = locs(text);
       if (!found.length) continue;
-      const isIndex = /<sitemapindex[\\s>]/i.test(text);
+      const isIndex = /<sitemapindex[\s>]/i.test(text);
       if (isIndex) {
         for (const child of found) queue.push(child);
       } else {
@@ -86,8 +86,8 @@ async function sitemapTree(origin, label) {
 
 function normalizedPath(url) {
   const parsed = new URL(url);
-  let path = decodeURIComponent(parsed.pathname).replace(/\\/{2,}/g, '/');
-  if (path.length > 1) path = path.replace(/\\/+$/, '');
+  let path = decodeURIComponent(parsed.pathname).replace(/\/{2,}/g, '/');
+  if (path.length > 1) path = path.replace(/\/+$/, '');
   return path || '/';
 }
 function lastSlug(path) {
@@ -102,7 +102,7 @@ function candidatePaths(oldPath, newPaths) {
   const exact = newPaths.filter(path => path === oldPath);
   if (exact.length) return exact;
   const slugMatches = newPaths.filter(path => lastSlug(path) === slug);
-  if (/^\\/danh-muc\\//i.test(oldPath)) {
+  if (/^\/danh-muc\//i.test(oldPath)) {
     const flat = newPaths.filter(path => path === '/san-pham/' + slug || path.startsWith('/san-pham/' + slug + '/'));
     return flat.length ? flat : slugMatches;
   }
@@ -122,7 +122,7 @@ for (const [oldPath, oldUrl] of oldByPath) {
       from: oldPath,
       to: candidates[0],
       type: 301,
-      confidence: /^\\/danh-muc\\//i.test(oldPath) ? 'category-slug-live-match' : 'unique-final-slug',
+      confidence: /^\/danh-muc\//i.test(oldPath) ? 'category-slug-live-match' : 'unique-final-slug',
       sourceUrl: oldUrl,
       destinationUrl: NEW_ORIGIN + candidates[0],
     });
@@ -143,12 +143,12 @@ REPORT.totals = {
   unresolved: REPORT.unresolved.length,
 };
 assert.ok(REPORT.totals.oldSitemapUrls > 0 && REPORT.totals.currentSitemapUrls > 0);
-await writeFile(OUT + '/report.json', JSON.stringify(REPORT, null, 2) + '\\n');
+await writeFile(OUT + '/report.json', JSON.stringify(REPORT, null, 2) + '\n');
 await writeFile(OUT + '/mappings.csv',
   ['from,to,type,confidence', ...REPORT.mappings.map(x =>
     [x.from,x.to,x.type,x.confidence].map(v => '"' + String(v).replaceAll('"','""') + '"').join(',')
-  )].join('\\n') + '\\n');
-await writeFile(OUT + '/unresolved.json', JSON.stringify(REPORT.unresolved, null, 2) + '\\n');
+  )].join('\n') + '\n');
+await writeFile(OUT + '/unresolved.json', JSON.stringify(REPORT.unresolved, null, 2) + '\n');
 console.log('MARINEAQUA_LEGACY_URL_INVENTORY=' + JSON.stringify(REPORT.totals));
 console.log('MARINEAQUA_LEGACY_URL_MAPPING_CANDIDATES=' + REPORT.mappings.length);
 console.log('MARINEAQUA_LEGACY_URL_UNRESOLVED=' + REPORT.unresolved.length);
