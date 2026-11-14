@@ -173,6 +173,11 @@ jobs:
               if f'data-tablepress-preview="{table}"' not in html:
                   raise SystemExit('HOME_CATALOG=FAIL missing ESC section ' + table)
           count = html.count('data-marine-product-price')
+          for table in brand_tables:
+              at = html.find('data-tablepress-preview="' + table + '"')
+              tail = html.find('data-tablepress-preview="home_', at + 10) if at >= 0 else -1
+              segment = html[at:(tail if tail > at else at + 60000)] if at >= 0 else ''
+              print(f'HOME_BRAND_DIAGNOSTIC {table} price_markers={segment.count("data-marine-product-price")} product_links={segment.count("data-marine-product-id")}', flush=True)
           if count < 20:
               raise SystemExit(f'HOME_CATALOG=FAIL expected 20 CMS prices, found {count}')
           if 'continuum-aquatics-bacter-clean-m' not in html:
