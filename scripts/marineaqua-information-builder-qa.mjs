@@ -90,6 +90,26 @@ try {
     await assertEventually(async()=>await h1.innerText(),record.pageH1Before);
     assert.equal(await titleField.inputValue(),record.pageTitleValue,'Cancel changed WordPress Page Title');
     record.pageTitleDraftCancel='PASS';
+    // Reject an obsolete source version without ever modifying live WordPress.
+    const nonceScript=(await page.locator('script').allTextContents())
+      .map(x=>x.match(/const nonce\s*=\s*["']([^"']+)["']/)?.[1]).find(Boolean);
+    const ticket=await page.evaluate(()=>window.escVBGetTicket?.());
+    assert.ok(nonceScript&&ticket,'Missing scoped Page Title authorization');
+    const denied=await ctx.request.post(WP+'/wp-json/esc-builder/v1/save-page-title',{
+      headers:{'X-WP-Nonce':nonceScript,'Content-Type':'application/json'},
+      data:{page_id:target.id,ticket,title:record.pageTitleValue+' discarded',
+        expected_version:'0'.repeat(64)},failOnStatusCode:false,timeout:30000});
+    record.pageTitleConflictStatus=denied.status();
+    assert.equal(denied.status(),409,'Stale Page Title write must be rejected');
+    const current=await ctx.request.post(WP+'/wp-json/esc-builder/v1/editable-page-title',{
+      headers:{'X-WP-Nonce':nonceScript,'Content-Type':'application/json'},
+      data:{page_id:target.id,ticket},failOnStatusCode:false,timeout:30000});
+    assert.equal(current.status(),200,'Page Title readback failed after denied write');
+    const body=await current.json();
+    assert.equal(body.title,record.pageTitleValue,'Rejected write changed WordPress Title');
+    assert.equal(body.slug,'thong-bao','Rejected write changed WordPress slug');
+    record.pageTitleConflictReadback='PASS';
+
    }
    if(target.slug==='thoi-gian-ban-hang'){
     record.tokenSelections=[];
