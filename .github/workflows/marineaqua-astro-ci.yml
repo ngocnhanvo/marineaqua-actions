@@ -1,5 +1,5 @@
 name: Marine Aqua Astro source checks Product Builder (NO DEPLOY)
-# Verify completed retired product and tag route aliases.
+# Validate retired product route aliases against live-category fixtures.
 # Regression checks now include redirect-alias and nested brand route Vitest cases.
 on:
   push:
