@@ -86,6 +86,32 @@ try {
   return {id:p.id,slug:p.slug,status:p.status,action:p.acf?.action||'',key:p.acf?.key||'',title:p.title?.raw||p.title?.rendered||'',contentLength:raw.length,shortcodes:[...new Set([...ids,...native])],rawShortcodeCount:ids.length+native.length,hasBuilderSource:ids.length+native.length>0,modified_gmt:p.modified_gmt||''};
  }).sort((a,b)=>a.slug.localeCompare(b.slug));
  report.cmsPageAudit={published:report.cmsPages.filter(p=>p.status==='publish').length,withEscShortcode:report.cmsPages.filter(p=>p.hasBuilderSource).length,withoutEscShortcode:report.cmsPages.filter(p=>!p.hasBuilderSource&&p.status==='publish').map(p=>({id:p.id,slug:p.slug,action:p.action,contentLength:p.contentLength})),sourceTypes:Object.fromEntries(Object.entries(report.sources).map(([k,v])=>[k,v.length]))};
+
+ // Page-scoped read-only diagnostics: each Builder ticket must be issued for its own Page.
+ // The home-page ticket is not an authorization oracle for unrelated tables.
+ const auditSlugs=new Set(['trang-chu','lien-he','gio-hang','thanh-toan','dat-hang-thanh-cong','tai-khoan','chinh-sach-doi-tra-hang','thong-bao','huong-dan-mua-hang-o-xa','huong-dan-mua-hang-tai-nha','thoi-gian-ban-hang']);
+ report.pageScopedBuilderAudit=[];
+ const candidateTables=['home_03','home_04','contact_semantics_vi'];
+ for(const record of report.cmsPages.filter(p=>auditSlugs.has(p.slug))){
+  const audit={pageId:record.id,slug:record.slug,shortcodes:record.shortcodes,editorContentLength:record.contentLength,tableChecks:[],errors:[]};
+  const scoped=await ctx.newPage();
+  try{
+   const resp=await scoped.goto(WP+'/wp-admin/edit.php?post_type=page&page=esc-visual-builder&esc_vb_page='+record.id,{waitUntil:'domcontentloaded',timeout:45000});
+   audit.http=resp?.status()||0;
+   audit.ticketAvailable=await scoped.evaluate(()=>typeof window.escVBGetTicket==='function').catch(()=>false);
+   audit.builderText=(await scoped.locator('body').innerText().catch(()=>'' )).slice(0,1100);
+   if(audit.http===200&&audit.ticketAvailable){
+    const scopedTicket=await scoped.evaluate(()=>window.escVBGetTicket());
+    for(const table_id of [...new Set([...record.shortcodes,...candidateTables])].slice(0,8)){
+     const r=await ctx.request.post(WP+'/wp-json/esc-builder/v1/item-schema',{headers:{'X-WP-Nonce':nonce,'Content-Type':'application/json'},data:{page_id:record.id,ticket:scopedTicket,table_id},timeout:30000,failOnStatusCode:false});
+     const b=await r.json().catch(()=>({}));
+     audit.tableChecks.push({id:table_id,status:r.status(),code:b?.code||'',source:b?.source_api||'',count:b?.count??null,can_add:b?.can_add??null});
+    }
+   }
+  }catch(e){audit.errors.push(String(e).slice(0,300));}
+  finally{await scoped.close();report.pageScopedBuilderAudit.push(audit);}
+ }
+ report.pageScopedAuditCount=report.pageScopedBuilderAudit.length;
  report.status='PASS';
 } catch(e){report.status='FAIL';report.errors.push(String(e.stack||e).slice(0,1800));process.exitCode=1;}
 finally {await writeFile(OUT+'/result.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_REFERENCE_INVENTORY='+JSON.stringify(report));await browser.close();}
