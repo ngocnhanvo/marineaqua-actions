@@ -3,10 +3,7 @@ import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
 const WP='https://admin.marine-aqua.io.vn',OUT='yoast-system-pages';
 const pages=[
- {id:83459,slug:'tai-khoan',title:'Tài khoản',seoTitle:'Tài khoản - Marine Aqua',description:'Đăng nhập hoặc tạo tài khoản Marine Aqua để quản lý thông tin cá nhân, theo dõi đơn hàng và thuận tiện khi mua sắm thiết bị, phụ kiện bể cá biển.'},
- {id:83449,slug:'gio-hang',title:'Giỏ hàng',seoTitle:'Giỏ hàng - Marine Aqua',description:'Kiểm tra sản phẩm đã chọn, cập nhật số lượng và xem thông tin đơn hàng trước khi tiếp tục thanh toán tại Marine Aqua.'},
- {id:83451,slug:'thanh-toan',title:'Thanh toán',seoTitle:'Thanh toán - Marine Aqua',description:'Hoàn tất thông tin nhận hàng và lựa chọn phương thức thanh toán cho đơn hàng Marine Aqua. Kiểm tra kỹ thông tin trước khi xác nhận đặt hàng.'},
- {id:83453,slug:'dat-hang-thanh-cong',title:'Hoàn tất đơn hàng',seoTitle:'Hoàn tất đơn hàng - Marine Aqua',description:'Tra cứu thông tin xác nhận và trạng thái đơn hàng Marine Aqua bằng liên kết và thông tin đơn hàng được cung cấp sau khi đặt hàng.'}
+ {id:83459,slug:'tai-khoan',title:'Tài khoản',seoTitle:'Tài khoản - Marine Aqua',description:'Đăng nhập hoặc tạo tài khoản Marine Aqua để quản lý thông tin cá nhân, theo dõi đơn hàng và thuận tiện khi mua sắm thiết bị, phụ kiện bể cá biển.'}
 ];
 await mkdir(OUT,{recursive:true});const report={status:'STARTED',writes:0,pages:[],errors:[]};const browser=await chromium.launch({headless:true});
 try{
@@ -20,25 +17,28 @@ try{
   assert.equal(await page.locator('#post_name').inputValue(),p.slug,'slug mismatch');
   const before=await ctx.request.get(WP+'/wp-json/wp/v2/pages/'+p.id);assert.equal(before.status(),200);
   const old=await before.json();assert.equal(old.status,'publish');
-  await page.locator('#wpseo_meta').scrollIntoViewIfNeeded();
-  await page.waitForTimeout(1200);
-  const title=page.locator('#yoast-google-preview-title-metabox'),desc=page.locator('#yoast-google-preview-description-metabox');
-  await title.waitFor({state:'visible',timeout:25000});await desc.waitFor({state:'visible',timeout:25000});
-  await title.fill(p.seoTitle);
-  // DraftJS replaces editor nodes during React state updates. Do not keep
-  // stale locators or force blur between the title and description fields.
-  await page.locator('#yoast-google-preview-description-metabox').fill(p.description);
-  await page.waitForFunction(({ title, description }) => {
-    const titleField = document.querySelector('#yoast_wpseo_title');
-    const descriptionField = document.querySelector('#yoast_wpseo_metadesc');
-    return titleField?.value === title && descriptionField?.value === description;
-  }, { title: p.seoTitle, description: p.description }, { timeout: 15000 });
-  const state = await page.evaluate(() => ({
-    title: document.querySelector('#yoast_wpseo_title')?.value || '',
-    description: document.querySelector('#yoast_wpseo_metadesc')?.value || ''
-  }));
-  assert.equal(state.title, p.seoTitle, 'Yoast title did not bind to native field');
-  assert.equal(state.description, p.description, 'Yoast description did not bind to native field');
+  const nativeFields = await page.evaluate(({ seoTitle, description }) => {
+    const form = document.querySelector('#post');
+    const titleField = form?.querySelector('#yoast_wpseo_title');
+    const descriptionField = form?.querySelector('#yoast_wpseo_metadesc');
+    if (!form || !titleField || !descriptionField) return { ok: false };
+    titleField.value = seoTitle;
+    descriptionField.value = description;
+    for (const field of [titleField, descriptionField]) {
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      field.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    return {
+      ok: true,
+      title: titleField.value,
+      description: descriptionField.value,
+      noncePresent: Boolean(form.querySelector('#_wpnonce')?.value)
+    };
+  }, { seoTitle: p.seoTitle, description: p.description });
+  assert.equal(nativeFields.ok, true, 'Native WordPress/Yoast fields unavailable');
+  assert.equal(nativeFields.title, p.seoTitle);
+  assert.equal(nativeFields.description, p.description);
+  assert.equal(nativeFields.noncePresent, true, 'WordPress edit nonce missing');
   await page.locator('#publish').click({timeout:20000});
   let after=null;const deadline=Date.now()+25000;while(Date.now()<deadline){const res=await ctx.request.get(WP+'/wp-json/wp/v2/pages/'+p.id);if(res.ok()){after=await res.json();if(after.yoast_head_json?.title===p.seoTitle&&after.yoast_head_json?.description===p.description)break;}await page.waitForTimeout(700);}
   assert.ok(after);assert.equal(after.slug,p.slug);assert.equal(after.status,'publish');assert.equal(after.yoast_head_json?.title,p.seoTitle);assert.equal(after.yoast_head_json?.description,p.description);
