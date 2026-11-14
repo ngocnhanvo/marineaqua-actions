@@ -65,11 +65,47 @@ try {
     ?.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || '';
   const canonical = html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)/i)?.[1]
     || html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["']canonical["']/i)?.[1] || '';
+  const visibleText = html
+    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')
+    .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')
+    .replace(/<svg[\\s\\S]*?<\\/svg>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/\\s+/g, ' ').trim();
+  const metaDescription = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)/i)?.[1]
+    || html.match(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i)?.[1] || '';
+  const jsonLdBlocks = [...html.matchAll(/<script[^>]+type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)]
+    .map(match => match[1].slice(0, 5000)).slice(0, 5);
   report.legacyRoute = {
     status: result.status, finalUrl: result.finalUrl, location: result.headers.location,
-    title, h1, canonical, htmlBytes: result.bytes,
-    notFoundMarker: /page not found|không tìm thấy|404 error/i.test(html),
+    title, h1, canonical, metaDescription, htmlBytes: result.bytes,
+    bodyTextExcerpt: visibleText.slice(0, 5000),
+    jsonLdBlocks,
+    notFoundMarker: /page not found|không tìm thấy|404 error/i.test(visibleText),
   };
+  const slug = '818641-2';
+  const endpoints = ['pages','posts','product'];
+  report.legacyRoute.rest = {};
+  for (const endpoint of endpoints) {
+    try {
+      const response = await get(OLD + '/wp-json/wp/v2/' + endpoint + '?slug=' + slug + '&_fields=id,slug,status,title,link,excerpt,content');
+      const rows = JSON.parse(response.text);
+      report.legacyRoute.rest[endpoint] = Array.isArray(rows)
+        ? rows.map(row => ({
+            id: row.id, slug: row.slug, status: row.status,
+            title: String(row.title?.rendered || ''),
+            link: row.link || '',
+            excerpt: String(row.excerpt?.rendered || '').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim().slice(0,500),
+            content: String(row.content?.rendered || '').replace(/<[^>]*>/g,' ').replace(/\\s+/g,' ').trim().slice(0,1000)
+          }))
+        : [];
+    } catch (error) {
+      report.legacyRoute.rest[endpoint] = { error: String(error?.message || error).slice(0,250) };
+    }
+  }
 } catch (error) {
   report.errors.push({ scope: 'legacy-route', message: String(error?.message || error) });
 }
