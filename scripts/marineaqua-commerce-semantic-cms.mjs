@@ -989,7 +989,15 @@ try {
   await page.waitForTimeout(1800);
   report.changed++;report.steps.push('PAGE_NATIVE_INSERT_CODE_SAVED');
  }
- const after=await rest('GET','/wp-json/wp/v2/pages/'+PAGE_ID+'?context=edit');
+ let after=await rest('GET','/wp-json/wp/v2/pages/'+PAGE_ID+'?context=edit');
+ // WordPress occasionally returns stale post_content immediately after the
+ // native Classic Editor Update. Only retry the exact same authenticated read.
+ if(already===0){
+  for(let attempt=0;attempt<12 && !String(after.data?.content?.raw||'').includes(shortcode);attempt++){
+   await page.waitForTimeout(1800);
+   after=await rest('GET','/wp-json/wp/v2/pages/'+PAGE_ID+'?context=edit');
+  }
+ }
  assert.equal(after.status,200);
  assert.equal(after.data.slug,original.slug);
  assert.equal(after.data.acf?.key,original.acf?.key);
