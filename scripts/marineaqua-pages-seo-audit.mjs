@@ -10,13 +10,13 @@ await mkdir(OUT, { recursive: true });
 
 const clean = (value) => String(value || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;|&#160;/gi, " ")
   .replace(/&amp;/gi, "&").replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'")
-  .replace(/\\[table\\b[^\\]]*\\]/gi, " ").replace(/\\s+/g, " ").trim();
-const norm = (value) => clean(value).normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+  .replace(/\[table\b[^\]]*\]/gi, " ").replace(/\s+/g, " ").trim();
+const norm = (value) => clean(value).normalize("NFD").replace(/[\u0300-\u036f]/g, "")
   .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const excerpt = (value) => {
   const text = clean(value);
   if (!text) return "";
-  const sentence = text.length > 165 ? text.slice(0, 165).replace(/\\s+\\S*$/, "") : text;
+  const sentence = text.length > 165 ? text.slice(0, 165).replace(/\s+\S*$/, "") : text;
   return sentence.trim().replace(/[,. ;:-]+$/, "") + (text.length > 165 ? "…" : "");
 };
 const pageRoute = (item) => {
@@ -28,8 +28,8 @@ const readHead = async (page) => page.evaluate(() => ({
   documentTitle: document.title || "",
   description: document.querySelector('meta[name="description"]')?.content || "",
   canonical: document.querySelector('link[rel="canonical"]')?.href || "",
-  h1: [...document.querySelectorAll("h1")].map(x => (x.innerText || x.textContent || "").replace(/\\s+/g, " ").trim()).filter(Boolean),
-  mainText: (document.querySelector("main#main-content, main, article .entry-content, .entry-content")?.innerText || "").replace(/\\s+/g, " ").trim().slice(0, 12000),
+  h1: [...document.querySelectorAll("h1")].map(x => (x.innerText || x.textContent || "").replace(/\s+/g, " ").trim()).filter(Boolean),
+  mainText: (document.querySelector("main#main-content, main, article .entry-content, .entry-content")?.innerText || "").replace(/\s+/g, " ").trim().slice(0, 12000),
   robots: document.querySelector('meta[name="robots"]')?.content || ""
 }));
 const browser = await chromium.launch({ headless: true });
@@ -170,7 +170,7 @@ try {
       const sourceTitle = record.sourceSeoTitle || record.pageTitle;
       const sourceDescription = record.sourceSeoDescription;
       record.recommendedSeoTitle = sourceTitle
-        ? (sourceTitle.length <= 65 ? sourceTitle : sourceTitle.slice(0, 62).replace(/\\s+\\S*$/, "") + "…")
+        ? (sourceTitle.length <= 65 ? sourceTitle : sourceTitle.slice(0, 62).replace(/\s+\S*$/, "") + "…")
         : (record.pageTitle ? record.pageTitle + " | Marine Aqua" : "");
       const fallbackText = clean(sourceData?.content?.rendered || item.content?.raw || item.content?.rendered || "");
       record.recommendedSeoDescription = sourceDescription || excerpt(fallbackText);
