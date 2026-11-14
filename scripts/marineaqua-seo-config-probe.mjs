@@ -86,6 +86,34 @@ try {
     jsonLdBlocks,
     notFoundMarker: /page not found|không tìm thấy|404 error/i.test(visibleText),
   };
+  try {
+    const detail = await get(OLD + '/wp-json/wp/v2/pages/818641?context=view&_fields=id,slug,status,title,link,excerpt,content,acf,meta');
+    const row = JSON.parse(detail.text);
+    report.sourcePageDetails = {
+      id: row.id, slug: row.slug, status: row.status,
+      title: String(row.title?.rendered || ''),
+      link: row.link || '',
+      acf: row.acf || null,
+      metaKeys: Object.keys(row.meta || {}),
+      contentText: String(row.content?.rendered || '').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,1500)
+    };
+  } catch (error) {
+    report.sourcePageDetails = { error: String(error?.message || error).slice(0,300) };
+  }
+  try {
+    const detail = await get(WP + '/wp-json/wp/v2/pages?slug=san-pham&context=view&_fields=id,slug,status,title,link,excerpt,content,acf,meta');
+    const rows = JSON.parse(detail.text);
+    report.targetProductPage = Array.isArray(rows) ? rows.map(row => ({
+      id: row.id, slug: row.slug, status: row.status,
+      title: String(row.title?.rendered || ''),
+      link: row.link || '',
+      acf: row.acf || null,
+      metaKeys: Object.keys(row.meta || {})
+    })) : [];
+  } catch (error) {
+    report.targetProductPage = { error: String(error?.message || error).slice(0,300) };
+  }
+
   const slug = '818641-2';
   const endpoints = ['pages','posts','product'];
   report.legacyRoute.rest = {};
