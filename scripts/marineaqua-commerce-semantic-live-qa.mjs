@@ -127,7 +127,7 @@ try{
      record.directLabelText,{timeout:25000});
    assert.equal((await textarea.inputValue()).trim(),record.directLabelText,
      'Direct commerce label selected the wrong WordPress cell');
-   assert.equal(await page.locator('#esc-vb-edit-row').inputValue(),record.directSourceRow,
+   assert.equal(await page.locator('#esc-vb-edit-row').inputValue(),record.directSourceRow+':label',
      'Direct commerce label did not select its physical ESC row');
    record.directEditable='PASS';
    if(target.slug==='thanh-toan' || target.slug==='tai-khoan'){
@@ -143,7 +143,7 @@ try{
      await page.waitForFunction(expected=>
        String(document.querySelector('#esc-vb-edit-title')?.value||'').trim()===expected,
        record.formLabel,{timeout:25000});
-     assert.equal(await page.locator('#esc-vb-edit-row').inputValue(),record.formRow,
+     assert.equal(await page.locator('#esc-vb-edit-row').inputValue(),record.formRow+':label',
        'Nested form selected wrong native ESC row');
      record.formDirectEditable='PASS';
    }
