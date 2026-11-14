@@ -164,7 +164,7 @@ jobs:
           const cartPage = read('src/astro/pages/CartPage.astro');
           assert.ok(cartPage.includes('homePage?.slug || ""'));
           const cartKeys = Object.keys(JSON.parse(read('src/data/i18n/cart.json')));
-          const cartLabels = [...cartPage.matchAll(/^\\s*([a-z_][a-z0-9_]*): mtlang\\?/gm)].map(match => match[1]);
+          const cartLabels = [...cartPage.matchAll(/^\s*([a-z_][a-z0-9_]*): mtlang\?/gm)].map(match => match[1]);
           assert.deepEqual(new Set(cartLabels), new Set(cartKeys), 'All native 18 Cart semantic labels must be rendered');
           const shipping = read('src/astro/components/Cart/ShippingFee.astro');
           assert.ok(cartPage.includes('<ShippingFee pages={pages} language={language} basename={basename} labels={t} />'));
