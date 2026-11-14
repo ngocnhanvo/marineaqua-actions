@@ -335,7 +335,7 @@ for (const [oldPath, oldUrl] of oldByPath) {
         }
       }
     }
-    const ranked = [...categoryCounts.entries()].sort((a,b) => b[1]-a[1]);
+    const ranked = [...categoryCounts.entries()].filter(([slug]) => slug !== 'thuong-hieu').sort((a,b) => b[1]-a[1]);
     if (ranked.length && (ranked.length === 1 || ranked[0][1] > ranked[1][1])) {
       candidates = ['/san-pham/' + ranked[0][0]];
       titleMatch = 'product-tag-dominant-category';
@@ -354,7 +354,7 @@ for (const [oldPath, oldUrl] of oldByPath) {
       from: oldPath,
       to: candidates[0],
       type: 301,
-      confidence: /^\/danh-muc\//i.test(oldPath) ? 'category-slug-live-match' : 'unique-final-slug',
+      confidence: titleMatch || (/^\/danh-muc\//i.test(oldPath) ? 'category-slug-live-match' : 'unique-final-slug'),
       sourceUrl: oldUrl,
       destinationUrl: NEW_ORIGIN + candidates[0],
     });
