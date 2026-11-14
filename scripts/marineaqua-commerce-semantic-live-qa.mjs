@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
+import https from 'node:https';
 const WP='https://admin.marine-aqua.io.vn', FRONT='https://marine-aqua.io.vn';
 const targetList=[
   {id:83449,slug:'gio-hang',table:'cart_semantics_vi',count:18},
@@ -10,6 +11,19 @@ const targetList=[
 ];
 // Temporary focused read-only diagnostic; restore the complete list after Cart is fixed.
 const targets=targetList.filter(target=>target.slug==='gio-hang');
+const http1Probe=(url)=>new Promise(resolve=>{
+ let settled=false;
+ const done=value=>{if(!settled){settled=true;resolve(value);}};
+ const req=https.get(url,{timeout:22000,headers:{'Accept-Encoding':'identity'}},res=>{
+  let bytes=0;
+  res.on('data',chunk=>{bytes+=chunk.length;if(bytes>1500000)req.destroy();});
+  res.on('end',()=>done({status:res.statusCode,bytes,ended:true}));
+  res.on('aborted',()=>done({status:res.statusCode,bytes,ended:false,reason:'aborted'}));
+  res.on('error',e=>done({status:res.statusCode,bytes,ended:false,errorType:e.code||e.name}));
+ });
+ req.on('timeout',()=>req.destroy(new Error('HTTP1Timeout')));
+ req.on('error',e=>done({ended:false,errorType:e.code||e.name}));
+});
 const report={status:'STARTED',pages:[],errors:[],writes:0};
 await mkdir('artifacts/commerce-semantic-live-qa',{recursive:true});
 const browser=await chromium.launch({headless:true});
@@ -61,7 +75,9 @@ try{
    // Probe the exact signed Preview URL through Playwright's API client.
    // Report metadata only: never log the ticket or the Page HTML.
    const signedIframe=await page.locator('#esc-vb-frame').getAttribute('src');
+   record.publicHttp1=await http1Probe(FRONT+'/gio-hang');
    if(signedIframe){
+    record.previewHttp1=await http1Probe(signedIframe);
     try{
      const probe=await ctx.request.get(signedIframe,{timeout:30000,maxRedirects:2});
      const body=await probe.body();
