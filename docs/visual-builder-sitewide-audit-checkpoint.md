@@ -68,3 +68,14 @@ Page Editor write QA is NOT finished:
 - Local `ProductCategory` and `Page` reference sources still have no truly shortcode-backed authorized Page in the inventory; PHP/unit logic is not equivalent to live add/delete/swap/save/readback. Keep this explicitly pending. Never bypass Page-ticket permissions by testing a table from another Page.
 
 State: COMMERCE_SEMANTIC_CMS_PASS, BUILDER_UI_PASS, CART_SAVE_RESTORE_PASS, DEPLOY_PASS; INFORMATION_EDITOR_READONLY_PARTIAL_PASS, INFORMATION_EDITOR_SAVE_PENDING, LOCAL_PAGE_CATEGORY_WRITE_QA_PENDING, SITEWIDE_DONE_NOT_YET.
+
+
+## 2026-11-14 — final continuation evidence after correct Page Editor source targeting
+
+- Information Page Editor read-only [43560892567](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43560892567) SUCCESS, writes=0. Five information Pages selectable; on `thoi-gian-ban-hang` all three visible paragraphs matched BOTH parent Editor and authenticated native REST manifest at `0:3`, `0:56`, `0:95`.
+- Scoped real Page Editor Save/readback/restore [43561096380](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43561096380) SUCCESS: exactly token `0:56` selected using DOM + native source version, exactly one token changed, `writes=2`, `cleanup_remaining=0`, `errors=[]`, restoration via authenticated native WordPress Page REST with exact complete snapshot validation. Workflow is set to `workflow_dispatch` only after the passing test, to prevent automatic production CMS mutations.
+- Isolated PHP local reference contracts [43561284440](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43561284440) SUCCESS: PHP item add/swap/delete, section ordering, nested Page ownership, compiled real item UI JavaScript and REST-ticket protection. Fixtures only; no CMS writes, no WooCommerce mutations.
+- Last incomplete acceptance: there are no Page-authorized, genuinely shortcode-backed local `ProductCategory` or `Page` reference source tables in the current inventory, so their exact production Visual Builder add/delete/swap/save/readback cannot be asserted. Existing `Product` local source tests and homepage product QA were previously completed. Do not create or mutate arbitrary WordPress tables/Pages solely to produce a green result. Test newly instantiated real `ProductCategory`/`Page` sources when they become part of approved Page layout.
+- No outstanding QA marker; WordPress Page ID 83285 was restored fully by [43560037615](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43560037615). Latest Page Editor Save QA also restored `cleanup_remaining=0`.
+
+Status: production commerce semantic and information Page Editor Save are VERIFIED. Native local reference **source logic** is unit/contract verified; ProductCategory/Page **live CRUD** remains NOT TESTABLE WITH CURRENT SOURCE INVENTORY, not a demonstrated bug. Overall sitewide sign-off should remain partial until this source type has a real approved owner Page.
