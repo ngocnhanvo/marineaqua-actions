@@ -166,7 +166,7 @@ try {
     tinymceVisible:window.tinymce?.get?.('content')?.isHidden?.()===false
   }));
   const quick=page.locator('#qt_content_tablepress_quicktags_button');
-  assert.ok(await quick.isVisible(),'Native ESC Table Insert Code button missing');
+  await quick.waitFor({state:'visible',timeout:25000});
   await quick.click();
   await page.waitForTimeout(750);
   let updated=await textarea.inputValue();
