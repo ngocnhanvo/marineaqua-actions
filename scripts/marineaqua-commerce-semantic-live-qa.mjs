@@ -113,6 +113,30 @@ try{
    record.lastRow=await page.locator('#esc-vb-edit-row').inputValue().catch(()=>null);
    assert.equal(record.lastEditorValue.trim(),lastText,
       'Final native WordPress label not independently selectable');
+   // The inspector is not enough: a user must be able to click real semantic
+   // text in the commerce component and reach the same native ESC source.
+   const direct=frame.locator('main#main-content [data-esc-builder-cell-field="label"]:visible');
+   record.directLabelCount=await direct.count();
+   assert.ok(record.directLabelCount>0,'No directly editable commerce labels');
+   const directLabel=direct.first();
+   record.directLabelText=(await directLabel.innerText()).trim();
+   record.directSourceRow=await directLabel.getAttribute('data-esc-builder-cell-row');
+   await directLabel.click({timeout:15000});
+   await page.waitForFunction(expected=>
+     String(document.querySelector('#esc-vb-edit-title')?.value||'').trim()===expected,
+     record.directLabelText,{timeout:25000});
+   assert.equal((await textarea.inputValue()).trim(),record.directLabelText,
+     'Direct commerce label selected the wrong WordPress cell');
+   assert.equal(await page.locator('#esc-vb-edit-row').inputValue(),record.directSourceRow,
+     'Direct commerce label did not select its physical ESC row');
+   record.directEditable='PASS';
+   if(target.slug==='dat-hang-thanh-cong'){
+     // Preview must render a synthetic success state without real order data.
+     record.previewDemoOrder=await frame.locator('main#main-content').innerText();
+     assert.ok(record.previewDemoOrder.includes('DEMO-001'),
+       'Checkout success preview must use a non-real demonstration order');
+     delete record.previewDemoOrder;
+   }
    record.uiPass=true;
    const publicPage=await ctx.newPage();
    try {
