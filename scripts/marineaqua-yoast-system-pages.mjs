@@ -25,10 +25,23 @@ try{
   const title=page.locator('#yoast-google-preview-title-metabox'),desc=page.locator('#yoast-google-preview-description-metabox');
   await title.waitFor({state:'visible',timeout:25000});await desc.waitFor({state:'visible',timeout:25000});
   await title.fill(p.seoTitle);
-  await title.evaluate(el=>el.blur());
-  await desc.scrollIntoViewIfNeeded();
+  await page.evaluate(() => {
+    const editor = document.querySelector('#yoast-google-preview-title-metabox');
+    if (editor) editor.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  });
+  await page.waitForTimeout(500);
   await desc.fill(p.description);
-  await desc.evaluate(el=>el.blur());
+  await page.evaluate(() => {
+    const editor = document.querySelector('#yoast-google-preview-description-metabox');
+    if (editor) editor.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  });
+  await page.waitForFunction(({ title, description }) => {
+    const titleField = document.querySelector('#yoast_wpseo_title');
+    const descriptionField = document.querySelector('#yoast_wpseo_metadesc');
+    return titleField?.value === title && descriptionField?.value === description;
+  }, { title: p.seoTitle, description: p.description }, { timeout: 12000 });
   const state=await page.evaluate(()=>({title:document.querySelector('#yoast_wpseo_title')?.value||'',description:document.querySelector('#yoast_wpseo_metadesc')?.value||''}));
   assert.equal(state.title,p.seoTitle,'Yoast title did not bind to native field');
   assert.equal(state.description,p.description,'Yoast description did not bind to native field');
