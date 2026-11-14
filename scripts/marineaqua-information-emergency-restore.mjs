@@ -62,7 +62,7 @@ try{
    assert.equal(Number(record.id),PAGE_ID,'Wrong Page ID');
    assert.equal(record.slug,'thoi-gian-ban-hang','Wrong Page slug');
    assert.equal(String(record.content?.raw||''),before,'Concurrent Page mutation; refusing overwrite');
-   assert.ok(!/\\[table(?:press)?\\s+id\\s*=/.test(before),'Do not rewrite Page with ESC shortcodes');
+    assert.ok(!before.includes('[table id=') && !before.includes('[tablepress id='),'Do not rewrite Page with ESC shortcodes');
    const expected=before.replace(MARK,'');
    assert.ok(expected.length>10 && expected!==before,'No exact marker to remove');
    const save=await ctx.request.post(WP+'/wp-json/wp/v2/pages/'+PAGE_ID,
