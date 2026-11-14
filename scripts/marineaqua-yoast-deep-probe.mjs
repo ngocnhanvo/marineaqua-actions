@@ -1,0 +1,14 @@
+import {chromium} from 'playwright';import {mkdir,writeFile} from 'node:fs/promises';
+const out='yoast-deep-probe';await mkdir(out,{recursive:true});const browser=await chromium.launch({headless:true});const report={status:'STARTED',pages:[]};
+try{const ctx=await browser.newContext({viewport:{width:1440,height:1100}});const page=await ctx.newPage();let auth=false;
+for(let n=0;n<3&&!auth;n++){await page.goto('https://admin.marine-aqua.io.vn/wp-login.php',{waitUntil:'domcontentloaded',timeout:45000});if(await page.locator('#user_login').count()){await page.locator('#user_login').fill(process.env.WP_ADMIN_USERNAME);await page.locator('#user_pass').fill(process.env.WP_ADMIN_PASSWORD);await page.locator('#wp-submit').click();await page.waitForLoadState('domcontentloaded',{timeout:15000}).catch(()=>{});}auth=!page.url().includes('wp-login.php')&&(await page.locator('#wpadminbar').count())>0;}
+if(!auth)throw Error('admin login failed');
+for(const id of [83459,83449,83451,83453]){const r={id};await page.goto('https://admin.marine-aqua.io.vn/wp-admin/post.php?post='+id+'&action=edit',{waitUntil:'domcontentloaded',timeout:45000});await page.waitForTimeout(5000);
+r.initial=await page.evaluate(()=>({url:location.href,yoastBox:!!document.querySelector('#wpseo_meta'),boxDisplay:document.querySelector('#wpseo_meta')?.getBoundingClientRect().height||0,previewTitle:!!document.querySelector('#yoast-google-preview-title-metabox'),previewDesc:!!document.querySelector('#yoast-google-preview-description-metabox'),bodyText:document.body.innerText.includes('Google preview')}));
+if(await page.locator('#wpseo_meta').count())await page.locator('#wpseo_meta').scrollIntoViewIfNeeded();
+await page.waitForTimeout(2500);
+r.afterScroll=await page.evaluate(()=>({previewTitle:document.querySelector('#yoast-google-preview-title-metabox')?.outerHTML.slice(0,600)||null,previewDesc:document.querySelector('#yoast-google-preview-description-metabox')?.outerHTML.slice(0,600)||null,hiddenTitle:document.querySelector('#yoast_wpseo_title')?.value||null,hiddenDesc:document.querySelector('#yoast_wpseo_metadesc')?.value||null,buttons:[...document.querySelectorAll('#wpseo_meta button')].map(b=>({text:b.innerText,aria:b.getAttribute('aria-label'),title:b.title})).slice(0,40),text:document.querySelector('#wpseo_meta')?.innerText.slice(0,3000)}));
+await page.screenshot({path:out+'/page-'+id+'.png',fullPage:true});report.pages.push(r);console.log('YOAST_DEEP_PROBE='+JSON.stringify(r));}
+report.status='PASS';await ctx.close();
+}catch(e){report.status='FAIL';report.error=String(e.stack||e).slice(0,1000);process.exitCode=1;console.error(report.error)}
+finally{await writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');await browser.close()}
