@@ -1,5 +1,5 @@
 name: Marine Aqua Astro source checks Product Builder (NO DEPLOY)
-# Recheck live product-category routes, legacy redirect aliases and price listing changes on Astro master.
+# Recheck legacy category, retired product and Knowledge archive redirect aliases on Astro master.
 # Regression checks now include redirect-alias and nested brand route Vitest cases.
 on:
   push:
