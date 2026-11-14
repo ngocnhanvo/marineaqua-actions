@@ -146,6 +146,20 @@ try{
      assert.equal(await page.locator('#esc-vb-edit-row').inputValue(),record.formRow+':label',
        'Nested form selected wrong native ESC row');
      record.formDirectEditable='PASS';
+     const placeholder=frame.locator(target.slug==='thanh-toan'
+       ? '#checkout-form input[data-esc-builder-cell-field="label"][placeholder]:visible'
+       : '#login-form input[data-esc-builder-cell-field="label"][placeholder]:visible').first();
+     await placeholder.waitFor({state:'visible',timeout:15000});
+     const value=await placeholder.getAttribute('placeholder');
+     const coord=await placeholder.getAttribute('data-esc-builder-cell-row');
+     assert.ok(value&&coord,'Editable placeholder lacks WordPress source row');
+     await placeholder.click({timeout:15000});
+     await page.waitForFunction(expected=>
+       String(document.querySelector('#esc-vb-edit-title')?.value||'').trim()===expected,
+       value,{timeout:25000});
+     assert.equal(await page.locator('#esc-vb-edit-row').inputValue(),coord+':label');
+     record.placeholderDirectEditable='PASS';
+
    }
 
    if(target.slug==='dat-hang-thanh-cong'){
