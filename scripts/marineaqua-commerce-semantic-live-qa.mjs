@@ -9,8 +9,8 @@ const targetList=[
   {id:83453,slug:'dat-hang-thanh-cong',table:'checkout_done_semantics_vi',count:32},
   {id:83459,slug:'tai-khoan',table:'account_semantics_vi',count:24},
 ];
-// Temporary focused read-only diagnostic; restore the complete list after Cart is fixed.
-const targets=targetList.filter(target=>target.slug==='gio-hang');
+// Full, read-only post-deployment audit of all four WordPress-owned Page label tables.
+const targets=targetList;
 const http1Probe=(url)=>new Promise(resolve=>{
  let settled=false;
  const done=value=>{if(!settled){settled=true;resolve(value);}};
@@ -72,22 +72,6 @@ try{
    const browserRes=await page.goto(WP+'/wp-admin/edit.php?post_type=page&page=esc-visual-builder&esc_vb_page='+target.id,
      {waitUntil:'domcontentloaded',timeout:45000});
    assert.equal(browserRes?.status(),200);
-   // Probe the exact signed Preview URL through Playwright's API client.
-   // Report metadata only: never log the ticket or the Page HTML.
-   const signedIframe=await page.locator('#esc-vb-frame').getAttribute('src');
-   record.publicHttp1=await http1Probe(FRONT+'/gio-hang');
-   if(signedIframe){
-    record.previewHttp1=await http1Probe(signedIframe);
-    try{
-     const probe=await ctx.request.get(signedIframe,{timeout:30000,maxRedirects:2});
-     const body=await probe.body();
-     record.previewApi={status:probe.status(),bytes:body.length,
-       contentType:probe.headers()['content-type']||'',
-       serverTiming:probe.headers()['server-timing']||''};
-    }catch(e){
-     record.previewApi={errorType:e instanceof Error?e.name:'RequestFailure'};
-    }
-   }
    const frame=page.frameLocator('iframe#esc-vb-frame');
    const inspector=frame.locator('[data-esc-semantic-inspector][data-esc-source-table="'+target.table+'"]');
    try {
