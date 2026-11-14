@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "aa0967e53d1299cf032db8540a5cb8fedb3d2e6d",
+  "reason": "Deploy verified duplicate archive H1 and cart canonical fixes from current Astro master",
+  "request_id": "20261114T144600Z-astro-h1-cart-canonical-v2",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
