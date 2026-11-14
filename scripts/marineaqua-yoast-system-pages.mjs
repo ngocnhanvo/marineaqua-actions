@@ -3,7 +3,9 @@ import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
 const WP='https://admin.marine-aqua.io.vn',OUT='yoast-system-pages';
 const pages=[
- {id:83459,slug:'tai-khoan',title:'Tài khoản',seoTitle:'Tài khoản - Marine Aqua',description:'Đăng nhập hoặc tạo tài khoản Marine Aqua để quản lý thông tin cá nhân, theo dõi đơn hàng và thuận tiện khi mua sắm thiết bị, phụ kiện bể cá biển.'}
+ {id:83449,slug:'gio-hang',title:'Giỏ hàng',seoTitle:'Giỏ hàng - Marine Aqua',description:'Kiểm tra sản phẩm đã chọn, cập nhật số lượng và xem thông tin đơn hàng trước khi tiếp tục thanh toán tại Marine Aqua.'},
+ {id:83451,slug:'thanh-toan',title:'Thanh toán',seoTitle:'Thanh toán - Marine Aqua',description:'Hoàn tất thông tin nhận hàng và lựa chọn phương thức thanh toán cho đơn hàng Marine Aqua. Kiểm tra kỹ thông tin trước khi xác nhận đặt hàng.'},
+ {id:83453,slug:'dat-hang-thanh-cong',title:'Hoàn tất đơn hàng',seoTitle:'Hoàn tất đơn hàng - Marine Aqua',description:'Tra cứu thông tin xác nhận và trạng thái đơn hàng Marine Aqua bằng liên kết và thông tin đơn hàng được cung cấp sau khi đặt hàng.'}
 ];
 await mkdir(OUT,{recursive:true});const report={status:'STARTED',writes:0,pages:[],errors:[]};const browser=await chromium.launch({headless:true});
 try{
