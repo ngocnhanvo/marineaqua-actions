@@ -2,12 +2,14 @@ import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
 const WP='https://admin.marine-aqua.io.vn', FRONT='https://marine-aqua.io.vn';
-const targets=[
+const targetList=[
   {id:83449,slug:'gio-hang',table:'cart_semantics_vi',count:18},
   {id:83451,slug:'thanh-toan',table:'checkout_semantics_vi',count:51},
   {id:83453,slug:'dat-hang-thanh-cong',table:'checkout_done_semantics_vi',count:32},
   {id:83459,slug:'tai-khoan',table:'account_semantics_vi',count:24},
 ];
+// Temporary focused read-only diagnostic; restore the complete list after Cart is fixed.
+const targets=targetList.filter(target=>target.slug==='gio-hang');
 const report={status:'STARTED',pages:[],errors:[],writes:0};
 await mkdir('artifacts/commerce-semantic-live-qa',{recursive:true});
 const browser=await chromium.launch({headless:true});
@@ -29,14 +31,23 @@ try{
  }
  assert.ok(authed,'WordPress login failed');
  for(const target of targets){
-  const record={...target,status:'STARTED',errors:[],previewResponses:[]};
+  const record={...target,status:'STARTED',errors:[],previewResponses:[],frameHistory:[],failedDocuments:[]};
   const monitor=(response)=>{
    try {const u=new URL(response.url());
-    if(u.pathname.includes('/esc-builder/preview/'+target.id))
-      record.previewResponses.push({status:response.status(),path:u.pathname});
+    if(response.request().resourceType()==='document' && (u.hostname==='marine-aqua.io.vn' || u.pathname.includes('/esc-builder/preview/'+target.id)))
+      record.previewResponses.push({status:response.status(),host:u.hostname,path:u.pathname});
    }catch{}
   };
+  const navigated=frame=>{if(frame===page.mainFrame())return;
+    try{const u=new URL(frame.url());record.frameHistory.push({host:u.hostname,path:u.pathname});}
+    catch{record.frameHistory.push({urlKind:'unparsed'});}
+  };
+  const requestFailed=req=>{if(req.resourceType()!=='document')return;
+    try{const u=new URL(req.url());record.failedDocuments.push({host:u.hostname,path:u.pathname,error:req.failure()?.errorText||''});}catch{}
+  };
   page.on('response',monitor);
+  page.on('framenavigated',navigated);
+  page.on('requestfailed',requestFailed);
   try{
    const table=await ctx.request.get(WP+'/wp-json/tablepress/v1/table/'+target.table,{timeout:30000});
    assert.equal(table.status(),200,'Native ESC source missing '+target.table);
@@ -56,6 +67,7 @@ try{
     record.previewHtmlSize=await frame.locator('html').evaluate(el=>el.outerHTML.length).catch(()=>null);
     const iframeSrc=await page.locator('#esc-vb-frame').getAttribute('src').catch(()=>null);
     record.iframePath=iframeSrc?new URL(iframeSrc,WP).pathname:null;
+    record.iframeHost=iframeSrc?new URL(iframeSrc,WP).hostname:null;
     record.framePaths=page.frames().map(f=>{try {return new URL(f.url()).pathname;} catch{return 'unknown';}});
     throw error;
    }
@@ -98,6 +110,8 @@ try{
    record.status='PASS';
   }catch(e){record.status='FAIL';record.errors.push(String(e).slice(0,700));}
   page.off('response',monitor);
+  page.off('framenavigated',navigated);
+  page.off('requestfailed',requestFailed);
   report.pages.push(record);
  }
  report.status=report.pages.every(r=>r.status==='PASS')?'PASS':'FAIL';
