@@ -58,6 +58,42 @@ try {
       });
       assert.ok(ok,'Legacy category redirect mismatch '+JSON.stringify(report.checks.at(-1)));
     }
+    if (viewport.name === 'desktop') {
+      const sourceCategoryResponse = await fetch('https://marine-aqua.vn/product_cat-sitemap.xml');
+      assert.equal(sourceCategoryResponse.status,200,
+        'Original WordPress product category sitemap must be readable');
+      const sourceCategoryXml = await sourceCategoryResponse.text();
+      const sourceCategoryPaths = [...sourceCategoryXml.matchAll(/<loc>\\s*([^<]+?)\\s*<\\/loc>/gi)]
+        .map(match => new URL(match[1].trim()).pathname)
+        .filter(path => path.startsWith('/danh-muc/'));
+      assert.ok(sourceCategoryPaths.length >= 30,
+        'Original sitemap should enumerate all product category paths');
+      for (const from of sourceCategoryPaths) {
+        let sourceResponse;
+        const capture = response => {
+          if (response.url() === HOST + from && response.request().isNavigationRequest()) {
+            sourceResponse = response;
+          }
+        };
+        page.on('response', capture);
+        const finalResponse = await page.goto(HOST + from, {
+          waitUntil:'domcontentloaded',timeout:60000
+        });
+        page.off('response', capture);
+        const finalUrl = new URL(page.url());
+        const ok = sourceResponse?.status() === 301 &&
+          finalResponse?.status() === 200 &&
+          finalUrl.pathname.startsWith('/san-pham/');
+        report.checks.push({
+          viewport:viewport.name,type:'all-source-product-category-redirect',
+          from,status:sourceResponse?.status(),
+          location:sourceResponse?.headers()['location'],
+          finalStatus:finalResponse?.status(),
+          finalUrl:finalUrl.pathname+finalUrl.search,ok
+        });
+        assert.ok(ok,'Source product category redirect mismatch '+JSON.stringify(report.checks.at(-1)));
+      }
+    }
     const searchResponse = await page.goto(HOST + '/san-pham?q=muoi%20bien', {
       waitUntil:'domcontentloaded',timeout:60000
     });
