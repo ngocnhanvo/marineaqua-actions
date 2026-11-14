@@ -152,6 +152,19 @@ try {
     }
   }
   updated=await textarea.inputValue();
+  if(!updated.includes(shortcode)){
+    const controls=await page.locator('input,button,a,[role="button"],tr').evaluateAll(nodes=>nodes
+      .filter(n=>n.getBoundingClientRect().width>0&&n.getBoundingClientRect().height>0)
+      .map(n=>({tag:n.tagName,id:n.id,cls:String(n.className||'').slice(0,90),
+        text:String(n.textContent||'').trim().replace(/\\s+/g,' ').slice(0,85),
+        value:String(n.value||'').slice(0,65),href:String(n.href||'').slice(0,100)}))
+      .filter(n=>/table|insert|chèn|contact_semantics|146|mã|code/i.test(Object.values(n).join(' ')))
+      .slice(-80));
+    report.nativeChooser={urlPath:new URL(page.url()).pathname,controls,
+      thickbox:(await page.locator('#TB_window').count())>0,
+      editorTextLength:updated.length};
+    console.log('CONTACT_NATIVE_CHOOSER='+JSON.stringify(report.nativeChooser).slice(0,12000));
+  }
   assert.ok(updated.includes(shortcode),'Native Insert Code did not insert ESC shortcode');
   assert.ok(updated.includes(precontent),'Existing Page content was replaced');
   const save=page.locator('#publish');
