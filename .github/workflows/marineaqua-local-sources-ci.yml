@@ -24,6 +24,8 @@ jobs:
           persist-credentials: false
       - name: Check local source unit harness syntax
         run: php -l source-php/tests/visual-builder-local-sources.test.php
+      - name: Validate semantic technical keys are never editable
+        run: php source-php/wp-content/plugins/esc-visual-builder/tests/site-config.dynamic.test.php
       - name: Exercise existing generic item and section contract
         run: php source-php/wp-content/plugins/esc-visual-builder/tests/items-and-sections.test.php
       - name: Validate actual source implementation against Page and ProductCategory mocks
