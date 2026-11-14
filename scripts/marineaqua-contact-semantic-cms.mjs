@@ -138,7 +138,17 @@ try {
   const textarea=page.locator('#content');
   await textarea.waitFor({state:'visible',timeout:15000});
   assert.equal(await textarea.inputValue(),precontent,'Page content differs since REST snapshot');
-  await textarea.evaluate(el=>{el.focus();el.setSelectionRange(el.value.length,el.value.length);});
+  await textarea.evaluate(el=>{
+    window.wpActiveEditor='content';
+    el.focus();
+    el.setSelectionRange(el.value.length,el.value.length);
+  });
+  report.editorBeforeInsert=await page.evaluate(()=>({
+    active:window.wpActiveEditor,
+    sendType:typeof window.send_to_editor,
+    quicktags:typeof window.QTags,
+    tinymceVisible:window.tinymce?.get?.('content')?.isHidden?.()===false
+  }));
   const quick=page.locator('#qt_content_tablepress_quicktags_button');
   assert.ok(await quick.isVisible(),'Native ESC Table Insert Code button missing');
   await quick.click();
@@ -151,8 +161,16 @@ try {
     const insert=page.frameLocator('#TB_iframeContent')
       .locator('input.insert-shortcode[title="'+shortcode+'"]');
     await insert.waitFor({state:'visible',timeout:30000});
+    report.iframeButton=await insert.evaluate(el=>({title:el.title,outer:el.outerHTML.slice(0,250)}));
     await insert.click();
     await page.waitForTimeout(400);
+    report.afterNativeInsert=await page.evaluate(()=>({
+      active:window.wpActiveEditor,
+      hasThickbox:!!document.getElementById('TB_window'),
+      textareaLength:document.getElementById('content')?.value?.length,
+      tinyMcePreview:window.tinymce?.get?.('content')?.getContent?.().slice(-120)||''
+    }));
+    console.log('CONTACT_INSERT_DEBUG='+JSON.stringify({before:report.editorBeforeInsert,button:report.iframeButton,after:report.afterNativeInsert}));
     updated=await textarea.inputValue();
   }
   if(!updated.includes(shortcode)){
