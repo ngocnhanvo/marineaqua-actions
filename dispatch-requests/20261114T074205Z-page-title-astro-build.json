@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "6ec4abe26915a7ac1aa3300d81961f4ff59a1854",
+  "reason": "Build and publish Astro Visual Builder Page H1 selection support after verified PHP deployment",
+  "request_id": "20261114T074205Z-page-title-astro-build",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
