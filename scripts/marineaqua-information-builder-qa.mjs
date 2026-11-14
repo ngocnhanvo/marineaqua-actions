@@ -92,7 +92,7 @@ try {
      const nativeRow=sourceManifest.rows?.find(r=>r.id===selectedRow);
      record.tokenSelections.push({idx,expected,value,selectedRow,matched,
        nativeTitle:nativeRow?.title||null,
-       nativeMatches:nativeRow?.title?.replace(/\\s+/g,' ').trim()===expected});
+       nativeMatches:nativeRow?.title?.replace(/\s+/g,' ').trim()===expected});
      assert.ok(matched,'Page Editor picked a different token at index '+idx);
     }
    }
