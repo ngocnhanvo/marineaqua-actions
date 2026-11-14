@@ -198,7 +198,7 @@ jobs:
           logpath=pathlib.Path('/tmp/marine-ssr-probe.log')
           failures=[]
           for path in ['/ssr/cart/gio-hang','/ssr/cart/thanh-toan','/tai-khoan','/ssr/cart/dat-hang-thanh-cong']:
-              out=pathlib.Path('/tmp/marine-ssr-'+path.lstrip('/')+'.html')
+              out=pathlib.Path('/tmp/marine-ssr-'+path.lstrip('/').replace('/','-')+'.html')
               result=subprocess.run(['curl','--http1.1','--max-time','25','--silent','--show-error',
                   '--output',str(out),'--write-out','%{http_code}',
                   'http://127.0.0.1:4321'+path],capture_output=True,text=True)
