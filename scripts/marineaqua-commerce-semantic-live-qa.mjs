@@ -137,7 +137,7 @@ try{
      const nested=frame.locator(formSelector);
      assert.ok((await nested.count())>0,'Nested commerce form labels not selectable');
      const formLabel=nested.first();
-     record.formLabel=(await formLabel.innerText()).trim();
+     record.formLabel=(await formLabel.textContent()).trim();
      record.formRow=await formLabel.getAttribute('data-esc-builder-cell-row');
      await formLabel.click({timeout:15000});
      await page.waitForFunction(expected=>
