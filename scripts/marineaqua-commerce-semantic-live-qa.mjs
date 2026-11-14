@@ -29,7 +29,14 @@ try{
  }
  assert.ok(authed,'WordPress login failed');
  for(const target of targets){
-  const record={...target,status:'STARTED',errors:[]};
+  const record={...target,status:'STARTED',errors:[],previewResponses:[]};
+  const monitor=(response)=>{
+   try {const u=new URL(response.url());
+    if(u.pathname.includes('/esc-builder/preview/'+target.id))
+      record.previewResponses.push({status:response.status(),path:u.pathname});
+   }catch{}
+  };
+  page.on('response',monitor);
   try{
    const table=await ctx.request.get(WP+'/wp-json/tablepress/v1/table/'+target.table,{timeout:30000});
    assert.equal(table.status(),200,'Native ESC source missing '+target.table);
@@ -46,6 +53,10 @@ try{
     await inspector.waitFor({state:'visible',timeout:45000});
    } catch (error) {
     record.previewBody=(await frame.locator('body').innerText().catch(()=>'' )).slice(0,700);
+    record.previewHtmlSize=await frame.locator('html').evaluate(el=>el.outerHTML.length).catch(()=>null);
+    const iframeSrc=await page.locator('#esc-vb-frame').getAttribute('src').catch(()=>null);
+    record.iframePath=iframeSrc?new URL(iframeSrc,WP).pathname:null;
+    record.framePaths=page.frames().map(f=>{try {return new URL(f.url()).pathname;} catch{return 'unknown';}});
     throw error;
    }
    const rows=inspector.locator('[data-esc-builder-cell-field="label"]');
@@ -86,6 +97,7 @@ try{
    assert.ok(record.publicHttp>=200&&record.publicHttp<400&&record.publicMain,'Public commerce route inaccessible');
    record.status='PASS';
   }catch(e){record.status='FAIL';record.errors.push(String(e).slice(0,700));}
+  page.off('response',monitor);
   report.pages.push(record);
  }
  report.status=report.pages.every(r=>r.status==='PASS')?'PASS':'FAIL';
