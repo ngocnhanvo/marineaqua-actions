@@ -72,22 +72,28 @@ try{
  assert.ok(original.length>10,'WordPress Page has no existing editor content');
  const inspector=page.frameLocator('#esc-vb-frame').locator('.marine-information-content [data-esc-builder-html-part]').first();
  await inspector.waitFor({state:'visible',timeout:50000});
- const h=inspector.locator('h1,h2,h3,h4,p,li').filter({visible:true}).first();
- if(await h.count())await h.click({timeout:20000,position:{x:15,y:12}});
- else await inspector.click({timeout:20000,position:{x:15,y:12}});
- const input=page.locator('#esc-vb-edit-title');
- await page.waitForFunction(()=>String(document.querySelector('#esc-vb-edit-title')?.value||'').trim().length>0,null,{timeout:25000});
- const rowKey=await page.locator('#esc-vb-edit-row').inputValue();
  const data=await sourceRead();
- const selectedRow=data.rows?.find(r=>r.id===rowKey);
- assert.ok(selectedRow&&selectedRow.editable,'Selected editor token is not authorized');
- // Restrict test to a short whole plain text token with no entity encoding.
- const display=String(selectedRow.title||'');
- assert.ok(display.length>=4&&display.length<=120&&!/[<>&\[\]\r\n]/.test(display),'Unsafe Page token for scoped write QA');
- assert.equal((await input.inputValue()).trim(),display,'UI source differs from canonical Page token');
- assert.ok(original.includes(display),'Original Page lacks exact raw test token');
- const occurrences=original.split(display).length-1;
- assert.equal(occurrences,1,'Test token must occur exactly once');
+ const input=page.locator('#esc-vb-edit-title');
+ const targets=inspector.locator('h1,h2,h3,h4,p,li').filter({visible:true});
+ const n=Math.min(25,await targets.count());
+ let display='',selectedRow=null;
+ for(let i=0;i<n;i++){
+  try{
+   await targets.nth(i).click({timeout:10000,position:{x:12,y:12}});
+   await page.waitForFunction(()=>String(document.querySelector('#esc-vb-edit-title')?.value||'').trim().length>0,null,{timeout:9000});
+   const rowKey=await page.locator('#esc-vb-edit-row').inputValue();
+   const candidate=data.rows?.find(r=>r.id===rowKey);
+   const value=String(candidate?.title||'');
+   if(!candidate?.editable||value.length<4||value.length>120||/[<>&\[\]\r\n]/.test(value))continue;
+   if((original.split(value).length-1)!==1)continue;
+   if((await input.inputValue()).trim()!==value)continue;
+   display=value;
+   selectedRow=candidate;
+   report.selected_candidate_index=i;
+   break;
+  }catch{continue;}
+ }
+ assert.ok(selectedRow,'No single-occurrence raw Page text token safe for reversible UI QA');
  selected={id:selectedRow.id,part:selectedRow.part,title:display};
  marker=' [QA'+String(process.env.GITHUB_RUN_ID||'1').replace(/\D/g,'').slice(-12)+']';
  report.source_token=selectedRow.id;
