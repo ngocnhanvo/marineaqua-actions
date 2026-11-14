@@ -25,9 +25,10 @@ try{
   const title=page.locator('#yoast-google-preview-title-metabox'),desc=page.locator('#yoast-google-preview-description-metabox');
   await title.waitFor({state:'visible',timeout:25000});await desc.waitFor({state:'visible',timeout:25000});
   await title.fill(p.seoTitle);
-  await page.keyboard.press('Tab');
+  await title.evaluate(el=>el.blur());
+  await desc.scrollIntoViewIfNeeded();
   await desc.fill(p.description);
-  await page.keyboard.press('Tab');
+  await desc.evaluate(el=>el.blur());
   const state=await page.evaluate(()=>({title:document.querySelector('#yoast_wpseo_title')?.value||'',description:document.querySelector('#yoast_wpseo_metadesc')?.value||''}));
   assert.equal(state.title,p.seoTitle,'Yoast title did not bind to native field');
   assert.equal(state.description,p.description,'Yoast description did not bind to native field');
