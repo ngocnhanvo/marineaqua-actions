@@ -11,11 +11,22 @@ try {
  const page=await ctx.newPage();
  const username=process.env.WP_ADMIN_USERNAME,password=process.env.WP_ADMIN_PASSWORD;
  assert.ok(username&&password,'Missing WordPress QA credentials');
- await page.goto(WP+'/wp-login.php',{waitUntil:'domcontentloaded',timeout:45000});
- await page.locator('#user_login').fill(username);await page.locator('#user_pass').fill(password);
- await page.locator('#wp-submit').click();
- await page.waitForLoadState('domcontentloaded');
- assert.ok(!page.url().includes('wp-login.php'),'WP authentication failed');
+ let authed=false;
+ for(let attempt=0;attempt<3&&!authed;attempt++){
+  const login=await page.goto(WP+'/wp-login.php',{waitUntil:'domcontentloaded',timeout:45000});
+  if(await page.locator('#user_login').isVisible().catch(()=>false)){
+   await page.locator('#user_login').fill(username);
+   await page.locator('#user_pass').fill(password);
+   await page.locator('#wp-submit').click({timeout:25000});
+   await page.waitForLoadState('domcontentloaded',{timeout:20000}).catch(()=>{});
+   authed=!page.url().includes('wp-login.php')&&await page.locator('#wpadminbar').count()>0;
+  }
+  if(!authed){
+   report.loginLastFailure={attempt:attempt+1,http:login?.status(),urlPath:new URL(page.url()).pathname,title:(await page.title()).slice(0,100)};
+   if(attempt<2)await page.waitForTimeout((attempt+1)*1800);
+  }
+ }
+ assert.ok(authed,'WordPress admin authentication failed: '+JSON.stringify(report.loginLastFailure||{}));
  const response=await page.goto(WP+'/wp-admin/edit.php?post_type=page&page=esc-visual-builder&esc_vb_page=82454',{waitUntil:'domcontentloaded',timeout:45000});
  assert.equal(response?.status(),200);
  const scriptTexts=await page.locator('script').allTextContents();
@@ -55,6 +66,7 @@ try {
    }
    report.tables.push({id,source:result.body?.source_api||'',status:result.status,code:result.body?.code||''});
  }
+ assert.ok(report.tables.some(t=>t.status===200),'No authenticated Builder schema succeeded; first errors '+JSON.stringify(report.tables.slice(0,3)));
  report.status='PASS';
 } catch(e){report.status='FAIL';report.errors.push(String(e.stack||e).slice(0,1800));process.exitCode=1;}
 finally {await writeFile(OUT+'/result.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_REFERENCE_INVENTORY='+JSON.stringify(report));await browser.close();}
