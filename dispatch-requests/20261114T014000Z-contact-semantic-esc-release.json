@@ -1,0 +1,10 @@
+{
+  "request_id": "20261114T014000Z-contact-semantic-esc-release",
+  "action": "repository_dispatch",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  },
+  "source_sha": "1d3806d37d34771269ae35375742e308fd1a6839",
+  "reason": "Build production Astro after validated Contact Page semantic ESC Table"
+}
