@@ -195,8 +195,8 @@ const newPaths = [...newByPath.keys()];
 
 function normalizeTitle(value) {
   return String(value || '').replace(/<[^>]*>/g, ' ').replace(/&amp;/g, '&')
-    .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ').trim().replace(/\\s+/g, ' ');
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
 }
 const currentByTitle = new Map();
 for (const [path, metadata] of currentRestRoutes) {
