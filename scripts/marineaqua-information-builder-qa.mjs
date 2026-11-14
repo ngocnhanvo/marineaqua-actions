@@ -42,6 +42,7 @@ try {
    record.originalText=(await editorContent.innerText()).trim().slice(0,180);
    record.exposedEditSource=await editorContent.getAttribute('data-esc-builder-html-part');
    const textTarget=editorContent.locator('h1,h2,h3,h4,p,li').filter({visible:true}).first();
+   record.clickedText=await textTarget.count()?await textTarget.innerText():await editorContent.innerText();
    if(await textTarget.count()) await textTarget.click({timeout:20000,position:{x:15,y:12}});
    else await editorContent.click({timeout:20000,position:{x:15,y:12}});
    const ui=await page.locator('body').innerText();
@@ -50,6 +51,12 @@ try {
    await page.waitForFunction(()=>String(document.querySelector('#esc-vb-edit-title')?.value||'').trim().length>0,null,{timeout:25000});
    record.selectable=await page.locator('#esc-vb-edit-title').isVisible().catch(()=>false);
    record.editorValue=record.selectable?await page.locator('#esc-vb-edit-title').inputValue():null;
+   // Fail if the editor chose a neighboring token: opening an input alone
+   // is insufficient evidence that Visual Builder edits the clicked text.
+   const normalizeText=value=>String(value||'').replace(/\\s+/g,' ').trim();
+   record.matchClickedText=normalizeText(record.editorValue)===normalizeText(record.clickedText);
+   assert.ok(record.matchClickedText,
+     'Wrong WordPress text source selected: click target differs from editor value');
    assert.ok(record.editorValue?.trim(),'Editor field did not bind to WordPress source text');
    record.feedback=(await page.locator('#esc-vb-edit-feedback').innerText().catch(()=>'' )).slice(0,200);
    assert.ok(record.selectable,'Native WordPress Editor selection did not open for '+target.slug);
