@@ -172,14 +172,35 @@ jobs:
           for table in brand_tables:
               if f'data-tablepress-preview="{table}"' not in html:
                   raise SystemExit('HOME_CATALOG=FAIL missing ESC section ' + table)
-          count = html.count('data-marine-product-price')
+          # A product with WooCommerce price=0 must show the real "contact for
+          # price" state; fabricating a currency amount is not acceptable.
+          # Assert each live reference's source value against rendered cards.
+          from urllib.request import Request,urlopen
+          from urllib.parse import urlencode
+          import json
+          base = 'https://admin.marine-aqua.io.vn'
+          def source(path):
+              with urlopen(Request(base + path,headers={'Accept':'application/json'}),timeout=30) as resp:
+                  return json.load(resp)
+          refs = []
           for table in brand_tables:
-              at = html.find('data-tablepress-preview="' + table + '"')
-              tail = html.find('data-tablepress-preview="home_', at + 10) if at >= 0 else -1
-              segment = html[at:(tail if tail > at else at + 60000)] if at >= 0 else ''
-              print(f'HOME_BRAND_DIAGNOSTIC {table} price_markers={segment.count("data-marine-product-price")} product_links={segment.count("data-marine-product-id")}', flush=True)
-          if count < 20:
-              raise SystemExit(f'HOME_CATALOG=FAIL expected 20 CMS prices, found {count}')
+              rows = source('/wp-json/tablepress/v1/table/' + table).get('items', [])
+              if len(rows) != 4 or any(not str(row.get('key','')).isdigit() for row in rows):
+                  raise SystemExit('HOME_CATALOG=FAIL invalid Product reference count: ' + table)
+              refs.extend(int(row['key']) for row in rows)
+          products = source('/wp-json/wc/store/v1/products?' + urlencode({
+              'include': ','.join(map(str, refs)), 'per_page': '100'}))
+          store = {int(product['id']):product for product in products}
+          if len(refs) != 20 or len(set(refs)) != 20 or set(store) != set(refs):
+              raise SystemExit('HOME_CATALOG=FAIL WooCommerce product IDs missing')
+          positive = sum(float(store[pid].get('prices',{}).get('price') or '0') > 0 for pid in refs)
+          contact = len(refs) - positive
+          rendered_prices = html.count('data-marine-product-price')
+          rendered_contact = html.count('Liên hệ báo giá')
+          rendered_cards = html.count('class="marine-brand-card')
+          print(f'HOME_CATALOG_ORACLE products={len(refs)} priced={positive} contact={contact} rendered_cards={rendered_cards} rendered_prices={rendered_prices} rendered_contact={rendered_contact}',flush=True)
+          if rendered_cards != len(refs) or rendered_prices != positive or rendered_contact != contact:
+              raise SystemExit('HOME_CATALOG=FAIL built cards/prices disagree with actual WooCommerce source')
           if 'continuum-aquatics-bacter-clean-m' not in html:
               raise SystemExit('HOME_CATALOG=FAIL missing original Continuum products')
           if html.count('>Hết hàng</span>') != 2:
@@ -187,7 +208,7 @@ jobs:
           for brand in ('tropic-marin','prodibio','prodac','red-sea','continuum-aquatics'):
               if f'href="/san-pham/{brand}"' not in html:
                   raise SystemExit('HOME_CATALOG=FAIL category route for ' + brand)
-          print(f'HOME_CATALOG=PASS brands=5 prices={count} source=wordpress')
+          print(f'HOME_CATALOG=PASS brands=5 cards={rendered_cards} priced={rendered_prices} contact={rendered_contact} source=woocommerce')
           PY
       - name: Verify CMS footer links and copyright in generated pages
         shell: bash
