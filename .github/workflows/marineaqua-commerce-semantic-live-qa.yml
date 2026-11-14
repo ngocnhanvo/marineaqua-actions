@@ -1,0 +1,38 @@
+name: Marine Aqua commerce semantic Visual Builder post-deploy QA
+on:
+  workflow_run:
+    workflows: ["Marine Aqua Astro deployment (WordPress Build Website only)"]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: >-
+      github.repository == 'ngocnhanvo/marineaqua-actions'
+      && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check scripts/marineaqua-commerce-semantic-live-qa.mjs
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Inspect four live pages and editable WordPress label coordinates (READ ONLY)
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-commerce-semantic-live-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: commerce-semantic-live-qa
+          path: artifacts/commerce-semantic-live-qa/
+          retention-days: 14
