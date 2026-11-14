@@ -10,6 +10,36 @@ const browser = await chromium.launch({ headless: true });
 try {
   for (const viewport of [{name:'desktop',width:1366,height:900},{name:'mobile',width:390,height:844}]) {
     const page = await browser.newPage({viewport:{width:viewport.width,height:viewport.height}});
+    const legacyCases = [
+      {from:'/danh-muc/thuong-hieu/',to:'/san-pham/thuong-hieu'},
+      {from:'/danh-muc/thuong-hieu/zetlight/',to:'/san-pham/zetlight'},
+      {from:'/danh-muc/may-bom-va-may-tao-song/may-tao-song/',to:'/san-pham/may-tao-song'},
+      {from:'/danh-muc/thuong-hieu/zetlight/page/2/?orderby=price&utm_source=legacy',to:'/san-pham/zetlight/2',query:{orderby:'price',utm_source:'legacy'}},
+    ];
+    for (const item of legacyCases) {
+      let sourceResponse;
+      const capture = response => {
+        if (response.url() === HOST + item.from && response.request().isNavigationRequest()) {
+          sourceResponse = response;
+        }
+      };
+      page.on('response', capture);
+      const finalResponse = await page.goto(HOST + item.from, {waitUntil:'domcontentloaded',timeout:60000});
+      page.off('response', capture);
+      const finalUrl = new URL(page.url());
+      const expectedQuery = new URLSearchParams(item.query || {});
+      const actualQuery = new URLSearchParams(finalUrl.search);
+      const queryMatches = [...expectedQuery].every(([key,value]) => actualQuery.get(key) === value);
+      const ok = sourceResponse?.status() === 301 && finalResponse?.status() === 200 &&
+        finalUrl.pathname.replace(/\\/+$/,'') === item.to &&
+        queryMatches;
+      report.checks.push({
+        viewport:viewport.name,type:'legacy-category-redirect',from:item.from,
+        status:sourceResponse?.status(),location:sourceResponse?.headers()['location'],
+        finalStatus:finalResponse?.status(),finalUrl:finalUrl.pathname+finalUrl.search,ok
+      });
+      assert.ok(ok,'Legacy category redirect mismatch '+JSON.stringify(report.checks.at(-1)));
+    }
     const categoryPanel = viewport.name === 'desktop'
       ? '#header-product-catalog-panel'
       : '#mobile-menu-container .marine-mobile-menu-categories';
