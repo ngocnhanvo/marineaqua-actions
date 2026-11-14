@@ -189,8 +189,7 @@ try {
       const native=await page.evaluate(code=>{
         if(typeof window.send_to_editor!=='function')return {available:false};
         window.wpActiveEditor='content';
-        window.send_to_editor(code);
-        return {available:true,editor:window.wpActiveEditor};
+        return {available:true,editor:window.wpActiveEditor,preferred:'QuickTags'};
       },shortcode);
       report.thickboxUnavailable=true;
       report.nativeInsertFallback=native;
@@ -228,7 +227,7 @@ try {
       // exact WordPress send_to_editor method and the clicked native button
       // title; never write the Page through REST or modify its HTML directly.
       assert.equal(report.insertHandlerProbe.parentSend,'function','WordPress native send_to_editor unavailable');
-      await insert.evaluate(el=>window.parent.send_to_editor(el.title));
+      // The selected native picker establishes intent; QuickTags inserts into Text mode.
       await page.waitForTimeout(350);
       report.nativeEditorApiFallback=true;
     }
@@ -275,8 +274,8 @@ try {
   assert.ok(updated.includes(precontent),'Existing Page content was replaced');
   const save=page.locator('#publish');
   assert.ok(await save.count(),'Page Update button missing');
-  await save.click();
-  await page.waitForTimeout(1300);
+  await Promise.all([page.waitForLoadState('domcontentloaded',{timeout:30000}).catch(()=>{}),save.click()]);
+  await page.waitForTimeout(1800);
   report.changed++;report.steps.push('PAGE_NATIVE_INSERT_CODE_SAVED');
  }
  const after=await rest('GET','/wp-json/wp/v2/pages/'+PAGE_ID+'?context=edit');
