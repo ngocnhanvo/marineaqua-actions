@@ -1,0 +1,41 @@
+name: Marine Aqua switch WordPress sitemap to automatic (guarded CMS write)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-seo-sitemap-auto.yml'
+      - 'scripts/marineaqua-seo-sitemap-auto.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: marineaqua-seo-sitemap-cms-write
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install matching Playwright driver
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Validate guarded WordPress sitemap update
+        run: node --check scripts/marineaqua-seo-sitemap-auto.mjs
+      - name: Save automatic sitemap mode in WordPress and verify REST readback
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-seo-sitemap-auto.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-seo-sitemap-mode-update
+          path: marineaqua-seo-sitemap-auto/
+          retention-days: 14
