@@ -41,11 +41,15 @@ try {
    await editorContent.waitFor({state:'visible',timeout:45000});
    record.originalText=(await editorContent.innerText()).trim().slice(0,180);
    record.exposedEditSource=await editorContent.getAttribute('data-esc-builder-html-part');
-   await editorContent.click({timeout:20000});
+   const textTarget=editorContent.locator('h1,h2,h3,h4,p,li').filter({visible:true}).first();
+   if(await textTarget.count()) await textTarget.click({timeout:20000,position:{x:15,y:12}});
+   else await editorContent.click({timeout:20000,position:{x:15,y:12}});
    const ui=await page.locator('body').innerText();
    record.editorControls=await page.locator('input,textarea,[contenteditable="true"]')
      .evaluateAll(els=>els.filter(e=>e.getClientRects().length).map(e=>({id:e.id,tag:e.tagName,name:e.getAttribute('name')||'',placeholder:e.getAttribute('placeholder')||''})).slice(-35));
-   record.selectable=/(WordPress Editor|Chỉnh sửa chữ|Nội dung Page|Lưu WordPress|Hủy thay đổi)/i.test(ui.slice(-2500));
+   record.selectable=await page.locator('#esc-vb-edit-title').isVisible().catch(()=>false);
+   record.editorValue=record.selectable?await page.locator('#esc-vb-edit-title').inputValue():null;
+   record.feedback=(await page.locator('#esc-vb-edit-feedback').innerText().catch(()=>'' )).slice(0,200);
    assert.ok(record.selectable,'Native WordPress Editor selection did not open for '+target.slug);
   }catch(e){record.errors.push(String(e).slice(0,500));}
   report.pages.push(record);
