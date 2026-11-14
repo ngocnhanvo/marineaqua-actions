@@ -10,11 +10,19 @@ try {
  const ctx=await browser.newContext({viewport:{width:1440,height:900}});
  const page=await ctx.newPage();
  assert.ok(process.env.WP_ADMIN_USERNAME&&process.env.WP_ADMIN_PASSWORD);
- await page.goto(WP+'/wp-login.php',{waitUntil:'domcontentloaded',timeout:45000});
- await page.locator('#user_login').fill(process.env.WP_ADMIN_USERNAME);
- await page.locator('#user_pass').fill(process.env.WP_ADMIN_PASSWORD);
- await page.locator('#wp-submit').click();
- assert.ok((await page.locator('#wpadminbar').count())>0,'Not authenticated');
+ let authenticated=false;
+ for(let attempt=0;attempt<3&&!authenticated;attempt++){
+  await page.goto(WP+'/wp-login.php',{waitUntil:'domcontentloaded',timeout:45000});
+  if(await page.locator('#user_login').count()){
+   await page.locator('#user_login').fill(process.env.WP_ADMIN_USERNAME);
+   await page.locator('#user_pass').fill(process.env.WP_ADMIN_PASSWORD);
+   await page.locator('#wp-submit').click();
+   await page.waitForLoadState('domcontentloaded',{timeout:15000}).catch(()=>{});
+  }
+  authenticated=!page.url().includes('wp-login.php')&&(await page.locator('#wpadminbar').count())>0;
+  if(!authenticated)await page.waitForTimeout(1500*(attempt+1));
+ }
+ assert.ok(authenticated,'Not authenticated');
  for(const id of pages){
   const entry={id,controls:[],editor:{},error:''};
   try {
