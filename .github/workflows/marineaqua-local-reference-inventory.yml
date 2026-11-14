@@ -1,0 +1,37 @@
+name: Marine Aqua local ESC reference inventory (READ ONLY)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-local-reference-inventory.yml'
+      - 'scripts/marineaqua-local-reference-inventory.mjs'
+permissions:
+  contents: read
+jobs:
+  inventory:
+    if: github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check scripts/marineaqua-local-reference-inventory.mjs
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Inventory local references on actual WordPress
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-local-reference-inventory.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: local-reference-inventory
+          path: artifacts/local-reference-inventory/
+          retention-days: 14
