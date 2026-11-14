@@ -9,6 +9,26 @@ on:
 permissions:
   contents: read
 jobs:
+  native-php-guards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout WordPress Visual Builder source from master
+        uses: actions/checkout@v4
+        with:
+          repository: ngocnhanvo/marineaqua-php
+          ref: master
+          token: ${{ secrets.SOURCE_REPO_PAT }}
+          persist-credentials: false
+      - name: Verify native ESC semantic label permissions and upper bounds
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l wp-content/plugins/esc-visual-builder/includes/site-config.php
+          php wp-content/plugins/esc-visual-builder/tests/site-config.test.php
+          php wp-content/plugins/esc-visual-builder/tests/site-config.dynamic.test.php
+          php wp-content/plugins/esc-visual-builder/tests/auto-discovery.test.php
+          echo 'WORDPRESS_NATIVE_SEMANTIC_LABELS=PASS' >> "$GITHUB_STEP_SUMMARY"
   preview-browser:
     runs-on: ubuntu-latest
     timeout-minutes: 12
