@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261114T035440Z-cart-done-preview-fix",
+  "reason": "Release verified cart builder preview homepage fallback and checkout completion semantics after full Astro QA",
+  "source_sha": "c880e3e3242f4e816aafe11bc8caa1ca8f7ab2ba",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
