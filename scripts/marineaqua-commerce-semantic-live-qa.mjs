@@ -42,7 +42,12 @@ try{
    assert.equal(browserRes?.status(),200);
    const frame=page.frameLocator('iframe#esc-vb-frame');
    const inspector=frame.locator('[data-esc-semantic-inspector][data-esc-source-table="'+target.table+'"]');
-   await inspector.waitFor({state:'visible',timeout:60000});
+   try {
+    await inspector.waitFor({state:'visible',timeout:45000});
+   } catch (error) {
+    record.previewBody=(await frame.locator('body').innerText().catch(()=>'' )).slice(0,700);
+    throw error;
+   }
    const rows=inspector.locator('[data-esc-builder-cell-field="label"]');
    record.count=await rows.count();
    assert.equal(record.count,target.count,'Preview does not expose all label coordinates');
@@ -55,6 +60,22 @@ try{
    record.selectedValue=await textarea.inputValue();
    assert.equal(record.selectedValue.trim(),before,'Builder selected wrong source label');
    record.row=await page.locator('#esc-vb-edit-row').inputValue().catch(()=>null);
+   // The Checkout Page owns 51 native labels: verify the LAST editable cell,
+   // not only the first row, to catch backend 40-row discovery regressions.
+   const last=rows.last();
+   const lastText=(await last.innerText()).trim();
+   record.lastSourceRow=await last.getAttribute('data-esc-builder-cell-row');
+   assert.ok(Number.isSafeInteger(Number(record.lastSourceRow))
+      && Number(record.lastSourceRow)>=target.count-1,
+      'The final WordPress label has no stable source coordinate');
+   await last.click({timeout:18000});
+   await page.waitForFunction(expected=>
+      String(document.querySelector('#esc-vb-edit-title')?.value||'').trim()===expected,
+      lastText,{timeout:25000});
+   record.lastEditorValue=await textarea.inputValue();
+   record.lastRow=await page.locator('#esc-vb-edit-row').inputValue().catch(()=>null);
+   assert.equal(record.lastEditorValue.trim(),lastText,
+      'Final native WordPress label not independently selectable');
    record.uiPass=true;
    const publicPage=await ctx.newPage();
    try {
