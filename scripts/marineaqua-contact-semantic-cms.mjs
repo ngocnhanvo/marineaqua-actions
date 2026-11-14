@@ -74,14 +74,18 @@ try {
  let precontent=String(original.content?.raw??'');
  const shortcode='[table id='+TABLE+' /]';
  const shortcodeRegex=new RegExp('\\[table id='+TABLE+'\\s*\\/\\]','g');
- let already=(precontent.match(shortcodeRegex)||[]).length;
+ // TablePress Classic Editor stores a visual preview badge containing a
+ // second copy of the shortcode. This is not another Insert Code occurrence.
+ const withoutPreviewBadge=value=>String(value).replace(/<span[^>]*tablepress-preview-badge[^>]*>[\\s\\S]*?<\\/span>/gi,'');
+ const countSourceShortcodes=value=>(withoutPreviewBadge(value).match(shortcodeRegex)||[]).length;
+ let already=countSourceShortcodes(precontent);
  report.existingShortcodes=already;
  if(already>1){
    // Only remove redundant exact copies of this shortcode. Keep the first
    // occurrence and preserve all other Page content byte for byte.
    let seen=0;
    const cleaned=precontent.replace(shortcodeRegex,match=>(++seen===1?match:''));
-   assert.equal((cleaned.match(shortcodeRegex)||[]).length,1,'Duplicate cleanup preflight failed');
+   assert.equal(countSourceShortcodes(cleaned),1,'Duplicate cleanup preflight failed');
    await page.goto(WP+'/wp-admin/post.php?post='+PAGE_ID+'&action=edit',{waitUntil:'domcontentloaded',timeout:60000});
    const editor=page.locator('#content');
    await page.locator('#content-html').waitFor({state:'attached',timeout:30000});
@@ -349,7 +353,7 @@ try {
   pageEditorContent:await page.locator('#content').inputValue().then(x=>x.slice(-220)).catch(()=>null),
   adminMessage:await page.locator('#message').innerText().catch(()=>null),
  };
- const count=(content.match(new RegExp('\\[table id='+TABLE+'\\s*\\/\\]','g'))||[]).length;
+ const count=countSourceShortcodes(content);
  report.shortcodeCount=count;
  assert.equal(count,1,'Page shortcode not unique after Save');
  assert.ok(content.includes(precontent),'Authored Page content not preserved');
