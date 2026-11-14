@@ -166,8 +166,15 @@ try {
     tinymceVisible:window.tinymce?.get?.('content')?.isHidden?.()===false
   }));
   const quick=page.locator('#qt_content_tablepress_quicktags_button');
-  await quick.waitFor({state:'visible',timeout:25000});
-  await quick.click();
+  await quick.waitFor({state:'attached',timeout:25000});
+  if(await quick.isVisible()) {
+    await quick.click();
+  } else {
+    report.quicktagHiddenInHeadless=true;
+    // Invoke the actual native QuickTags control, not a direct Page write.
+    // Some Classic Editor sessions conceal the toolbar after switching to Text.
+    await quick.evaluate(el=>el.click());
+  }
   await page.waitForTimeout(750);
   let updated=await textarea.inputValue();
   if(!updated.includes(shortcode)){
