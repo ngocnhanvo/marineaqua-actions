@@ -1,0 +1,11 @@
+{
+  "action": "workflow_dispatch",
+  "request_id": "20261114T001100Z-local-picker-php-release",
+  "reason": "Deploy native local reference picker interface with the already released backend",
+  "source_sha": "626679e8037dff52777251323c13b5c731a90a49",
+  "workflow": "marineaqua-php-release.yml",
+  "ref": "main",
+  "inputs": {
+    "confirm": "DEPLOY_PHP"
+  }
+}
