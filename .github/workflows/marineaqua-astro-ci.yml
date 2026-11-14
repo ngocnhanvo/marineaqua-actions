@@ -139,6 +139,32 @@ jobs:
           assert.doesNotMatch(contact,/const heading = en \?|Liên hệ mua hàng đại lý và tuyển dụng|const description = en/);
           console.log('CONTACT_WORDPRESS_ESC_SEMANTICS=PASS');
           NODE
+      - name: Verify WordPress-owned commerce Page semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const read = p => readFileSync(p, 'utf8');
+          const helper = read('src/lib/wordpress/pages/semanticPage.ts');
+          assert.match(helper,/PAGE_SEMANTIC_TABLE_MISSING/);
+          assert.match(helper,/sourceRow/);
+          const files = [
+            ['CartPage', 'cart_semantics_vi'],
+            ['CheckoutPage', 'checkout_semantics_vi'],
+            ['CheckoutDonePage', 'checkout_done_semantics_vi'],
+            ['AccountPage', 'account_semantics_vi'],
+          ];
+          for (const [page, table] of files) {
+            const source = read('src/astro/pages/' + page + '.astro');
+            assert.ok(source.includes("resolveSemanticPage(currentPage, '" + table + "'"));
+            assert.match(source,/SemanticPagePreview/);
+          }
+          assert.match(read('src/astroutils/CheckoutPage/InfoForm.astro'),/labels=|labels\?:/);
+          assert.match(read('src/astroutils/CheckoutPage/LoginFormSSG.astro'),/labels\?:/);
+          console.log('COMMERCE_ESC_SEMANTIC_SOURCE=PASS pages=4');
+          NODE
       - name: Run Astro unit tests including Product ESC Table reference mapping
         run: pnpm run test:run
       # Validate approved Marine Aqua design integration with local Quicksand, CMS-only menu and prices.
