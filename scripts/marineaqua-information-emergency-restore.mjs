@@ -50,7 +50,36 @@ try{
   const data=await read.json();
   const candidates=data.rows?.filter(r=>
     r.editable && r.part===0 && typeof r.full_text==='string' && r.full_text.includes(MARK));
-  assert.equal(candidates?.length,1,'Source QA token missing or ambiguous');
+  if(candidates?.length===0){
+   // Existing Page tokenizer deliberately excludes text containing bracketed
+   // [QA...] markers as possible shortcodes. A temporary QA marker therefore
+   // cannot be selected through save-page-text. Restore ONLY the exact known
+   // suffix through authenticated native WordPress Page REST.
+   const full=await ctx.request.get(WP+'/wp-json/wp/v2/pages/'+PAGE_ID+'?context=edit',
+     {headers,timeout:30000,failOnStatusCode:false});
+   assert.equal(full.status(),200,'Cannot recheck Page identity');
+   const record=await full.json();
+   assert.equal(Number(record.id),PAGE_ID,'Wrong Page ID');
+   assert.equal(record.slug,'thoi-gian-ban-hang','Wrong Page slug');
+   assert.equal(String(record.content?.raw||''),before,'Concurrent Page mutation; refusing overwrite');
+   assert.ok(!/\\[table(?:press)?\\s+id\\s*=/.test(before),'Do not rewrite Page with ESC shortcodes');
+   const expected=before.replace(MARK,'');
+   assert.ok(expected.length>10 && expected!==before,'No exact marker to remove');
+   const save=await ctx.request.post(WP+'/wp-json/wp/v2/pages/'+PAGE_ID,
+     {headers,data:{content:expected},timeout:30000,failOnStatusCode:false});
+   report.save_status=save.status();
+   const saved=await save.json().catch(()=>({}));
+   assert.ok(save.status()===200 && Number(saved.id)===PAGE_ID,
+     'Native WordPress REST recovery denied: '+String(saved.code||'unknown'));
+   report.writes++;
+   const after=await current();
+   report.cleanup_remaining=after===expected?0:1;
+   assert.equal(after,expected,'Restored Page differs in other HTML bytes');
+   report.restored_with='native-wp-page-rest-exact-marker';
+   report.status='PASS';
+  }else{
+   assert.equal(candidates?.length,1,'Source QA token ambiguous');
+
   const row=candidates[0];
   // The failed UI test may have edited a substring of a larger HTML token.
   // Use WordPress Page's native partial replacement to preserve every other
@@ -78,6 +107,7 @@ try{
   report.cleanup_remaining=after.includes(MARK)?1:0;
   assert.equal(report.cleanup_remaining,0,'Marker remains after recovery');
   report.status='PASS';
+  }
  }
 }catch(e){
  report.status='FAIL';report.errors.push(String(e.stack||e).slice(0,900));
