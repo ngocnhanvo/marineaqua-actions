@@ -30,6 +30,7 @@ try {
       {from:'/tu-khoa/cyano-clean',to:'/cyano-clean'},
       {from:'/tu-khoa/flatworm-stop',to:'/flatworm-stop'},
       {from:'/tu-khoa/zeozym',to:'/zeozym'},
+      {from:'/818641-2?utm_source=legacy',to:'/san-pham',query:{utm_source:'legacy'}},
       {from:'/bai-viet?utm_source=legacy',to:'/cat/tin-kien-thuc',query:{utm_source:'legacy'}},
       {from:'/tu-khoa/activated-carbon?utm_source=legacy',to:'/san-pham',query:{q:'activated carbon',utm_source:'legacy'}},
       {from:'/tu-khoa/cut-chu-t-20mm',to:'/san-pham/ong-nuoc'},
@@ -90,6 +91,16 @@ try {
         assert.ok(ok,'Source product category redirect mismatch '+JSON.stringify(report.checks.at(-1)));
       }
     }
+    const sitemapResponse = await page.request.get(HOST + '/sitemap.xml');
+    const sitemapXml = await sitemapResponse.text();
+    const sitemapLocCount = (sitemapXml.match(/<loc>/g) || []).length;
+    assert.equal(sitemapResponse.status(),200,'Public sitemap must return 200');
+    assert.ok(sitemapLocCount >= 500,
+      'Public sitemap must include complete WordPress route inventory; got ' + sitemapLocCount);
+    report.checks.push({
+      viewport:viewport.name,type:'complete-public-sitemap',
+      status:sitemapResponse.status(),locCount:sitemapLocCount,ok:true
+    });
     const searchResponse = await page.goto(HOST + '/san-pham?q=muoi%20bien', {
       waitUntil:'domcontentloaded',timeout:60000
     });
