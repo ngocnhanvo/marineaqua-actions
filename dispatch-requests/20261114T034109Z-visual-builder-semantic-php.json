@@ -1,0 +1,11 @@
+{
+  "action": "workflow_dispatch",
+  "request_id": "20261114T034109Z-visual-builder-semantic-php",
+  "reason": "Deploy tested native 51-label ESC Table Visual Builder discovery limit to WordPress production",
+  "source_sha": "df308a471c4ddc2c0bc5c015ce1bf6899d0841ed",
+  "workflow": "marineaqua-php-release.yml",
+  "ref": "main",
+  "inputs": {
+    "confirm": "DEPLOY_PHP"
+  }
+}
