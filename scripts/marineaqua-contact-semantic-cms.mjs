@@ -145,6 +145,17 @@ try {
   await page.waitForTimeout(750);
   let updated=await textarea.inputValue();
   if(!updated.includes(shortcode)){
+    // TablePress QuickTags opens a Thickbox iframe, not an in-page table row.
+    const iframe=page.locator('#TB_iframeContent');
+    await iframe.waitFor({state:'attached',timeout:15000});
+    const insert=page.frameLocator('#TB_iframeContent')
+      .locator('input.insert-shortcode[title="'+shortcode+'"]');
+    await insert.waitFor({state:'visible',timeout:30000});
+    await insert.click();
+    await page.waitForTimeout(400);
+    updated=await textarea.inputValue();
+  }
+  if(!updated.includes(shortcode)){
     const sourceRow=page.locator('[data-table-id="'+TABLE+'"]').first();
     if(await sourceRow.count()){
       const insert=sourceRow.getByRole('button',{name:/Insert|Chèn/i});
