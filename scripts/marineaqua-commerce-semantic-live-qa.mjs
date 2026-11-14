@@ -69,7 +69,7 @@ try{
        contentType:probe.headers()['content-type']||'',
        serverTiming:probe.headers()['server-timing']||''};
     }catch(e){
-     record.previewApi={error:String(e).replace(/ticket=[^&\\s]+/g,'ticket=REDACTED').slice(0,360)};
+     record.previewApi={errorType:e instanceof Error?e.name:'RequestFailure'};
     }
    }
    const frame=page.frameLocator('iframe#esc-vb-frame');
