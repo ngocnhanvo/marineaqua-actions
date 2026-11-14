@@ -53,7 +53,7 @@ try {
    record.editorValue=record.selectable?await page.locator('#esc-vb-edit-title').inputValue():null;
    // Fail if the editor chose a neighboring token: opening an input alone
    // is insufficient evidence that Visual Builder edits the clicked text.
-   const normalizeText=value=>String(value||'').replace(/\\s+/g,' ').trim();
+   const normalizeText=value=>String(value||'').replace(/\s+/g,' ').trim();
    record.matchClickedText=normalizeText(record.editorValue)===normalizeText(record.clickedText);
    assert.ok(record.matchClickedText,
      'Wrong WordPress text source selected: click target differs from editor value');
