@@ -186,6 +186,81 @@ try {
   REPORT.errors.push({ scope: 'current-wordpress-rest', error: String(error?.message || error).slice(0, 500) });
 }
 
+// Read the WordPress-owned SEO Files contract and the unresolved original
+// route before making any sitemap or redirect changes. This is public, read-only.
+try {
+  const response = await fetch(currentWpOrigin + '/wp-json/esc-seo-files/v1/public', {
+    headers: { accept: 'application/json', 'user-agent': 'MarineAqua-Legacy-URL-Audit/1.0' },
+    signal: AbortSignal.timeout(20000),
+  });
+  if (!response.ok) throw new Error('WordPress SEO Files REST HTTP ' + response.status);
+  const config = await response.json();
+  if (config?.version !== 1 || !['manual', 'auto'].includes(config?.sitemap?.mode) ||
+      !Array.isArray(config?.sitemap?.extra) || !Array.isArray(config?.sitemap?.exclude) ||
+      typeof config?.sitemap?.xml !== 'string') {
+    throw new Error('WordPress SEO Files contract is malformed');
+  }
+  const manualLocs = locs(config.sitemap.xml);
+  REPORT.wordpressSeoFiles = {
+    version: config.version,
+    site: String(config.site || ''),
+    sitemapMode: config.sitemap.mode,
+    manualXmlBytes: config.sitemap.xml.length,
+    manualXmlLocCount: manualLocs.length,
+    extraUrlCount: config.sitemap.extra.length,
+    excludeUrlCount: config.sitemap.exclude.length,
+    robotsBytes: String(config.robots || '').length,
+    llmsBytes: String(config.llms || '').length,
+  };
+} catch (error) {
+  REPORT.errors.push({ scope: 'wordpress-seo-files', error: String(error?.message || error).slice(0, 500) });
+}
+
+try {
+  const response = await fetch(NEW_ORIGIN + '/sitemap.xml', {
+    redirect: 'follow',
+    headers: { accept: 'application/xml,text/xml,*/*', 'user-agent': 'MarineAqua-Legacy-URL-Audit/1.0' },
+    signal: AbortSignal.timeout(20000),
+  });
+  const xml = await response.text();
+  REPORT.publicSitemap = {
+    status: response.status,
+    finalUrl: response.url,
+    bytes: xml.length,
+    locCount: locs(xml).length,
+    xmlRoot: (xml.match(/<(urlset|sitemapindex)\\b/i) || [])[1] || null,
+  };
+} catch (error) {
+  REPORT.errors.push({ scope: 'public-sitemap', error: String(error?.message || error).slice(0, 500) });
+}
+
+try {
+  const response = await fetch(OLD_ORIGIN + '/818641-2', {
+    redirect: 'manual',
+    headers: { accept: 'text/html,*/*', 'user-agent': 'MarineAqua-Legacy-URL-Audit/1.0' },
+    signal: AbortSignal.timeout(20000),
+  });
+  const html = await response.text();
+  const title = html.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1]
+    ?.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim() || '';
+  const canonical = html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)/i)?.[1]
+    || html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["']canonical["']/i)?.[1] || '';
+  const h1 = html.match(/<h1[^>]*>([\\s\\S]*?)<\\/h1>/i)?.[1]
+    ?.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim() || '';
+  REPORT.unresolvedRouteSource = {
+    requestedUrl: OLD_ORIGIN + '/818641-2',
+    status: response.status,
+    location: response.headers.get('location') || '',
+    title,
+    h1,
+    canonical,
+    htmlBytes: html.length,
+    notFoundMarker: /page not found|không tìm thấy|404 error/i.test(html),
+  };
+} catch (error) {
+  REPORT.errors.push({ scope: 'unresolved-route-source', error: String(error?.message || error).slice(0, 500) });
+}
+
 const oldByPath = new Map(oldUrls.map(url => [normalizedPath(url), url]));
 const newByPath = new Map(newUrls.map(url => [normalizedPath(url), url]));
 for (const [path, metadata] of currentRestRoutes) {
