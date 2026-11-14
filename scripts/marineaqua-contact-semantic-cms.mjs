@@ -236,6 +236,21 @@ try {
     }
   }
   if(!updated.includes(shortcode)){
+    // WordPress's native QuickTags insertion can target the Text editor even
+    // when send_to_editor selected an inactive TinyMCE instance.
+    const nativeQuickTags=await page.evaluate(code=>{
+      const el=document.getElementById('content');
+      if(!el || typeof window.QTags?.insertContent!=='function')return {available:false};
+      window.wpActiveEditor='content';
+      el.focus();
+      el.setSelectionRange(el.value.length,el.value.length);
+      window.QTags.insertContent(code);
+      return {available:true,contains:el.value.includes(code)};
+    },shortcode);
+    report.nativeQuickTagsFallback=nativeQuickTags;
+    updated=await textarea.inputValue();
+  }
+  if(!updated.includes(shortcode)){
     const sourceRow=page.locator('[data-table-id="'+TABLE+'"]').first();
     if(await sourceRow.count()){
       const insert=sourceRow.getByRole('button',{name:/Insert|Chèn/i});
