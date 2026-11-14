@@ -1,30 +1,34 @@
 # Phản hồi ChatGPT mới nhất
 
-- Thời điểm: 2026-11-13 (Asia/Ho_Chi_Minh)
+- Thời điểm: 2026-11-14 08:45 (Asia/Ho_Chi_Minh)
 - Project: marine-aqua.vn
 - Repository: ngocnhanvo/marineaqua-actions
 - Branch: main
 - Lưu phản hồi: SAVED
-- Trạng thái công việc đã xác minh: DONE — bỏ đơn vị tính trên chi tiết sản phẩm
-- Astro master SHA: 2815ca052eda6c99979f67009eba045271393e5e
-- Astro file: src/astro/pages/ProductDetailsPage.astro
-- Implementation: remove product.unit locale line from price/quote presentation; preserve actual WooCommerce product data
-- Astro CI 43382064682 rerun job 132005744618 SUCCESS
-- Existing production deployment 43460712807 job 132006574331 SUCCESS, exact SHA and build/FTPS/signed activation PASS
-- Playwright desktop/mobile QA 43460785976 rerun job 132007759878 SUCCESS
-- URL tested: https://marine-aqua.io.vn/san-pham/chat-bo-sung-skeletal-elements-foundation-abc-1kg-redsea
-- Quote link still visible, unit label `Cái` absent, no overflow at 1366/390 viewport
-- Checkpoint docs/product-unit-hidden-checkpoint.md (commit c7e37722e471103c7b00f5b5df752db48e57f1f5)
-- No CMS mutation or cleanup required
+- Trạng thái công việc đã xác minh: PARTIAL — khối Liên hệ đã DONE, audit mọi Header Page/ESC local khác vẫn tiếp tục
+- Knowledge: main@1b5aab9
+- Astro: master@036676f02d3b9afe9275afc58c0e50a2dae2145e
+- PHP: master@2413dbff883307c1152ffd55318408b9bf010f14
+- Actions CMS repair: e1417508f565635e785dba46462671423ba11f59
+- Actions live QA: 050cf94a92637ec268ccac689673378f786585bd
+- Contact CMS native REST run 43541439591: SUCCESS (one shortcode, changed=0)
+- Bridge run 43541995974: SUCCESS
+- Existing canonical Astro production run 43542023346: SUCCESS (signed activation)
+- Contact Playwright QA 43542223866: SUCCESS (1366px desktop/390px mobile)
+- Checkpoint: docs/contact-semantic-visual-builder-checkpoint.md, commit 6270d0325429b8a8e06d4af4e879c65aef67341f
 
-## Phản hồi nguyên văn
+## Phản hồi nguyên văn dự định gửi
 
-Đã bỏ dòng đơn vị tính **“Cái”** dưới **Liên hệ báo giá** trên trang chi tiết sản phẩm, giữ nguyên dữ liệu sản phẩm trong WooCommerce và các chức năng khác.
+## Tiếp tục dự án Marine Aqua — 14/11/2026
 
-Đã [triển khai thành công](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43460712807) và [kiểm tra desktop/mobile PASS](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43460785976) với đúng sản phẩm Red Sea Skeletal Elements trong ảnh.
+Đã đối chiếu Knowledge, source Astro/PHP và Actions với commit mới nhất, không chạy lại các test đã PASS trước đó.
 
-Đã lưu [checkpoint hoàn tất](https://github.com/ngocnhanvo/marineaqua-actions/blob/main/docs/product-unit-hidden-checkpoint.md).
+**Trang Liên hệ và ESC Table đã khắc phục hoàn tất.** WordPress Page 82580 có đúng một shortcode native `contact_semantics_vi`, CMS REST readback PASS tại [43541439591](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43541439591). Đã khắc phục lỗi Thickbox, tránh tính preview badge thành shortcode trùng, sửa Astro xử lý preview TablePress và làm mới Page cache theo modified_gmt.
+
+**Production đã triển khai thành công** qua pipeline hiện hữu: [build/deploy 43542023346](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43542023346), Astro source `036676f`. **Live Playwright đã PASS** trên desktop/mobile: [43542223866](https://github.com/ngocnhanvo/marineaqua-actions/actions/runs/43542223866), kiểm tra HTTP 200, nhãn và tọa độ ESC Table, Header menu, thông tin WordPress, links và không tràn ngang.
+
+Đã lưu [checkpoint](https://github.com/ngocnhanvo/marineaqua-actions/blob/main/docs/contact-semantic-visual-builder-checkpoint.md). Phạm vi còn phải xác minh trước khi đánh dấu toàn bộ dự án DONE: mỗi trang còn lại của Header có đầy đủ ngữ nghĩa chỉnh được bằng Visual Builder; các nguồn local Product/ProductCategory/Page thao tác thêm/xóa/đổi thứ tự và Save/readback trên từng trang.
 
 Chế độ code: auto-build
 Cổng ghi source: bypass
-Trạng thái: DONE — hoàn tất
+Trạng thái: PARTIAL — chưa hoàn tất
