@@ -208,6 +208,7 @@ for (const [path, metadata] of currentRestRoutes) {
 const oldWpProducts = new Map();
 const oldWpPages = new Map();
 const oldWpPosts = new Map();
+const oldLegacySearch = new Map();
 const oldProductTags = new Map();
 const oldProductCategories = new Map();
 try {
@@ -287,6 +288,22 @@ try {
     }
     await collectOldTerms(oldProductCatTax?.rest_base, oldProductCategories);
     await collectOldTerms(oldProductTagTax?.rest_base, oldProductTags);
+    const legacySearchResponse = await fetch(OLD_ORIGIN + '/wp-json/wp/v2/search?search=818641-2&per_page=20', {
+      headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20000),
+    });
+    if (legacySearchResponse.ok) {
+      const searchRows = await legacySearchResponse.json();
+      if (Array.isArray(searchRows)) {
+        for (const row of searchRows) {
+          const title = normalizeTitle(row?.title || '');
+          if (title) oldLegacySearch.set(title, {
+            url: String(row?.url || ''),
+            type: String(row?.type || ''),
+            subtype: String(row?.subtype || ''),
+          });
+        }
+      }
+    }
     for (const product of oldWpProducts.values()) {
       product.categorySlugs = [...new Set([
         ...product.categorySlugs,
@@ -301,6 +318,7 @@ try {
       posts: oldWpPosts.size,
       productTags: oldProductTags.size,
       productCategories: oldProductCategories.size,
+      legacySearchMatches: oldLegacySearch.size,
     };
   } else {
     throw new Error('Old WP types registry HTTP ' + oldTypesResponse.status);
@@ -359,6 +377,14 @@ for (const [oldPath, oldUrl] of oldByPath) {
     if (matches.length === 1) {
       candidates = [matches[0].path];
       titleMatch = 'exact-post-title';
+    }
+  }
+  if (candidates.length === 0 && oldPath === '/818641-2') {
+    const searchTitle = [...oldLegacySearch.keys()];
+    const matches = searchTitle.flatMap(title => currentByTitle.get(title) || []);
+    if (matches.length === 1) {
+      candidates = [matches[0].path];
+      titleMatch = 'wordpress-search-title-match';
     }
   }
   if (candidates.length === 0 && oldPath === '/bai-viet' && currentRestRoutes.has('/cat/tin-kien-thuc')) {
