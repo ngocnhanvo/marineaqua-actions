@@ -197,7 +197,7 @@ jobs:
           import subprocess, pathlib, re
           logpath=pathlib.Path('/tmp/marine-ssr-probe.log')
           failures=[]
-          for path in ['/gio-hang','/thanh-toan','/tai-khoan','/dat-hang-thanh-cong']:
+          for path in ['/ssr/cart/gio-hang','/ssr/cart/thanh-toan','/tai-khoan','/ssr/cart/dat-hang-thanh-cong']:
               out=pathlib.Path('/tmp/marine-ssr-'+path.lstrip('/')+'.html')
               result=subprocess.run(['curl','--http1.1','--max-time','25','--silent','--show-error',
                   '--output',str(out),'--write-out','%{http_code}',
