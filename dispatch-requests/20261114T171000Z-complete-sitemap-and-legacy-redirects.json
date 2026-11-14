@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "37ca2519e14a6fcd1aad8da9ffd92c5372eb520a",
+  "reason": "Release complete WordPress sitemap and tested legacy redirects",
+  "request_id": "20261114T171000Z-complete-sitemap-and-legacy-redirects",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
