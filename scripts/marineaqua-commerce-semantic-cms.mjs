@@ -820,8 +820,10 @@ try {
  }
  if(already===0){
   await page.goto(WP+'/wp-admin/post.php?post='+PAGE_ID+'&action=edit',
-     {waitUntil:'commit',timeout:60000});
-  await page.locator('#content-html').waitFor({state:'attached',timeout:60000});
+     {waitUntil:'domcontentloaded',timeout:60000});
+  await page.locator('#content-html').waitFor({state:'visible',timeout:60000});
+  // Wait for native WordPress QuickTags/ESC Table Insert Code initialization.
+  await page.locator('#qt_content_tablepress_quicktags_button').waitFor({state:'visible',timeout:35000});
   await page.waitForTimeout(500);
   const textTab=page.locator('#content-html');
   const textarea=page.locator('#content');
