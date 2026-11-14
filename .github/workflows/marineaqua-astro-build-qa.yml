@@ -228,7 +228,8 @@ jobs:
               if not re.search(r'data-marine-footer-link="'+key+r'"[^>]*href="'+href+r'"',home):
                   # Astro may serialize attributes in the opposite order.
                   if not re.search(r'<a[^>]*href="'+href+r'"[^>]*data-marine-footer-link="'+key+r'"',home):
-                      raise SystemExit('MARINEAQUA_FOOTER=FAIL missing '+key+' route '+href)
+                      actual=re.findall(r'<a[^>]*data-marine-footer-link="'+key+r'"[^>]*>|<a[^>]*href="[^"]*"[^>]*data-marine-footer-link="'+key+r'"[^>]*>',home)
+                      raise SystemExit('MARINEAQUA_FOOTER=FAIL missing '+key+' route '+href+' actual='+str(actual[:2]))
           if not all('data-marine-footer-link="'+key+'"' in home for key in ('maps','facebook')):
               raise SystemExit('MARINEAQUA_FOOTER=FAIL missing real social/map links')
           if not re.search(r'© 2026 Marine Aqua\. ',home):
