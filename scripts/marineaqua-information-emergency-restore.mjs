@@ -49,15 +49,24 @@ try{
   assert.equal(read.status(),200,'No Page source read permission');
   const data=await read.json();
   const candidates=data.rows?.filter(r=>
-    r.editable && r.part===0 && typeof r.title==='string' && r.title.endsWith(MARK));
+    r.editable && r.part===0 && typeof r.full_text==='string' && r.full_text.includes(MARK));
   assert.equal(candidates?.length,1,'Source QA token missing or ambiguous');
   const row=candidates[0];
-  const title=row.title.slice(0,-MARK.length);
-  assert.ok(title.length>=4 && title.length<=120 && !/[<>&\[\]\r\n]/.test(title),'Recovery label unsafe');
-  // Restrict to the EXACT known marker and a native text token, never arbitrary Post content.
-  assert.ok(before.includes(title+MARK),'Exact source value not in WordPress post_content');
+  // The failed UI test may have edited a substring of a larger HTML token.
+  // Use WordPress Page's native partial replacement to preserve every other
+  // original byte, including HTML entities and whitespace around the marker.
+  const full=row.full_text;
+  const at=full.indexOf(MARK);
+  assert.equal(full.lastIndexOf(MARK),at,'Multiple markers inside same source token');
+  assert.ok(at>0,'Marker cannot start a text token');
+  const prefixCodepoints=[...full.slice(0,at)];
+  const last=prefixCodepoints.at(-1);
+  assert.ok(last && !/[<>&\r\n]/.test(last),'Cannot find safe original neighboring character');
+  const prefix=full.slice(0,at-last.length);
+  const suffix=full.slice(at+MARK.length);
   const res=await ctx.request.post(WP+'/wp-json/esc-builder/v1/save-page-text',
-   {headers,data:{page_id:PAGE_ID,ticket,part:row.part,offset:row.offset,title,
+   {headers,data:{page_id:PAGE_ID,ticket,part:row.part,offset:row.offset,title:last,
+    selection_prefix:prefix,selection_text:last+MARK,selection_suffix:suffix,
     original_hash:row.hash,expected_version:data.version},
     timeout:30000,failOnStatusCode:false});
   report.save_status=res.status();
