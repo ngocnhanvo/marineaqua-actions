@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import { chromium } from 'playwright';
+import {mkdir,writeFile} from 'node:fs/promises';
+const WP='https://admin.marine-aqua.io.vn';
+const OUT='artifacts/local-reference-inventory';
+const report={status:'STARTED',tables:[],sources:{Product:[],ProductCategory:[],Page:[]},errors:[],writes:0};
+await mkdir(OUT,{recursive:true});
+const browser=await chromium.launch({headless:true});
+try {
+ const ctx=await browser.newContext({viewport:{width:1440,height:900}});
+ const page=await ctx.newPage();
+ const username=process.env.WP_ADMIN_USERNAME,password=process.env.WP_ADMIN_PASSWORD;
+ assert.ok(username&&password,'Missing WordPress QA credentials');
+ await page.goto(WP+'/wp-login.php',{waitUntil:'domcontentloaded',timeout:45000});
+ await page.locator('#user_login').fill(username);await page.locator('#user_pass').fill(password);
+ await page.locator('#wp-submit').click();
+ await page.waitForLoadState('domcontentloaded');
+ assert.ok(!page.url().includes('wp-login.php'),'WP authentication failed');
+ const response=await page.goto(WP+'/wp-admin/edit.php?post_type=page&page=esc-visual-builder&esc_vb_page=82454',{waitUntil:'domcontentloaded',timeout:45000});
+ assert.equal(response?.status(),200);
+ const scriptTexts=await page.locator('script').allTextContents();
+ const nonce=scriptTexts.map(t=>t.match(/const nonce\s*=\s*["']([^"']+)["']/)?.[1]).find(Boolean);
+ assert.ok(nonce,'Builder REST nonce missing');
+ const request=async(method,path,body)=> {
+  const r=await ctx.request.fetch(WP+'/wp-json/'+path,{method,headers:{'X-WP-Nonce':nonce,'Content-Type':'application/json'},data:body?JSON.stringify(body):undefined,timeout:30000,failOnStatusCode:false});
+  return {status:r.status(),body:await r.json().catch(()=>({}))};
+ };
+ const list=await request('GET','tablepress/v1/tables');
+ report.tableListStatus=list.status;
+ const raw=list.body;
+ const collect=(v)=>Array.isArray(v)?v:Object.values(v||{}).find(Array.isArray)||[];
+ let entries=collect(raw);
+ if(!entries.length && raw?.tables)entries=collect(raw.tables);
+ const ids=[...new Set(entries.map(v=>String(typeof v==='string'||typeof v==='number'?v:v?.id??v?.ID??'')).filter(v=>/^[a-zA-Z0-9_-]{1,80}$/.test(v)))];
+ report.tableCount=ids.length;
+ for(const id of ids.slice(0,250)){
+   const result=await request('POST','esc-builder/v1/item-schema',{table_id:id});
+   if(result.status===200&&['Product','ProductCategory','Page'].includes(result.body.source_api)){
+     report.sources[result.body.source_api].push({id,count:result.body.count,can_add:result.body.can_add});
+   }
+   report.tables.push({id,source:result.body?.source_api||'',status:result.status});
+ }
+ report.status='PASS';
+} catch(e){report.status='FAIL';report.errors.push(String(e.stack||e).slice(0,1800));process.exitCode=1;}
+finally {await writeFile(OUT+'/result.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_REFERENCE_INVENTORY='+JSON.stringify(report));await browser.close();}
