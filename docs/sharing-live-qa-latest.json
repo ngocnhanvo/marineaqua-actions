@@ -60,7 +60,7 @@
       "path": "/cat/kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
       "expectedCount": 48,
       "status": 200,
-      "heading": "Kinh nghiệm xử lý vấn đề trong bể cá (rêu hại, tảo hại, bệnh cá, san hô...)",
+      "heading": "Kinh nghiệm xử lý vấn đề trong bể cá (rêu hại, tảo hại, bệnh cá, san hô…)",
       "cards": 28,
       "hasProductListing": false,
       "width": 1366
@@ -100,7 +100,7 @@
       "path": "/cat/cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
       "expectedCount": 32,
       "status": 200,
-      "heading": "Các thiết bị trong bể cá (đèn, skimmer, máy bơm...)",
+      "heading": "Các thiết bị trong bể cá (đèn, skimmer, máy bơm…)",
       "cards": 28,
       "hasProductListing": false,
       "width": 1366
@@ -130,7 +130,7 @@
       "path": "/cat/kinh-nghiem-tri-reu-hai-tao-hai-trong-be-ca",
       "expectedCount": 48,
       "status": 200,
-      "heading": "Kinh nghiệm xử lý vấn đề trong bể cá (rêu hại, tảo hại, bệnh cá, san hô...)",
+      "heading": "Kinh nghiệm xử lý vấn đề trong bể cá (rêu hại, tảo hại, bệnh cá, san hô…)",
       "cards": 28,
       "hasProductListing": false,
       "width": 390
@@ -170,7 +170,7 @@
       "path": "/cat/cac-thiet-bi-trong-be-ca-den-skimmer-may-bom",
       "expectedCount": 32,
       "status": 200,
-      "heading": "Các thiết bị trong bể cá (đèn, skimmer, máy bơm...)",
+      "heading": "Các thiết bị trong bể cá (đèn, skimmer, máy bơm…)",
       "cards": 28,
       "hasProductListing": false,
       "width": 390
@@ -281,6 +281,6 @@
     }
   ],
   "errors": [],
-  "run_id": "43586090156",
+  "run_id": "43610497376",
   "outcome": "success"
 }
