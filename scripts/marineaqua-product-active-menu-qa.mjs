@@ -15,6 +15,12 @@ try {
       {from:'/danh-muc/thuong-hieu/zetlight/',to:'/san-pham/zetlight'},
       {from:'/danh-muc/may-bom-va-may-tao-song/may-tao-song/',to:'/san-pham/may-tao-song'},
       {from:'/danh-muc/thuong-hieu/zetlight/page/2/?orderby=price&utm_source=legacy',to:'/san-pham/zetlight/2',query:{orderby:'price',utm_source:'legacy'}},
+      {from:'/san-pham/dung-dich-hieu-chinh-ong-nhom-do-man-continuum-aquatics-usa',to:'/san-pham/thiet-bi-do'},
+      {from:'/san-pham/muoi-bien-tropic-marin-pro-reef-4-kg-box',to:'/san-pham/muoi-bien'},
+      {from:'/san-pham/prodibio-stop-ammo-khu-doc-nuoc-hop-30-ong',to:'/san-pham/hoa-chat-bo-sung-va-thuoc-dac-tri'},
+      {from:'/san-pham/tropic-marin-a-elements-250-ml-khoang-vi-luong-cho-san-ho',to:'/san-pham/hoa-chat-bo-sung-va-thuoc-dac-tri'},
+      {from:'/san-pham/tropic-marin-all-for-reef-250-ml-dinh-duong-khoang-cho-be-ca-bien',to:'/san-pham/tropic-marin'},
+      {from:'/bai-viet?utm_source=legacy',to:'/cat/tin-kien-thuc',query:{utm_source:'legacy'}},
     ];
     for (const item of legacyCases) {
       let sourceResponse;
