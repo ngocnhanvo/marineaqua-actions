@@ -62,6 +62,17 @@ try {
    assert.ok(record.selectable,'Native WordPress Editor selection did not open for '+target.slug);
    if(target.slug==='thoi-gian-ban-hang'){
     record.tokenSelections=[];
+    const scripts=await page.locator('script').allTextContents();
+    const nonce=scripts.map(s=>s.match(/const nonce\\s*=\\s*["']([^"']+)["']/)?.[1]).find(Boolean);
+    const ticket=await page.evaluate(()=>window.escVBGetTicket?.());
+    assert.ok(nonce&&ticket,'Missing native WordPress authorization for read-only manifest');
+    const resp=await ctx.request.post(WP+'/wp-json/esc-builder/v1/editable-page-text',
+      {headers:{'X-WP-Nonce':nonce,'Content-Type':'application/json'},
+       data:{page_id:target.id,ticket},timeout:30000,failOnStatusCode:false});
+    assert.equal(resp.status(),200,'Page source text manifest not authorized');
+    const sourceManifest=await resp.json();
+    record.sourceManifestCount=sourceManifest.rows?.length||0;
+
     const tokens=editorContent.locator('p').filter({visible:true});
     for(let idx=0;idx<Math.min(await tokens.count(),5);idx++){
      const node=tokens.nth(idx);
@@ -78,7 +89,10 @@ try {
      }
      const selectedRow=await page.locator('#esc-vb-edit-row').inputValue();
      const matched=value.replace(/\s+/g,' ').trim()===expected;
-     record.tokenSelections.push({idx,expected,value,selectedRow,matched});
+     const nativeRow=sourceManifest.rows?.find(r=>r.id===selectedRow);
+     record.tokenSelections.push({idx,expected,value,selectedRow,matched,
+       nativeTitle:nativeRow?.title||null,
+       nativeMatches:nativeRow?.title?.replace(/\\s+/g,' ').trim()===expected});
      assert.ok(matched,'Page Editor picked a different token at index '+idx);
     }
    }
