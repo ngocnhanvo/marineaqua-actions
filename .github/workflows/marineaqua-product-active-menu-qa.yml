@@ -1,5 +1,5 @@
 name: Marine Aqua product category active menu live QA
-# Verify every source product category using bounded HTTP redirect checks.
+# Verify sitemap inventory and original shop Page redirect alongside legacy category redirects.
 on:
   push:
     branches: [main]
