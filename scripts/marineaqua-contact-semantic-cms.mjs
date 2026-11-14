@@ -305,6 +305,15 @@ try {
  assert.equal(after.data.acf?.action,original.acf?.action);
  assert.equal(after.data.status,original.status);
  const content=String(after.data.content?.raw||'');
+ report.afterSave={
+  url:page.url().slice(0,180),
+  rawLength:content.length,
+  hasTableId:content.includes(TABLE),
+  rawTail:content.slice(-280),
+  hasExactShortcode:content.includes(shortcode),
+  pageEditorContent:await page.locator('#content').inputValue().then(x=>x.slice(-220)).catch(()=>null),
+  adminMessage:await page.locator('#message').innerText().catch(()=>null),
+ };
  const count=(content.match(new RegExp('\\[table id='+TABLE+'\\s*\\/\\]','g'))||[]).length;
  report.shortcodeCount=count;
  assert.equal(count,1,'Page shortcode not unique after Save');
