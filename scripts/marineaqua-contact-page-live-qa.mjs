@@ -35,7 +35,7 @@ try {
         row:node.getAttribute('data-esc-builder-cell-row'),
         field:node.getAttribute('data-esc-builder-cell-field'),
       })));
-      assert.ok(cellCoordinates.every(cell=>/^\\d+$/.test(cell.row||'')&&cell.field==='label'),
+      assert.ok(cellCoordinates.every(cell=>/^\d+$/.test(cell.row||'')&&cell.field==='label'),
         'Contact labels lack stable ESC Table source coordinates');
       const footer=page.locator('#footer-contact-info');
       const full = await main.textContent();
