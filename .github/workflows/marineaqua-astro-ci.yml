@@ -1,5 +1,5 @@
 name: Marine Aqua Astro source checks Product Builder (NO DEPLOY)
-# Recheck legacy URL redirects and complete WordPress-generated sitemap inventory.
+# Verify sitemap contains all WordPress Pages, products, posts and product categories.
 # Regression checks now include redirect-alias and nested brand route Vitest cases.
 on:
   push:
