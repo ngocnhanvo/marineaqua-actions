@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "73aaba2915f381e231c801c1d490beeb08da9353",
+  "reason": "Rebuild Astro after verified WordPress Page SEO metadata updates",
+  "request_id": "20261114T140200Z-pages-seo-cms-refresh",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
