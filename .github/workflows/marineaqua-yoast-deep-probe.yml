@@ -1,0 +1,36 @@
+name: Marine Aqua Yoast editor deep probe
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/marineaqua-yoast-deep-probe.mjs'
+      - '.github/workflows/marineaqua-yoast-deep-probe.yml'
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - run: node --check scripts/marineaqua-yoast-deep-probe.mjs
+      - name: Inspect Yoast editor fields after scrolling to metabox (read only)
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-yoast-deep-probe.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marineaqua-yoast-deep-probe
+          path: yoast-deep-probe/
+          retention-days: 7
