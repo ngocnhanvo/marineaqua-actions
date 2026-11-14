@@ -71,10 +71,45 @@ try {
  assert.equal(original.acf?.key,'contact');
  assert.equal(original.acf?.action,'HomePage');
  assert.equal(original.acf?.product_lang?.value||original.acf?.product_lang,'vi');
- const precontent=String(original.content?.raw??'');
+ let precontent=String(original.content?.raw??'');
  const shortcode='[table id='+TABLE+' /]';
- const already=(precontent.match(new RegExp('\\[table id='+TABLE+'\\s*\\/\\]','g'))||[]).length;
- assert.ok(already<=1,'Page has repeated shortcode');
+ const shortcodeRegex=new RegExp('\\\\[table id='+TABLE+'\\\\s*\\\\/\\\\]','g');
+ let already=(precontent.match(shortcodeRegex)||[]).length;
+ report.existingShortcodes=already;
+ if(already>1){
+   // Only remove redundant exact copies of this shortcode. Keep the first
+   // occurrence and preserve all other Page content byte for byte.
+   let seen=0;
+   const cleaned=precontent.replace(shortcodeRegex,match=>(++seen===1?match:''));
+   assert.equal((cleaned.match(shortcodeRegex)||[]).length,1,'Duplicate cleanup preflight failed');
+   await page.goto(WP+'/wp-admin/post.php?post='+PAGE_ID+'&action=edit',{waitUntil:'domcontentloaded',timeout:60000});
+   const editor=page.locator('#content');
+   await page.locator('#content-html').waitFor({state:'attached',timeout:30000});
+   await page.evaluate(()=>{
+     const tm=window.tinymce?.get?.('content');
+     if(tm&&!tm.isHidden())tm.hide();
+     window.switchEditors?.go?.('content','html');
+   });
+   await editor.waitFor({state:'visible',timeout:20000});
+   assert.equal(await editor.inputValue(),precontent,'Page changed since duplicate snapshot');
+   await editor.fill(cleaned);
+   await page.evaluate(()=>{
+     const tm=window.tinymce?.get?.('content');
+     if(tm&&!tm.isHidden())tm.hide();
+   });
+   await page.locator('#publish').click();
+   let saved=false;
+   for(let k=0;k<12;k++){
+     await page.waitForTimeout(1500);
+     const now=await rest('GET','/wp-json/wp/v2/pages/'+PAGE_ID+'?context=edit');
+     if(now.status===200&&now.data.content?.raw===cleaned){saved=true;break;}
+   }
+   assert.ok(saved,'Duplicate cleanup was not verified by WordPress REST');
+   report.changed++;
+   report.steps.push('DUPLICATE_SHORTCODE_CLEANUP_REST_PASS');
+   precontent=cleaned;
+   already=1;
+ }
  report.steps.push('WP_PAGE_IDENTITY_PASS');
  const readTable=async()=>{
    const r=await rest('GET','/wp-json/tablepress/v1/table/'+TABLE);
