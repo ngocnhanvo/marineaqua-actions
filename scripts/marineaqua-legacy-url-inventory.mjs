@@ -111,8 +111,86 @@ function candidatePaths(oldPath, newPaths) {
 
 const oldUrls = await sitemapTree(OLD_ORIGIN, 'old');
 const newUrls = await sitemapTree(NEW_ORIGIN, 'current');
+
+// The frontend sitemap currently points to an unrelated template host. Build a
+// second, source-of-truth inventory from the live WordPress REST type/taxonomy
+// registries instead of treating that broken sitemap as an empty storefront.
+const currentWpOrigin = 'https://admin.marine-aqua.io.vn';
+const currentRestRoutes = new Map();
+async function fetchRestCollection(restBase, kind, routeFor) {
+  const seen = new Set();
+  for (let page = 1; page <= 100; page++) {
+    const url = currentWpOrigin + '/wp-json/wp/v2/' + encodeURIComponent(restBase) +
+      '?status=publish&per_page=100&page=' + page + '&_fields=slug,link,status';
+    const response = await fetch(url, {
+      headers: { accept: 'application/json', 'user-agent': 'MarineAqua-Legacy-URL-Audit/1.0' },
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!response.ok) {
+      if ((response.status === 400 || response.status === 404) && page > 1) break;
+      throw new Error(kind + ' REST inventory HTTP ' + response.status + ' ' + url);
+    }
+    const rows = await response.json();
+    if (!Array.isArray(rows)) throw new Error(kind + ' REST inventory malformed');
+    for (const row of rows) {
+      const slug = String(row?.slug || '').trim();
+      if (!/^[a-z0-9][a-z0-9-]*$/i.test(slug)) continue;
+      const path = routeFor(slug, row);
+      if (!path) continue;
+      if (seen.has(slug) && currentRestRoutes.has(path)) {
+        throw new Error('Duplicate live REST route ' + path);
+      }
+      seen.add(slug);
+      currentRestRoutes.set(path, { kind, slug, sourceLink: String(row?.link || '') });
+    }
+    if (rows.length < 100) break;
+    if (page === 100) throw new Error(kind + ' REST inventory exceeded 100 pages');
+  }
+}
+try {
+  const [typesResponse, taxonomiesResponse] = await Promise.all([
+    fetch(currentWpOrigin + '/wp-json/wp/v2/types?context=view', {
+      headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20000),
+    }),
+    fetch(currentWpOrigin + '/wp-json/wp/v2/taxonomies?context=view', {
+      headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20000),
+    }),
+  ]);
+  if (!typesResponse.ok) throw new Error('WP types registry HTTP ' + typesResponse.status);
+  if (!taxonomiesResponse.ok) throw new Error('WP taxonomies registry HTTP ' + taxonomiesResponse.status);
+  const types = await typesResponse.json();
+  const taxonomies = await taxonomiesResponse.json();
+  const typeEntries = Object.values(types).filter(item => item?.rest_base && item?.slug);
+  const taxonomyEntries = Object.values(taxonomies).filter(item => item?.rest_base && item?.slug);
+  const productType = typeEntries.find(item => item.slug === 'product' || item.rest_base === 'products');
+  const postType = typeEntries.find(item => item.slug === 'post' || item.rest_base === 'posts');
+  const pageType = typeEntries.find(item => item.slug === 'page' || item.rest_base === 'pages');
+  const productTaxonomy = taxonomyEntries.find(item => item.slug === 'product_cat' || item.rest_base === 'product_cat');
+  const postTaxonomy = taxonomyEntries.find(item => item.slug === 'category' || item.rest_base === 'categories');
+  const tagTaxonomy = taxonomyEntries.find(item => item.slug === 'product_tag' || item.rest_base === 'product_tag');
+  if (productType) await fetchRestCollection(productType.rest_base, 'product', slug => '/san-pham/' + slug);
+  if (postType) await fetchRestCollection(postType.rest_base, 'post', slug => '/' + slug);
+  if (pageType) await fetchRestCollection(pageType.rest_base, 'page', (_slug, row) => {
+    try { return normalizedPath(row.link); } catch { return null; }
+  });
+  if (productTaxonomy) await fetchRestCollection(productTaxonomy.rest_base, 'product-category', slug => '/san-pham/' + slug);
+  if (postTaxonomy) await fetchRestCollection(postTaxonomy.rest_base, 'post-category', slug => '/cat/' + slug);
+  if (tagTaxonomy) await fetchRestCollection(tagTaxonomy.rest_base, 'product-tag', slug => '/tu-khoa/' + slug);
+  REPORT.sitemapSources.currentWordPressRest = {
+    origin: currentWpOrigin,
+    types: typeEntries.map(item => ({ slug: item.slug, rest_base: item.rest_base })),
+    taxonomies: taxonomyEntries.map(item => ({ slug: item.slug, rest_base: item.rest_base })),
+    routes: currentRestRoutes.size,
+  };
+} catch (error) {
+  REPORT.errors.push({ scope: 'current-wordpress-rest', error: String(error?.message || error).slice(0, 500) });
+}
+
 const oldByPath = new Map(oldUrls.map(url => [normalizedPath(url), url]));
 const newByPath = new Map(newUrls.map(url => [normalizedPath(url), url]));
+for (const [path, metadata] of currentRestRoutes) {
+  if (!newByPath.has(path)) newByPath.set(path, NEW_ORIGIN + path);
+}
 const newPaths = [...newByPath.keys()];
 for (const [oldPath, oldUrl] of oldByPath) {
   if (newByPath.has(oldPath)) continue;
