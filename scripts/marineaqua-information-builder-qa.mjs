@@ -60,6 +60,28 @@ try {
    assert.ok(record.editorValue?.trim(),'Editor field did not bind to WordPress source text');
    record.feedback=(await page.locator('#esc-vb-edit-feedback').innerText().catch(()=>'' )).slice(0,200);
    assert.ok(record.selectable,'Native WordPress Editor selection did not open for '+target.slug);
+   if(target.slug==='thoi-gian-ban-hang'){
+    record.tokenSelections=[];
+    const tokens=editorContent.locator('p').filter({visible:true});
+    for(let idx=0;idx<Math.min(await tokens.count(),5);idx++){
+     const node=tokens.nth(idx);
+     const expected=(await node.innerText()).replace(/\\s+/g,' ').trim();
+     await node.click({timeout:18000,position:{x:15,y:12}});
+     let value='';
+     try{
+      await page.waitForFunction(text=>
+        String(document.querySelector('#esc-vb-edit-title')?.value||'').replace(/\\s+/g,' ').trim()===text,
+        expected,{timeout:12000});
+      value=await page.locator('#esc-vb-edit-title').inputValue();
+     }catch{
+      value=await page.locator('#esc-vb-edit-title').inputValue();
+     }
+     const selectedRow=await page.locator('#esc-vb-edit-row').inputValue();
+     const matched=value.replace(/\\s+/g,' ').trim()===expected;
+     record.tokenSelections.push({idx,expected,value,selectedRow,matched});
+     assert.ok(matched,'Page Editor picked a different token at index '+idx);
+    }
+   }
   }catch(e){record.errors.push(String(e).slice(0,500));}
   report.pages.push(record);
  }
