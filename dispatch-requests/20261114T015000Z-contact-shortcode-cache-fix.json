@@ -1,0 +1,10 @@
+{
+  "request_id": "20261114T015000Z-contact-shortcode-cache-fix",
+  "action": "repository_dispatch",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  },
+  "source_sha": "036676f02d3b9afe9275afc58c0e50a2dae2145e",
+  "reason": "Build Astro after deduplicating TablePress preview and refreshing changed WordPress Pages"
+}
