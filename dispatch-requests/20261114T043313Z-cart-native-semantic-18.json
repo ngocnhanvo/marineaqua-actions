@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "request_id": "20261114T043313Z-cart-native-semantic-18",
+  "reason": "Deploy Astro master tested Cart 18 native ESC labels and corrected standalone SSR runtime smoke",
+  "source_sha": "2427d32f0ed728d897490f43b6130c505014f012",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
