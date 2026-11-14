@@ -76,7 +76,7 @@ try {
  const shortcodeRegex=new RegExp('\\[table id='+TABLE+'\\s*\\/\\]','g');
  // TablePress Classic Editor stores a visual preview badge containing a
  // second copy of the shortcode. This is not another Insert Code occurrence.
- const withoutPreviewBadge=value=>String(value).replace(/<span[^>]*tablepress-preview-badge[^>]*>[\\s\\S]*?<\\/span>/gi,'');
+ const withoutPreviewBadge=value=>String(value).replace(/<span[^>]*tablepress-preview-badge[^>]*>[\s\S]*?<\/span>/gi,'');
  const countSourceShortcodes=value=>(withoutPreviewBadge(value).match(shortcodeRegex)||[]).length;
  let already=countSourceShortcodes(precontent);
  report.existingShortcodes=already;
