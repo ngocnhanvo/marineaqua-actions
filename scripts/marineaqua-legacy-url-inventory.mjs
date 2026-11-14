@@ -207,6 +207,7 @@ for (const [path, metadata] of currentRestRoutes) {
 }
 const oldWpProducts = new Map();
 const oldWpPages = new Map();
+const oldWpPosts = new Map();
 const oldProductTags = new Map();
 const oldProductCategories = new Map();
 try {
@@ -217,6 +218,7 @@ try {
     const oldTypes = await oldTypesResponse.json();
     const oldProductType = Object.values(oldTypes).find(item => item?.slug === 'product' || item?.rest_base === 'product');
     const oldPageType = Object.values(oldTypes).find(item => item?.slug === 'page' || item?.rest_base === 'pages');
+    const oldPostType = Object.values(oldTypes).find(item => item?.slug === 'post' || item?.rest_base === 'posts');
     const oldTaxonomiesResponse = await fetch(OLD_ORIGIN + '/wp-json/wp/v2/taxonomies?context=view', {
       headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20000),
     });
@@ -261,6 +263,7 @@ try {
     }
     if (oldProductType?.rest_base) await collectOld(oldProductType.rest_base, oldWpProducts, 'product');
     if (oldPageType?.rest_base) await collectOld(oldPageType.rest_base, oldWpPages, 'page');
+    if (oldPostType?.rest_base) await collectOld(oldPostType.rest_base, oldWpPosts, 'post');
     async function collectOldTerms(restBase, target) {
       if (!restBase) return;
       for (let page = 1; page <= 100; page++) {
@@ -295,6 +298,7 @@ try {
       origin: OLD_ORIGIN,
       products: oldWpProducts.size,
       pages: oldWpPages.size,
+      posts: oldWpPosts.size,
       productTags: oldProductTags.size,
       productCategories: oldProductCategories.size,
     };
@@ -348,6 +352,23 @@ for (const [oldPath, oldUrl] of oldByPath) {
       candidates = [matches[0].path];
       titleMatch = 'exact-page-title';
     }
+  }
+  if (candidates.length === 0 && oldWpPosts.has(oldPath.split('/').filter(Boolean).at(-1))) {
+    const title = oldWpPosts.get(oldPath.split('/').filter(Boolean).at(-1));
+    const matches = title ? (currentByTitle.get(title) || []).filter(item => item.kind === 'post') : [];
+    if (matches.length === 1) {
+      candidates = [matches[0].path];
+      titleMatch = 'exact-post-title';
+    }
+  }
+  if (candidates.length === 0 && oldPath === '/bai-viet' && currentRestRoutes.has('/cat/tin-kien-thuc')) {
+    candidates = ['/cat/tin-kien-thuc'];
+    titleMatch = 'knowledge-archive-alias';
+  }
+  if (candidates.length === 0 && oldPath.startsWith('/tu-khoa/') && currentRestRoutes.has('/san-pham')) {
+    const tagSlug = oldPath.split('/').filter(Boolean).at(-1);
+    candidates = ['/san-pham?q=' + encodeURIComponent(String(tagSlug || '').replace(/-/g, ' '))];
+    titleMatch = 'legacy-tag-product-search';
   }
   if (candidates.length === 1) {
     REPORT.mappings.push({
