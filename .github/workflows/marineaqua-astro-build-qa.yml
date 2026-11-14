@@ -172,6 +172,45 @@ jobs:
           test -s dist/client/robots.txt
           test -s dist/client/llms.txt
           echo 'ASTRO_PRODUCTION_EQUIVALENT_BUILD=PASS (NO FTP, NO DEPLOY)' >> "$GITHUB_STEP_SUMMARY"
+      - name: Smoke test compiled SSR cart and completion routes (NO DEPLOY)
+        shell: bash
+        run: |
+          set -euo pipefail
+          HOST=127.0.0.1 PORT=4321 node dist/server/entry.mjs > /tmp/marine-ssr-probe.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 35); do
+            if curl --max-time 2 --silent --output /dev/null http://127.0.0.1:4321/; then break; fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          python3 - <<'PY'
+          import subprocess, pathlib, re
+          logpath=pathlib.Path('/tmp/marine-ssr-probe.log')
+          failures=[]
+          for path in ['/gio-hang','/thanh-toan','/tai-khoan','/dat-hang-thanh-cong']:
+              out=pathlib.Path('/tmp/marine-ssr-'+path.lstrip('/')+'.html')
+              result=subprocess.run(['curl','--http1.1','--max-time','25','--silent','--show-error',
+                  '--output',str(out),'--write-out','%{http_code}',
+                  'http://127.0.0.1:4321'+path],capture_output=True,text=True)
+              html=out.read_text(errors='replace') if out.exists() else ''
+              safe={'route':path,'curl_code':result.returncode,'http_code':result.stdout.strip(),
+                  'html_bytes':len(html.encode()),'has_main':'id="main-content"' in html}
+              print('SSR_ROUTE_PROBE',safe,flush=True)
+              if result.returncode!=0 or result.stdout.strip()!='200' or not safe['has_main']:
+                  failures.append(path)
+          if failures:
+              lines=logpath.read_text(errors='replace').splitlines()[-110:] if logpath.exists() else []
+              for line in lines:
+                  # Keep only exception class and stack location; never print
+                  # WordPress URLs, query strings, private tokens or environment.
+                  if re.search(r'Error|at |CartPage|ShippingFee|SemanticPage',line):
+                      safe=re.sub(r'https?://\\S+','[URL]',line)
+                      safe=re.sub(r'ticket=[^\\s&]+','ticket=[REDACTED]',safe)
+                      print('SSR_SAFE_LOG',safe[:360],flush=True)
+              raise SystemExit('SSR_RUNTIME_SMOKE=FAIL routes='+','.join(failures))
+          print('SSR_RUNTIME_SMOKE=PASS routes=4',flush=True)
+          PY
       - name: Verify 20 real WooCommerce homepage products in compiled output
         shell: bash
         run: |
