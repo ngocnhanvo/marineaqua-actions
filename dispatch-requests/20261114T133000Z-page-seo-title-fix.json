@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "73aaba2915f381e231c801c1d490beeb08da9353",
+  "reason": "Deploy Page SEO title and H1 separation fix to production",
+  "request_id": "20261114T133000Z-page-seo-title-fix",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
