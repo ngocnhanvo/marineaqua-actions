@@ -2,6 +2,10 @@ name: Marine Aqua native WordPress Page Editor Save Rollback QA
 # Safety hold: do not auto-run real CMS writes until Page token mapping is fixed.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/marineaqua-information-save-rollback-qa.yml'
   # Real CMS writes are manual-only pending reliable source-coordinate Save QA.
 permissions:
   contents: read
