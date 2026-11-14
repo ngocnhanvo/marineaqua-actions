@@ -207,6 +207,8 @@ for (const [path, metadata] of currentRestRoutes) {
 }
 const oldWpProducts = new Map();
 const oldWpPages = new Map();
+const oldProductTags = new Map();
+const oldProductCategories = new Map();
 try {
   const oldTypesResponse = await fetch(OLD_ORIGIN + '/wp-json/wp/v2/types?context=view', {
     headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20000),
@@ -215,10 +217,16 @@ try {
     const oldTypes = await oldTypesResponse.json();
     const oldProductType = Object.values(oldTypes).find(item => item?.slug === 'product' || item?.rest_base === 'product');
     const oldPageType = Object.values(oldTypes).find(item => item?.slug === 'page' || item?.rest_base === 'pages');
-    async function collectOld(restBase, target) {
+    const oldTaxonomiesResponse = await fetch(OLD_ORIGIN + '/wp-json/wp/v2/taxonomies?context=view', {
+      headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20000),
+    });
+    const oldTaxonomies = oldTaxonomiesResponse.ok ? await oldTaxonomiesResponse.json() : {};
+    const oldProductCatTax = Object.values(oldTaxonomies).find(item => item?.slug === 'product_cat');
+    const oldProductTagTax = Object.values(oldTaxonomies).find(item => item?.slug === 'product_tag');
+    async function collectOld(restBase, target, kind) {
       for (let page = 1; page <= 100; page++) {
         const url = OLD_ORIGIN + '/wp-json/wp/v2/' + encodeURIComponent(restBase) +
-          '?status=publish&per_page=100&page=' + page + '&_fields=slug,title';
+          '?status=publish&per_page=100&page=' + page + '&_fields=slug,title,product_cat,product_tag,product_categories';
         const response = await fetch(url, {
           headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20000),
         });
@@ -231,18 +239,64 @@ try {
         for (const row of rows) {
           const slug = String(row?.slug || '');
           const title = normalizeTitle(row?.title?.rendered || row?.title || '');
-          if (slug && title) target.set(slug, title);
+          if (slug && title) {
+            if (kind === 'product') {
+              const categories = [];
+              for (const item of Array.isArray(row?.product_categories) ? row.product_categories : []) {
+                const value = String(item?.slug || '').trim();
+                if (value) categories.push(value);
+              }
+              target.set(slug, {
+                title,
+                productCatIds: Array.isArray(row?.product_cat) ? row.product_cat.map(Number) : [],
+                productTagIds: Array.isArray(row?.product_tag) ? row.product_tag.map(Number) : [],
+                categorySlugs: [...new Set(categories)],
+              });
+            } else target.set(slug, title);
+          }
         }
         if (rows.length < 100) break;
         if (page === 100) throw new Error('Old ' + restBase + ' inventory exceeded 100 pages');
       }
     }
-    if (oldProductType?.rest_base) await collectOld(oldProductType.rest_base, oldWpProducts);
-    if (oldPageType?.rest_base) await collectOld(oldPageType.rest_base, oldWpPages);
+    if (oldProductType?.rest_base) await collectOld(oldProductType.rest_base, oldWpProducts, 'product');
+    if (oldPageType?.rest_base) await collectOld(oldPageType.rest_base, oldWpPages, 'page');
+    async function collectOldTerms(restBase, target) {
+      if (!restBase) return;
+      for (let page = 1; page <= 100; page++) {
+        const url = OLD_ORIGIN + '/wp-json/wp/v2/' + encodeURIComponent(restBase) +
+          '?per_page=100&page=' + page + '&_fields=id,slug,name';
+        const response = await fetch(url, {
+          headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20000),
+        });
+        if (!response.ok) {
+          if ((response.status === 400 || response.status === 404) && page > 1) break;
+          throw new Error('Old taxonomy ' + restBase + ' HTTP ' + response.status);
+        }
+        const rows = await response.json();
+        if (!Array.isArray(rows)) throw new Error('Old taxonomy ' + restBase + ' malformed');
+        for (const row of rows) {
+          if (Number(row?.id) > 0 && row?.slug) target.set(Number(row.id), String(row.slug));
+        }
+        if (rows.length < 100) break;
+        if (page === 100) throw new Error('Old taxonomy ' + restBase + ' exceeded 100 pages');
+      }
+    }
+    await collectOldTerms(oldProductCatTax?.rest_base, oldProductCategories);
+    await collectOldTerms(oldProductTagTax?.rest_base, oldProductTags);
+    for (const product of oldWpProducts.values()) {
+      product.categorySlugs = [...new Set([
+        ...product.categorySlugs,
+        ...product.productCatIds.map(id => oldProductCategories.get(id)).filter(Boolean),
+      ])];
+      product.tagSlugs = product.productTagIds.map(id => oldProductTags.get(id)).filter(Boolean);
+    }
     REPORT.sitemapSources.oldWordPressRest = {
       origin: OLD_ORIGIN,
       products: oldWpProducts.size,
       pages: oldWpPages.size,
+      productTags: oldProductTags.size,
+      productCategories: oldProductCategories.size,
     };
   } else {
     throw new Error('Old WP types registry HTTP ' + oldTypesResponse.status);
@@ -256,11 +310,35 @@ for (const [oldPath, oldUrl] of oldByPath) {
   let titleMatch = null;
   if (candidates.length === 0 && oldPath.startsWith('/san-pham/')) {
     const oldSlug = oldPath.split('/').filter(Boolean).at(-1);
-    const title = oldWpProducts.get(oldSlug);
-    const matches = title ? (currentByTitle.get(title) || []).filter(item => item.kind === 'product') : [];
+    const oldProduct = oldWpProducts.get(oldSlug);
+    const matches = oldProduct?.title ? (currentByTitle.get(oldProduct.title) || []).filter(item => item.kind === 'product') : [];
     if (matches.length === 1) {
       candidates = [matches[0].path];
       titleMatch = 'exact-product-title';
+    } else if (oldProduct?.categorySlugs?.length) {
+      const validCategories = [...new Set(oldProduct.categorySlugs)]
+        .filter(slug => currentRestRoutes.has('/san-pham/' + slug));
+      if (validCategories.length === 1) {
+        candidates = ['/san-pham/' + validCategories[0]];
+        titleMatch = 'product-category-fallback';
+      }
+    }
+  }
+  if (candidates.length === 0 && oldPath.startsWith('/tu-khoa/')) {
+    const tagSlug = oldPath.split('/').filter(Boolean).at(-1);
+    const categoryCounts = new Map();
+    for (const product of oldWpProducts.values()) {
+      if (!product.tagSlugs?.includes(tagSlug)) continue;
+      for (const categorySlug of product.categorySlugs || []) {
+        if (currentRestRoutes.has('/san-pham/' + categorySlug)) {
+          categoryCounts.set(categorySlug, (categoryCounts.get(categorySlug) || 0) + 1);
+        }
+      }
+    }
+    const ranked = [...categoryCounts.entries()].sort((a,b) => b[1]-a[1]);
+    if (ranked.length && (ranked.length === 1 || ranked[0][1] > ranked[1][1])) {
+      candidates = ['/san-pham/' + ranked[0][0]];
+      titleMatch = 'product-tag-dominant-category';
     }
   }
   if (candidates.length === 0 && oldWpPages.has(oldPath.split('/').filter(Boolean).at(-1))) {
