@@ -67,17 +67,25 @@ try {
    report.tables.push({id,source:result.body?.source_api||'',status:result.status,code:result.body?.code||''});
  }
  assert.ok(report.tables.some(t=>t.status===200),'No authenticated Builder schema succeeded; first errors '+JSON.stringify(report.tables.slice(0,3)));
- const pagesResponse=await ctx.request.get(WP+'/wp-json/wp/v2/pages?per_page=100&context=edit',{headers:{'X-WP-Nonce':nonce},timeout:30000,failOnStatusCode:false});
- report.pagesRestStatus=pagesResponse.status();
- if(pagesResponse.ok()){
-  const pages=await pagesResponse.json();
-  report.cmsPages=pages.map(p=>({
-   id:p.id,slug:p.slug,action:p.acf?.action||'',key:p.acf?.key||'',
-   title:p.title?.raw||p.title?.rendered||'',
-   contentLength:String(p.content?.raw||p.content?.rendered||'').length,
-   shortcodes:[...String(p.content?.raw||p.content?.rendered||'').matchAll(/\[table id=([a-zA-Z0-9_-]+)\s*\/\]/g)].map(m=>m[1]),
-  })).filter(p=>/lien-he|san-pham|khuyen-mai|tin-kien-thuc|chinh-sach|thong-bao|huong-dan|thoi-gian|trang-chu/.test(p.slug)).slice(0,50);
+ const allPages=[];
+ for(let pageNumber=1;pageNumber<=10;pageNumber++){
+  const response=await ctx.request.get(WP+'/wp-json/wp/v2/pages?per_page=100&page='+pageNumber+'&context=edit',{headers:{'X-WP-Nonce':nonce},timeout:30000,failOnStatusCode:false});
+  if(pageNumber===1)report.pagesRestStatus=response.status();
+  if(response.status()===400 && pageNumber>1)break;
+  if(!response.ok()){report.errors.push('Page inventory page '+pageNumber+' HTTP '+response.status());break;}
+  const batch=await response.json();
+  if(!Array.isArray(batch)){report.errors.push('Unexpected Page REST structure');break;}
+  allPages.push(...batch);
+  if(batch.length<100)break;
  }
+ report.cmsPageCount=allPages.length;
+ report.cmsPages=allPages.map(p=>{
+  const raw=String(p.content?.raw||p.content?.rendered||'');
+  const ids=[...raw.matchAll(/\\[table\\s+id\\s*=\\s*[\"']?([a-zA-Z0-9_-]+)[\"']?\\s*\\/\\]/gi)].map(m=>m[1]);
+  const native=[...raw.matchAll(/\\[tablepress\\s+id\\s*=\\s*[\"']?([a-zA-Z0-9_-]+)[\"']?[^\\]]*\\]/gi)].map(m=>m[1]);
+  return {id:p.id,slug:p.slug,status:p.status,action:p.acf?.action||'',key:p.acf?.key||'',title:p.title?.raw||p.title?.rendered||'',contentLength:raw.length,shortcodes:[...new Set([...ids,...native])],rawShortcodeCount:ids.length+native.length,hasBuilderSource:ids.length+native.length>0,modified_gmt:p.modified_gmt||''};
+ }).sort((a,b)=>a.slug.localeCompare(b.slug));
+ report.cmsPageAudit={published:report.cmsPages.filter(p=>p.status==='publish').length,withEscShortcode:report.cmsPages.filter(p=>p.hasBuilderSource).length,withoutEscShortcode:report.cmsPages.filter(p=>!p.hasBuilderSource&&p.status==='publish').map(p=>({id:p.id,slug:p.slug,action:p.action,contentLength:p.contentLength})),sourceTypes:Object.fromEntries(Object.entries(report.sources).map(([k,v])=>[k,v.length]))};
  report.status='PASS';
 } catch(e){report.status='FAIL';report.errors.push(String(e.stack||e).slice(0,1800));process.exitCode=1;}
 finally {await writeFile(OUT+'/result.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_REFERENCE_INVENTORY='+JSON.stringify(report));await browser.close();}
