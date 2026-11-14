@@ -77,7 +77,7 @@ try{
  ticket=await page.evaluate(()=>window.escVBGetTicket?.());
  assert.ok(typeof ticket==='string'&&ticket.length>20,'Page ticket unavailable');
  const scripts=await page.locator('script').allTextContents();
- nonce=scripts.map(t=>t.match(/const nonce\\s*=\\s*["']([^"']+)["']/)?.[1]).find(Boolean);
+ nonce=scripts.map(t=>t.match(/const nonce\s*=\s*["']([^"']+)["']/)?.[1]).find(Boolean);
  assert.ok(nonce,'REST nonce unavailable');
  const frame=page.frameLocator('#esc-vb-frame');
  const cell=frame.locator('[data-esc-semantic-inspector][data-esc-source-table="'+TARGET.table+'"] [data-esc-builder-cell-row="'+index+'"][data-esc-builder-cell-field="label"]');
@@ -103,7 +103,13 @@ try{
  report.phase='restore-ui';
  await input.fill(original);
  await save.click({timeout:25000});
- await page.waitForFunction(()=>String(document.querySelector('#esc-vb-edit-feedback')?.textContent||'').includes('Đã lưu WordPress'),null,{timeout:30000});
+ let restoredInUi=false;
+ for(let attempt=0;attempt<15&&!restoredInUi;attempt++){
+  const current=await extractItem();
+  restoredInUi=current.items[index]?.label===original;
+  if(!restoredInUi)await page.waitForTimeout(650);
+ }
+ assert.ok(restoredInUi,'UI restore was not confirmed by native TablePress REST readback');
  report.writes++;
  report.restored_with='Visual Builder Save';
  report.phase='final-readback';
@@ -125,7 +131,7 @@ try{
  report.status=report.errors.length===0&&report.writes>=2&&report.changed_cells===1&&report.cleanup_remaining===0?'PASS':'FAIL';
  report.phase='completed';
  process.exitCode=report.status==='PASS'?0:1;
- await writeFile(output+'/report.json',JSON.stringify(report,null,2)+'\\n');
+ await writeFile(output+'/report.json',JSON.stringify(report,null,2)+'\n');
  console.log('CART_SEMANTIC_SAVE_ROLLBACK='+JSON.stringify(report));
  await browser.close();
 }
