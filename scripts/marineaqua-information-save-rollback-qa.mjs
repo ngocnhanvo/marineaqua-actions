@@ -91,6 +91,11 @@ try{
    const value=String(candidate?.title||'');
    if(!candidate?.editable||value.length<4||value.length>120||/[<>&\[\]\r\n]/.test(value))continue;
    if((original.split(value).length-1)!==1)continue;
+   const clickedText=String(await targets.nth(i).innerText()).replace(/\s+/g,' ').trim();
+   if(clickedText!==value.replace(/\s+/g,' ').trim())continue;
+   await page.waitForFunction(expected=>
+     String(document.querySelector('#esc-vb-edit-title')?.value||'').replace(/\s+/g,' ').trim()===expected,
+     clickedText,{timeout:8000});
    if((await input.inputValue()).trim()!==value)continue;
    display=value;
    selectedRow=candidate;
