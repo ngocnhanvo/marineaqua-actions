@@ -31,7 +31,7 @@ try {
       const actualQuery = new URLSearchParams(finalUrl.search);
       const queryMatches = [...expectedQuery].every(([key,value]) => actualQuery.get(key) === value);
       const ok = sourceResponse?.status() === 301 && finalResponse?.status() === 200 &&
-        finalUrl.pathname.replace(/\\/+$/,'') === item.to &&
+        finalUrl.pathname.replace(/\/+$/,'') === item.to &&
         queryMatches;
       report.checks.push({
         viewport:viewport.name,type:'legacy-category-redirect',from:item.from,
