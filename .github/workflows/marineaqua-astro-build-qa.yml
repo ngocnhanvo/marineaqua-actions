@@ -185,7 +185,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          HOST=127.0.0.1 PORT=4321 node dist/server/entry.mjs > /tmp/marine-ssr-probe.log 2>&1 &
+          # Production layout runs with client/ and server/ under the same
+          # working directory. Launch from dist/ so cache_dist.ts sees the
+          # actual published client/data/page-*.json snapshots.
+          (cd dist && HOST=127.0.0.1 PORT=4321 node server/entry.mjs) > /tmp/marine-ssr-probe.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for attempt in $(seq 1 35); do
