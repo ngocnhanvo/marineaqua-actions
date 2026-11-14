@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "fd8dd511a784d291c8c24c75cbfd62c6e9ffad8c",
+  "reason": "Publish final commerce Visual Builder inline labels and editable form placeholders with safe preview",
+  "request_id": "20261114T083145Z-commerce-placeholders",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
