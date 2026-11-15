@@ -1,5 +1,5 @@
 name: Marine Aqua product category active menu live QA
-# Verify the fixed desktop/mobile account online dot on production.
+# Verify account dropdown profile, orders, dismissals and logout on production.
 on:
   push:
     branches: [main]
