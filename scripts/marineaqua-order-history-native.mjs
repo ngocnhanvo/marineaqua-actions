@@ -242,8 +242,15 @@ try {
     await page.evaluate(() => { window.switchEditors?.go?.('content','html'); });
     const editor = page.locator('#content');
     await editor.waitFor({ state:'visible',timeout:20000 });
-    if ((await editor.inputValue()) !== rawBefore) {
-      throw Error('Page content changed after REST duplicate snapshot; abort cleanup');
+    const editorBefore = await editor.inputValue();
+    record('DUPLICATE_EDITOR_SNAPSHOT', {
+      length: editorBefore.length,
+      excerpt: editorBefore.slice(0, 450),
+    });
+    const normalize = str => String(str).replace(/\\r\\n/g, '\\n').trim();
+    if (normalize(editorBefore) !== normalize(rawBefore) &&
+        normalize(editorBefore) !== shortcode) {
+      throw Error('Page editor differs from the known generated preview; abort cleanup');
     }
     await editor.fill(shortcode);
     await page.evaluate(() => {
