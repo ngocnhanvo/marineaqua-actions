@@ -9,6 +9,7 @@ on:
       - 'scripts/marineaqua-ftps-upload.py'
       - '.github/workflows/marineaqua-production-deploy.yml'
       - 'scripts/marineaqua-cms-inventory.mjs'
+      - 'scripts/marineaqua-order-history-native.mjs'
       - 'scripts/marineaqua-home-section-native.mjs'
       - 'scripts/marineaqua-catalog-sections-native.mjs'
       - 'scripts/marineaqua-home00-native.mjs'
@@ -773,5 +774,44 @@ jobs:
         with:
           name: marine-aqua-clean-ocean-header
           path: clean-ocean-header-evidence/
+          retention-days: 7
+          if-no-files-found: warn
+
+  publish-order-history-page:
+    name: Publish WordPress order history Page with native ESC Table
+    if: >-
+      github.event_name == 'push'
+      && github.event.head_commit.message == 'cms: publish native Marine Aqua order history page'
+      && github.repository == 'ngocnhanvo/marineaqua-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    concurrency:
+      group: marineaqua-order-history-native-cms-write
+      cancel-in-progress: false
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install matching Playwright driver
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Validate WordPress native Page and ESC Table writer
+        run: node --check scripts/marineaqua-order-history-native.mjs
+      - name: Publish Page using native Insert Code and verify REST readback
+        env:
+          WP_ADMIN_USERNAME: ${{ secrets.WP_ADMIN_USERNAME }}
+          WP_ADMIN_PASSWORD: ${{ secrets.WP_ADMIN_PASSWORD }}
+        run: node scripts/marineaqua-order-history-native.mjs
+      - name: Preserve order history CMS readback evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marine-aqua-order-history-native
+          path: order-history-native-evidence/
           retention-days: 7
           if-no-files-found: warn
