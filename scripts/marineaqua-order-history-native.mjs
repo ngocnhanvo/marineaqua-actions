@@ -232,7 +232,17 @@ try {
         '&per_page=100&_fields=id,slug,status,acf,title,content');
       const posts = await req('GET', '/wp-json/wp/v2/posts?context=edit&slug=' + SLUG +
         '&per_page=100&_fields=id,slug,status,type,title');
+      const media = await req('GET', '/wp-json/wp/v2/media?context=edit&slug=' + SLUG +
+        '&per_page=100&_fields=id,slug,status,title');
+      const trash = await req('GET', '/wp-json/wp/v2/pages?context=edit&status=trash&slug=' + SLUG +
+        '&per_page=100&_fields=id,slug,status,acf,title');
+      const allHits = await req('GET', '/wp-json/wp/v2/pages?context=edit&search=don-hang-cua-toi' +
+        '&per_page=100&_fields=id,slug,status,acf,title');
       record('CANONICAL_SLUG_CONFLICT_DIAGNOSTIC', {
+        media: media.map(p => ({ id:p.id, slug:p.slug, status:p.status })),
+        trash: trash.map(p => ({ id:p.id, slug:p.slug, status:p.status, key:p.acf?.key })),
+        search: allHits.map(p => ({ id:p.id, slug:p.slug, status:p.status, key:p.acf?.key,
+          action:p.acf?.action })),
         pages: conflicts.map(p => ({ id:p.id, slug:p.slug, status:p.status, key:p.acf?.key,
           action:p.acf?.action, title:p.title?.rendered, contentLength:String(p.content?.raw || '').length })),
         posts: posts.map(p => ({ id:p.id, slug:p.slug, status:p.status, type:p.type })),
