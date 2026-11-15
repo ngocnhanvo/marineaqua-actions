@@ -1,5 +1,5 @@
 name: Marine Aqua Astro source checks Product Builder (NO DEPLOY)
-# Verify account Header authenticated-state indicator on Astro master.
+# Verify mobile account indicator survives the SVG render contract.
 # Regression checks now include redirect-alias and nested brand route Vitest cases.
 on:
   push:
