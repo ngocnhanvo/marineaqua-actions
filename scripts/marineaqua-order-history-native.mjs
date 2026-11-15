@@ -188,8 +188,22 @@ try {
   const prior = trashed.filter(p => p.acf?.key === KEY && p.acf?.action === ACTION &&
     isOwnedSlug(p.slug));
   record('PAGE_TRASH_INVENTORY', { items: prior.map(p => ({ id:p.id, slug:p.slug, key:p.acf?.key })) });
-  if (matches.length > 1) throw Error('Conflicting active order history Pages; no mutation');
-  let target = matches[0];
+  // Only consolidate identity-verified duplicates. Never touch unrelated Pages,
+  // even when their URL resembles an order-history route.
+  const owned = matches.filter(p => isOwnedSlug(p.slug) &&
+    p.acf?.key === KEY && p.acf?.action === ACTION);
+  const foreign = matches.filter(p => !owned.includes(p));
+  if (foreign.length) throw Error('Order slug occupied by another Page identity; refuse mutation');
+  const publishedOwned = owned.filter(p => p.status === 'publish');
+  if (publishedOwned.length > 1) throw Error('Multiple published order Pages; review required');
+  let target = publishedOwned[0] || owned.find(p => p.slug === SLUG) ||
+    [...owned].sort((a,b) => b.id - a.id)[0];
+  for (const duplicate of owned.filter(p => p.id !== target?.id)) {
+    if (!['draft', 'pending', 'private', 'future'].includes(duplicate.status))
+      throw Error('Unexpected order Page duplicate status: ' + duplicate.status);
+    await req('DELETE', '/wp-json/wp/v2/pages/' + duplicate.id);
+    record('UNUSED_OWNED_PAGE_TRASHED', { id: duplicate.id, slug: duplicate.slug });
+  }
   if (target && (!isOwnedSlug(target.slug) || target.acf?.key !== KEY || target.acf?.action !== ACTION)) {
     throw Error('Existing order Page identity conflicts; refuse mutation');
   }
@@ -207,6 +221,14 @@ try {
       acf: { key: KEY, action: ACTION, product_lang: 'vi' },
     });
     report.createdPage = true;
+  }
+  // Preserve the published Page ID, SEO and native ESC Table while fixing
+  // WordPress's numbered slug. WordPress tracks the former published slug.
+  if (target.slug !== SLUG) {
+    const previous = target.slug;
+    target = await req('POST', '/wp-json/wp/v2/pages/' + target.id, { slug: SLUG });
+    if (target.slug !== SLUG) throw Error('Canonical order slug unavailable; WordPress returned ' + target.slug);
+    record('PAGE_CANONICAL_SLUG_UPDATED', { id: target.id, from: previous, to: target.slug });
   }
   pageId = target.id;
   if (!Number.isSafeInteger(pageId) || pageId <= 0) throw Error('Invalid Page ID');
