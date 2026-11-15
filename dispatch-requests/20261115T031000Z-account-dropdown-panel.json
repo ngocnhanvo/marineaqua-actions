@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "269727b833776a6b17b71a906f1f91b6be58c286",
+  "reason": "Deploy account dropdown panel with orders and logout",
+  "request_id": "20261115T031000Z-account-dropdown-panel",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
