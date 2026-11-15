@@ -35,10 +35,10 @@ jobs:
         run: node --check scripts/marineaqua-product-active-menu-qa.mjs
       - name: Install matching Playwright driver
         run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
+      - name: Verify account dropdown profile, orders and logout desktop/mobile
+        run: node scripts/marineaqua-account-header-status-qa.mjs
       - name: Check active category in archives and details desktop/mobile
         run: node scripts/marineaqua-product-active-menu-qa.mjs
-      - name: Verify account online dot for guest, login and logout on desktop/mobile
-        run: node scripts/marineaqua-account-header-status-qa.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
