@@ -3,10 +3,10 @@ import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 const REPO = 'ngocnhanvo/marineaqua-actions';
-const REQUEST_SHA = 'd65d7a556effcae3f4569c93eefc0db585bd6e31';
-const SOURCE_SHA = '1dc1a2e4631db3bd9a5ce8fa72148315683ebe18';
+const REQUEST_SHA = 'a5925152feea70b17096aa18532c844df3888418';
+const SOURCE_SHA = '9fa23005af6698140b57135b3eb7c3f6f961c28c';
 const FRONT = 'https://marine-aqua.io.vn';
-const TARGET_PATH = '/don-hang-cua-toi-4';
+const TARGET_PATH = '/don-hang-cua-toi';
 const token = process.env.GH_TOKEN;
 if (!token) throw Error('Missing GitHub runner read token');
 const out = 'order-history-release-evidence';
@@ -72,10 +72,19 @@ try {
       status:200,contentType:'application/json',
       body:JSON.stringify({id:123,name:'Synthetic QA Customer',email:'qa@example.invalid'}),
     }));
-    await page.route('**/api/user/order',route => route.fulfill({
-      status:200,contentType:'application/json',
-      body:JSON.stringify({ok:true,orders:[]}),
-    }));
+    await page.route('**/api/user/order',async route => {
+      await sleep(1100); // Give the client time to paint the in-page skeleton.
+      await route.fulfill({
+        status:200,contentType:'application/json',
+        body:JSON.stringify({ok:true,orders:[{
+          number:'83510',date:'09:09 15/11/2026',status:'on-hold',paymentMethod:'Bank transfer',
+          subtotal:'950.000 đ',total:'950.000 đ',items:[{
+            name:'Synthetic reef supplement',quantity:1,price:'950.000 đ',
+            subtotal:'950.000 đ',image:'',meta:[],
+          }],
+        }]}),
+      });
+    });
     const response=await page.goto(FRONT+'/tai-khoan',{waitUntil:'domcontentloaded',timeout:60000});
     assert.equal(response?.status(),200,'Account Page HTTP status');
     const account = page.locator(viewport.name === 'desktop'
@@ -106,8 +115,24 @@ try {
     ]);
     const heading = page.getByRole('heading',{level:1,name:/Lịch sử đơn hàng/}).first();
     await heading.waitFor({state:'visible',timeout:15000});
-    await page.getByText('Bạn chưa có đơn hàng nào.').first().waitFor({state:'visible',timeout:15000});
-    report.checks.push({viewport:viewport.name,case:'Orders page renders heading and safe empty state',ok:true});
+    await page.locator('[data-orders-skeleton]').waitFor({state:'visible',timeout:12000});
+    report.checks.push({viewport:viewport.name,case:'Skeleton visible while order API is loading',ok:true});
+    const card = page.locator('[data-order-card]');
+    await card.waitFor({state:'visible',timeout:15000});
+    assert.equal(await page.locator('[data-orders-skeleton]').isVisible(),false,'Skeleton must hide after data arrives');
+    const search = page.locator('#order-search');
+    await search.waitFor({state:'visible',timeout:10000});
+    await search.fill('83510');
+    assert.equal(await card.isVisible(),true,'Order number search must match');
+    await search.fill('no-such-order');
+    assert.equal(await card.isVisible(),false,'Nonmatching order must be hidden');
+    await search.fill('');
+    assert.equal(await card.isVisible(),true,'Clear search must restore order');
+    report.checks.push({viewport:viewport.name,case:'Search filters existing orders and restores cards',ok:true});
+    const oldResponse = await page.request.get(FRONT+'/don-hang-cua-toi-4',{maxRedirects:0});
+    assert.equal(oldResponse.status(),301,'Legacy order URL must redirect permanently');
+    assert.equal(new URL(oldResponse.headers().location,FRONT).pathname,TARGET_PATH,'Redirect destination');
+    report.checks.push({viewport:viewport.name,case:'Former order Page path redirects 301 to canonical',ok:true});
     await context.close();
   }
   report.status='PASS';
