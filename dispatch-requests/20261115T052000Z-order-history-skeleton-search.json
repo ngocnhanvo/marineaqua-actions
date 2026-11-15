@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "e13fdb1d82f8dbee07e24e19a6d8132775550fc1",
+  "reason": "Deploy order history skeleton loading and search on existing production pipeline",
+  "request_id": "20261115T052000Z-order-history-skeleton-search",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
