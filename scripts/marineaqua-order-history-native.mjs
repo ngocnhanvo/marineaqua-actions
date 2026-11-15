@@ -110,19 +110,38 @@ try {
     await page.waitForFunction(() => Boolean(window.tp?.editor?.setValueFromCoords && window.tp?.table?.data),
       null, { timeout: 25000 });
     const before = await page.evaluate(() => window.tp.table.data);
-    const rows = [['key', 'label'], ...LABELS];
-    if (before.length !== rows.length || before.some((row, i) =>
-        row.length !== 2 || row.some((cell, ci) => String(cell || '').trim() !== '' &&
-          String(cell).trim() !== rows[i][ci]))) {
-      throw Error('Native ESC Table rows conflict with required labels; refuse overwrite');
+    // Native TablePress reserves row 0 for keys and row 1 for human field labels.
+    // The previous attempt created 21 rows (one header + 20 labels), so its
+    // first semantic row became a field label and only 19 items were exposed.
+    // Repair only our exact previous 21-row snapshot; never shift unrelated rows.
+    if (before.length !== LABELS.length + 1 ||
+        before.some(row => row.length !== 2) ||
+        before[0][0] !== 'key' || before[0][1] !== 'label' ||
+        before.slice(1).some((row, i) =>
+          row[0] !== LABELS[i][0] || row[1] !== LABELS[i][1])) {
+      throw Error('Native ESC Table rows differ from our initial snapshot; refuse migration');
     }
-    await page.evaluate(rows => {
-      rows.forEach((row, ri) => row.forEach((value, ci) => {
-        if (!String(window.tp.table.data?.[ri]?.[ci] || '').trim()) {
-          window.tp.editor.setValueFromCoords(ci, ri, value);
-        }
-      }));
-    }, rows);
+    await page.evaluate(() => {
+      const input = document.querySelector('#rows-append-number');
+      if (!(input instanceof HTMLInputElement) || input.value !== '1') {
+        throw Error('Native Add Row count control unavailable');
+      }
+      const button = document.evaluate(
+        'following::button[normalize-space(.)="Add"][1]',
+        input, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null,
+      ).singleNodeValue;
+      if (!(button instanceof HTMLButtonElement)) throw Error('Native Add Rows button unavailable');
+      button.click();
+    });
+    await page.waitForFunction(count => window.tp?.table?.data?.length === count,
+      LABELS.length + 2, { timeout: 20000 });
+    await page.evaluate(({title}) => {
+      const last = window.tp.table.data.length - 1;
+      window.tp.editor.setValueFromCoords(0, 1, 'Khóa');
+      window.tp.editor.setValueFromCoords(1, 1, 'Nhãn');
+      window.tp.editor.setValueFromCoords(0, last, 'title');
+      window.tp.editor.setValueFromCoords(1, last, title);
+    }, { title: TITLE });
     await page.getByRole('button', { name: /Save Changes/i }).first().click();
     for (let attempt = 0; attempt < 10; attempt++) {
       await page.waitForTimeout(800);
