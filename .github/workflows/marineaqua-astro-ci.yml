@@ -1,5 +1,5 @@
 name: Marine Aqua Astro source checks Product Builder (NO DEPLOY)
-# Validate legacy shop Page redirect against current WordPress ProductsSSRPage.
+# Verify account Header authenticated-state indicator on Astro master.
 # Regression checks now include redirect-alias and nested brand route Vitest cases.
 on:
   push:
