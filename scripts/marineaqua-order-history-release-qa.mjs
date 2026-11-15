@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 
+// Release smoke checks exact source, canonical slug, loading and search.
 const REPO = 'ngocnhanvo/marineaqua-actions';
 const REQUEST_SHA = 'a5925152feea70b17096aa18532c844df3888418';
 const SOURCE_SHA = '9fa23005af6698140b57135b3eb7c3f6f961c28c';
