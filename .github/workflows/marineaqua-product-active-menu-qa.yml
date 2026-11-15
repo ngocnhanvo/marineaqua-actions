@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/marineaqua-product-active-menu-qa.yml'
       - 'scripts/marineaqua-product-active-menu-qa.mjs'
+      - 'scripts/marineaqua-account-header-status-qa.mjs'
   workflow_run:
     workflows:
       - Marine Aqua Astro deployment (WordPress Build Website only)
@@ -36,9 +37,13 @@ jobs:
         run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund playwright@1.64.0
       - name: Check active category in archives and details desktop/mobile
         run: node scripts/marineaqua-product-active-menu-qa.mjs
+      - name: Verify account online dot for guest, login and logout on desktop/mobile
+        run: node scripts/marineaqua-account-header-status-qa.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: product-active-menu-qa
-          path: product-active-menu-evidence/
+          path: |
+            product-active-menu-evidence/
+            account-header-status-evidence/
           retention-days: 14
