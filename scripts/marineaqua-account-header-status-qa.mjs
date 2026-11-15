@@ -65,6 +65,48 @@ try {
     await page.locator('[data-account-profile]').waitFor({ state: 'visible', timeout: 12000 });
     report.cases.push({ viewport: viewport.name, case: 'verified user: green dot', ok: true });
 
+    const panel = page.locator('#marine-account-panel');
+    await accountLink.click();
+    await panel.waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await accountLink.getAttribute('aria-expanded'), 'true', 'Account trigger must be expanded');
+    assert.equal(await panel.locator('[data-account-panel-name]').innerText(), 'Synthetic Customer');
+    assert.equal(await panel.locator('[data-account-panel-email]').innerText(), 'fixture@example.invalid');
+    const orderLink = panel.locator('[data-account-orders]');
+    assert.equal(await orderLink.count(), 1, 'Published order history link missing');
+    assert.match(await orderLink.getAttribute('href') || '', /^\//, 'Order history must use a local WordPress Page URL');
+    assert.match(await panel.locator('[data-account-panel-logout]').innerText(), /Đăng xuất|Log out/);
+    report.cases.push({ viewport: viewport.name, case: 'account panel: real profile fields and order history', ok: true });
+    await page.keyboard.press('Escape');
+    await panel.waitFor({ state: 'hidden', timeout: 10000 });
+    assert.equal(await accountLink.getAttribute('aria-expanded'), 'false');
+    if (viewport.name === 'mobile') {
+      await page.locator('#hamburger-btn').click();
+      await accountLink.waitFor({ state: 'visible', timeout: 10000 });
+    }
+    await accountLink.click();
+    await panel.waitFor({ state: 'visible', timeout: 10000 });
+    await page.locator('main#main-content').click({ position: { x: 20, y: 20 } });
+    await panel.waitFor({ state: 'hidden', timeout: 10000 });
+    report.cases.push({ viewport: viewport.name, case: 'account panel: Escape and outside click close', ok: true });
+
+    if (viewport.name === 'mobile') {
+      await page.locator('#hamburger-btn').click();
+      await accountLink.waitFor({ state: 'visible', timeout: 10000 });
+    }
+    await accountLink.click();
+    await panel.waitFor({ state: 'visible', timeout: 10000 });
+    await panel.locator('[data-account-panel-logout]').click();
+    await page.locator('[data-account-guest]').waitFor({ state: 'visible', timeout: 12000 });
+    await page.waitForFunction(() => document.querySelectorAll('[data-account-online-dot]:not([hidden])').length === 0,
+      null, { timeout: 12000 });
+    assert.equal(await panel.isVisible(), false, 'Signed-out account panel must close');
+    report.cases.push({ viewport: viewport.name, case: 'account panel: logout via server API', ok: true });
+
+    authenticated = true;
+    await visit();
+    await dot.waitFor({ state: 'visible', timeout: 12000 });
+    await page.locator('[data-account-profile]').waitFor({ state: 'visible', timeout: 12000 });
+
     // Never log a real customer in or out: only the synthetic intercepted API
     // responds to the Account Page's existing logout action.
     // Close the mobile navigation so it cannot cover the logout button.
