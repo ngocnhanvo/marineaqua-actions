@@ -66,8 +66,9 @@ try {
   assert.deepEqual(current, existing, 'Sitemap admin form disagrees with REST exclusion readback');
   if (next.length !== existing.length) {
     await textarea.fill(next.join('\\n'));
-    const submit = page.getByRole('button', {name:/Lưu sitemap\\.xml/i});
-    assert.equal(await submit.count(),1,'Native sitemap Save button unavailable');
+    const submit = page.locator('form input[name="action"][value="esc_seo_files_save"]')
+      .locator('xpath=..').locator('input[type="submit"], button[type="submit"]').first();
+    assert.equal(await submit.count(),1,'Native sitemap Save control unavailable');
     await Promise.all([
       page.waitForURL(url => url.pathname.endsWith('/options-general.php'),{timeout:30000}),
       submit.click()
