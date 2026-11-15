@@ -85,6 +85,7 @@ try {
   }
   if (!table) throw Error('ESC Table missing after native Save');
   assert.equal(String(table.id), TABLE);
+  if (String(table.meta?.api || '').trim()) throw Error('Order history labels must not bind a product API source');
   assert.equal(table.fields?.[0]?.key, 'key');
   assert.equal(table.fields?.[1]?.key, 'label');
   if (!Array.isArray(table.items)) throw Error('ESC Table items response invalid');
