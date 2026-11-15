@@ -247,7 +247,7 @@ try {
       length: editorBefore.length,
       excerpt: editorBefore.slice(0, 450),
     });
-    const normalize = str => String(str).replace(/\\r\\n/g, '\\n').trim();
+    const normalize = str => String(str).replace(/\r\n/g, '\n').trim();
     if (normalize(editorBefore) !== normalize(rawBefore) &&
         normalize(editorBefore) !== shortcode) {
       throw Error('Page editor differs from the known generated preview; abort cleanup');
