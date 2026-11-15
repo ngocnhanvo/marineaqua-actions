@@ -226,9 +226,37 @@ try {
     await insert.waitFor({ state: 'visible', timeout: 25000 });
     if ((await insert.getAttribute('title')) !== '[table id=order_history_vi /]') throw Error('Native shortcode target mismatched');
     await insert.click();
-    await page.evaluate(() => window.tinymce?.triggerSave());
+    await page.waitForTimeout(700);
+    const probe = await page.evaluate(() => {
+      window.tinymce?.triggerSave();
+      return {
+        raw: String(document.querySelector('#content')?.value || ''),
+        visual: String(window.tinymce?.get('content')?.getContent() || ''),
+        acf: String(document.querySelector('#acf_content')?.value || ''),
+        active: String(window.wpActiveEditor || ''),
+      };
+    });
+    const counts = Object.fromEntries(['raw', 'visual', 'acf'].map(kind =>
+      [kind, (probe[kind].match(shortcodeRegex) || []).length]));
+    record('NATIVE_INSERT_CODE_PROBE', {
+      active: probe.active,
+      counts,
+      rawExcerpt: probe.raw.slice(0, 260),
+      visualExcerpt: probe.visual.slice(0, 260),
+      acfExcerpt: probe.acf.slice(0, 260),
+    });
+    if (counts.raw !== 1 && counts.visual !== 1 && counts.acf !== 1) {
+      throw Error('Native Insert Code failed to produce one shortcode in any registered editor');
+    }
+    if (counts.raw !== 1) {
+      await page.evaluate(() => window.tinymce?.triggerSave());
+      await page.waitForFunction(() => /\\[table\\s+id=[\"']?order_history_vi/i.test(
+        String(document.querySelector('#content')?.value || '')), null, { timeout: 12000 });
+    }
     const raw = await page.locator('#content').inputValue();
-    if ((raw.match(shortcodeRegex) || []).length !== 1) throw Error('Native Insert Code failed to produce exactly one shortcode');
+    if ((raw.match(shortcodeRegex) || []).length !== 1) {
+      throw Error('Native Editor did not synchronize its shortcode into the WordPress Page source');
+    }
     await Promise.all([
       page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 45000 }),
       page.locator('#publish').click(),
