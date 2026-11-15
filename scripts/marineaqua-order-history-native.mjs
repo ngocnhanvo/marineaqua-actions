@@ -206,7 +206,7 @@ try {
   const activeMatches = matches.filter(p => !safeAbandonedDrafts.includes(p));
   const owned = activeMatches.filter(p =>
     p.acf?.key === KEY && p.acf?.action === ACTION &&
-    (isOwnedSlug(p.slug) || /^lich-su-don-hang(?:-\\d+)?$/.test(String(p.slug || ''))));
+    (isOwnedSlug(p.slug) || /^lich-su-don-hang(?:-[0-9]+)?$/.test(String(p.slug || ''))));
   const foreign = activeMatches.filter(p => !owned.includes(p));
   if (foreign.length) throw Error('Order slug occupied by another Page identity; refuse mutation');
   const publishedOwned = owned.filter(p => p.status === 'publish');
