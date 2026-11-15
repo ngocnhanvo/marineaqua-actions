@@ -62,10 +62,10 @@ try {
   };
   const textarea = page.locator('#esc-seo-exclude');
   await textarea.waitFor({state:'visible',timeout:15000});
-  const current = (await textarea.inputValue()).split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);
+  const current = (await textarea.inputValue()).split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
   assert.deepEqual(current, existing, 'Sitemap admin form disagrees with REST exclusion readback');
   if (next.length !== existing.length) {
-    await textarea.fill(next.join('\\n'));
+    await textarea.fill(next.join('\n'));
     const submit = page.locator('form input[name="action"][value="esc_seo_files_save"]')
       .locator('xpath=..').locator('input[type="submit"], button[type="submit"]').first();
     assert.equal(await submit.count(),1,'Native sitemap Save control unavailable');
