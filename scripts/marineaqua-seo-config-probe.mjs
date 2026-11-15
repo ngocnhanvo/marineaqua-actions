@@ -30,6 +30,9 @@ try {
   if (data?.version !== 1 || !['manual','auto'].includes(data?.sitemap?.mode) ||
       !Array.isArray(data?.sitemap?.extra) || !Array.isArray(data?.sitemap?.exclude) ||
       typeof data?.sitemap?.xml !== 'string') throw new Error('SEO Files response schema invalid');
+  const expectedExcluded = ['/thanh-toan','/gio-hang','/tai-khoan','/don-hang-cua-toi'];
+  if (data.sitemap.mode !== 'auto' || expectedExcluded.some(p => !data.sitemap.exclude.includes(p)))
+    throw new Error('WordPress automatic sitemap exclusions not persisted');
   report.wordpress = {
     status: result.status,
     site: data.site || '',
@@ -62,7 +65,7 @@ try {
     duplicateCount, sensitive, hasHome: paths.includes('/'),
     hasOrdersOldSlug: paths.includes('/don-hang-cua-toi-4')
   };
-  if (result.status !== 200 || duplicateCount || !paths.includes('/'))
+  if (sensitive.length || result.status !== 200 || duplicateCount || !paths.includes('/'))
     throw new Error('Sitemap HTTP/duplicate/home verification failed');
 } catch (error) {
   report.errors.push({ scope: 'public-sitemap', message: String(error?.message || error) });
