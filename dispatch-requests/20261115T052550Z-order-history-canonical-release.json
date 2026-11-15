@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "9fa23005af6698140b57135b3eb7c3f6f961c28c",
+  "reason": "Release canonical WordPress order history Page URL with 301 from former slug",
+  "request_id": "20261115T052550Z-order-history-canonical-release",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
