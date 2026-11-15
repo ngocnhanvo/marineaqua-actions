@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "9fa23005af6698140b57135b3eb7c3f6f961c28c",
+  "reason": "Publish verified WordPress automatic sitemap exclusions for private commerce pages",
+  "request_id": "20261115T135600Z-wordpress-sitemap-exclusions",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
