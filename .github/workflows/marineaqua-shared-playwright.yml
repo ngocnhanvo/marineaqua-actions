@@ -785,6 +785,9 @@ jobs:
       && github.repository == 'ngocnhanvo/marineaqua-actions'
     runs-on: ubuntu-latest
     timeout-minutes: 22
+    permissions:
+      contents: read
+      statuses: write
     concurrency:
       group: marineaqua-order-history-native-cms-write
       cancel-in-progress: false
@@ -815,3 +818,38 @@ jobs:
           path: order-history-native-evidence/
           retention-days: 7
           if-no-files-found: warn
+      - name: Report the CMS job result as a commit status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATE: ${{ job.status }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$JOB_STATE" in
+            success) state=success ;;
+            failure|cancelled) state=failure ;;
+            *) state=error ;;
+          esac
+          export STATUS_STATE="$state"
+          python3 - <<'PY'
+          import os,json
+          from urllib.request import Request,urlopen
+          payload=json.dumps({
+            "state":os.environ["STATUS_STATE"],
+            "context":"marine-aqua/order-history-cms",
+            "description":"Native WordPress Page and ESC Table "+os.environ["JOB_STATE"],
+            "target_url":os.environ["RUN_URL"],
+          }).encode()
+          url="https://api.github.com/repos/ngocnhanvo/marineaqua-actions/statuses/"+os.environ["COMMIT_SHA"]
+          req=Request(url,data=payload,method="POST",headers={
+            "Authorization":"Bearer "+os.environ["GH_TOKEN"],
+            "Accept":"application/vnd.github+json",
+            "Content-Type":"application/json"
+          })
+          with urlopen(req,timeout=20) as response:
+            assert response.status==201
+          print("ORDER_HISTORY_COMMIT_STATUS_REPORTED="+os.environ["STATUS_STATE"])
+          PY
