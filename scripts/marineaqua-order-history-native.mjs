@@ -229,6 +229,9 @@ try {
     if (!await page.locator('#content').count()) throw Error('Native Classic Editor content control missing');
     const quick = page.locator('#qt_content_tablepress_quicktags_button');
     if (await quick.isVisible()) {
+      await page.locator('#content-html').click();
+      await page.locator('#content').focus();
+      await page.evaluate(() => { window.wpActiveEditor = 'content'; });
       await quick.click();
     } else {
       await page.locator('#content-tmce').click();
@@ -245,6 +248,13 @@ try {
     const insert = frame.locator('input.insert-shortcode[title*="order_history_vi"]').first();
     await insert.waitFor({ state: 'visible', timeout: 25000 });
     if ((await insert.getAttribute('title')) !== '[table id=order_history_vi /]') throw Error('Native shortcode target mismatched');
+    record('NATIVE_INSERT_PREPARED', await page.evaluate(() => ({
+      active: window.wpActiveEditor,
+      textArea: Boolean(document.querySelector('#content')),
+      visualEditor: Boolean(window.tinymce?.get('content')),
+      shortcodeModalVisible: Boolean(document.querySelector('#TB_window')),
+    })));
+    await page.evaluate(() => { window.wpActiveEditor = 'content'; });
     await insert.click();
     await page.waitForTimeout(700);
     const probe = await page.evaluate(() => {
