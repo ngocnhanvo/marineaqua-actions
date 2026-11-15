@@ -181,12 +181,24 @@ try {
     return result.data;
   };
   const inventory = await req('GET', '/wp-json/wp/v2/pages?context=edit&per_page=100&_fields=id,slug,status,acf,title,content');
-  if (!Array.isArray(inventory)) throw Error('Page inventory invalid');
+  const trashed = await req('GET', '/wp-json/wp/v2/pages?context=edit&status=trash&per_page=100&_fields=id,slug,status,acf,title');
+  if (!Array.isArray(inventory) || !Array.isArray(trashed)) throw Error('Page inventory invalid');
   const matches = inventory.filter(p => p.slug === SLUG || p.acf?.key === KEY);
-  if (matches.length > 1) throw Error('Conflicting order history Pages; no mutation');
+  const prior = trashed.filter(p => p.acf?.key === KEY && p.acf?.action === ACTION &&
+    (p.slug === SLUG || p.slug.startsWith(SLUG + '-')));
+  record('PAGE_TRASH_INVENTORY', { items: prior.map(p => ({ id:p.id, slug:p.slug, key:p.acf?.key })) });
+  if (matches.length > 1) throw Error('Conflicting active order history Pages; no mutation');
   let target = matches[0];
   if (target && (target.slug !== SLUG || target.acf?.key !== KEY || target.acf?.action !== ACTION)) {
     throw Error('Existing order Page identity conflicts; refuse mutation');
+  }
+  if (!target && prior.length) {
+    // Recover our oldest trashed draft instead of creating another slug collision.
+    const recover = [...prior].sort((a,b) => a.id - b.id)[0];
+    target = await req('POST', '/wp-json/wp/v2/pages/' + recover.id, {
+      status: 'draft', slug: SLUG
+    });
+    record('PAGE_DRAFT_RESTORED', { id: target.id, slug: target.slug });
   }
   if (!target) {
     target = await req('POST', '/wp-json/wp/v2/pages', {
