@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "57d3e6c0dcfdb752dc818ac1fc8af48baf6b5075",
+  "reason": "Deploy authenticated account Header indicator",
+  "request_id": "20261115T021700Z-account-status-header",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
