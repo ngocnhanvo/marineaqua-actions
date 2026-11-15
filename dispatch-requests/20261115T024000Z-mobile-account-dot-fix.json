@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "db410f5677de54363f1b85702fbf11922257e8de",
+  "reason": "Deploy verified mobile customer account indicator",
+  "request_id": "20261115T024000Z-mobile-account-dot-fix",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
