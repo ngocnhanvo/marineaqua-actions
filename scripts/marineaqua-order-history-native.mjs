@@ -227,7 +227,18 @@ try {
   if (target.slug !== SLUG) {
     const previous = target.slug;
     target = await req('POST', '/wp-json/wp/v2/pages/' + target.id, { slug: SLUG });
-    if (target.slug !== SLUG) throw Error('Canonical order slug unavailable; WordPress returned ' + target.slug);
+    if (target.slug !== SLUG) {
+      const conflicts = await req('GET', '/wp-json/wp/v2/pages?context=edit&slug=' + SLUG +
+        '&per_page=100&_fields=id,slug,status,acf,title,content');
+      const posts = await req('GET', '/wp-json/wp/v2/posts?context=edit&slug=' + SLUG +
+        '&per_page=100&_fields=id,slug,status,type,title');
+      record('CANONICAL_SLUG_CONFLICT_DIAGNOSTIC', {
+        pages: conflicts.map(p => ({ id:p.id, slug:p.slug, status:p.status, key:p.acf?.key,
+          action:p.acf?.action, title:p.title?.rendered, contentLength:String(p.content?.raw || '').length })),
+        posts: posts.map(p => ({ id:p.id, slug:p.slug, status:p.status, type:p.type })),
+      });
+      throw Error('Canonical order slug unavailable; WordPress returned ' + target.slug);
+    }
     record('PAGE_CANONICAL_SLUG_UPDATED', { id: target.id, from: previous, to: target.slug });
   }
   pageId = target.id;
