@@ -66,8 +66,14 @@ try {
     // Never log a real customer in or out: only the synthetic intercepted API
     // responds to the Account Page's existing logout action.
     await page.locator('[data-account-logout]').click();
-    await dot.waitFor({ state: 'hidden', timeout: 12000 });
-    assert.equal(await dot.isVisible(), false, 'Logout must clear the green dot');
+    await page.locator('[data-account-guest]').waitFor({ state: 'visible', timeout: 12000 });
+    await accountLink.waitFor({ state: 'attached', timeout: 12000 });
+    await page.waitForFunction(() => {
+      const node = document.querySelector('a[data-header-action="account"] [data-account-online-dot]');
+      return node instanceof HTMLElement && node.hidden;
+    }, null, { timeout: 12000 });
+    assert.equal(await dot.evaluate(element => element.hidden), true,
+      'Logout must clear the green dot DOM state');
     report.cases.push({ viewport: viewport.name, case: 'logout: dot cleared', ok: true });
 
     await context.close();
