@@ -87,7 +87,9 @@ try {
   assert.equal(String(table.id), TABLE);
   assert.equal(table.fields?.[0]?.key, 'key');
   assert.equal(table.fields?.[1]?.key, 'label');
-  const present = new Map((table.items || []).map(item => [String(item.key), String(item.label)]));
+  if (!Array.isArray(table.items)) throw Error('ESC Table items response invalid');
+  const present = new Map(table.items.map(item => [String(item.key), String(item.label)]));
+  if (present.size !== table.items.length) throw Error('Duplicate ESC semantic key');
   for (const [key] of LABELS) if (!present.has(key)) throw Error('ESC Table missing semantic key: ' + key);
   record('TABLE_REST_PASS', { items: present.size });
 
