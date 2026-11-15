@@ -1,5 +1,5 @@
 name: Marine Aqua Astro source checks Product Builder (NO DEPLOY)
-# Verify mobile account indicator survives the SVG render contract.
+# Validate account dropdown, shared profile/logout and responsive Astro header.
 # Regression checks now include redirect-alias and nested brand route Vitest cases.
 on:
   push:
