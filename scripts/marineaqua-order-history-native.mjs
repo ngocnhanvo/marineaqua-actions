@@ -181,18 +181,32 @@ try {
     if (!result.ok) throw Error('WordPress REST ' + method + ' HTTP=' + result.status + ' code=' + result.data?.code);
     return result.data;
   };
-  const inventory = await req('GET', '/wp-json/wp/v2/pages?context=edit&per_page=100&_fields=id,slug,status,acf,title,content');
+  const inventory = await req('GET', '/wp-json/wp/v2/pages?context=edit&status=any&per_page=100&_fields=id,slug,status,acf,title,content');
   const trashed = await req('GET', '/wp-json/wp/v2/pages?context=edit&status=trash&per_page=100&_fields=id,slug,status,acf,title');
   if (!Array.isArray(inventory) || !Array.isArray(trashed)) throw Error('Page inventory invalid');
   const matches = inventory.filter(p => isOwnedSlug(p.slug) || p.acf?.key === KEY);
+  record('OWNED_PAGE_INVENTORY', {
+    items: matches.map(p => ({ id:p.id, slug:p.slug, status:p.status,
+      key:p.acf?.key || null, action:p.acf?.action || null,
+      title:p.title?.rendered || null, contentLength:String(p.content?.raw || '').trim().length }))
+  });
   const prior = trashed.filter(p => p.acf?.key === KEY && p.acf?.action === ACTION &&
     isOwnedSlug(p.slug));
   record('PAGE_TRASH_INVENTORY', { items: prior.map(p => ({ id:p.id, slug:p.slug, key:p.acf?.key })) });
   // Only consolidate identity-verified duplicates. Never touch unrelated Pages,
   // even when their URL resembles an order-history route.
-  const owned = matches.filter(p => isOwnedSlug(p.slug) &&
+  const safeAbandonedDrafts = matches.filter(p =>
+    p.slug === SLUG && p.status === 'draft' && !p.acf?.key && !p.acf?.action &&
+    String(p.title?.rendered || '').trim() === TITLE &&
+    !String(p.content?.raw || '').trim());
+  for (const draft of safeAbandonedDrafts) {
+    await req('DELETE', '/wp-json/wp/v2/pages/' + draft.id);
+    record('EMPTY_UNUSED_ORDER_DRAFT_TRASHED', { id:draft.id, slug:draft.slug });
+  }
+  const activeMatches = matches.filter(p => !safeAbandonedDrafts.includes(p));
+  const owned = activeMatches.filter(p => isOwnedSlug(p.slug) &&
     p.acf?.key === KEY && p.acf?.action === ACTION);
-  const foreign = matches.filter(p => !owned.includes(p));
+  const foreign = activeMatches.filter(p => !owned.includes(p));
   if (foreign.length) throw Error('Order slug occupied by another Page identity; refuse mutation');
   const publishedOwned = owned.filter(p => p.status === 'publish');
   if (publishedOwned.length > 1) throw Error('Multiple published order Pages; review required');
