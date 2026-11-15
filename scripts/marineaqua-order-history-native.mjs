@@ -229,8 +229,13 @@ try {
     rawExcerpt: rawBefore.slice(0, 450) });
   if (duplicateCount > 1) {
     const shortcode = '[table id=order_history_vi /]';
-    const without = rawBefore.replace(shortcodeRegex, '').trim();
-    if (without) throw Error('Page has additional authored content; refuse automatic duplicate cleanup');
+    // The native TablePress editor adds its own visual thumbnail wrapper, with
+    // a second printable shortcode in its preview badge. That wrapper is
+    // generated editor chrome, not authored Page content. Remove ONLY its
+    // exact known structure; preserve real user-authored content fail-closed.
+    const wrapperPattern = /<div class="tablepress-preview-wrap mceNonEditable" data-table-id="order_history_vi"><img id="tablepress-img-order_history_vi" src="\\/wp-json\\/api\\/image\\/tablepress\\?id=order_history_vi" alt="Hình ảnh cho table order_history_vi" width="300" height="200" class="tablepress-attached-image mceNonEditable" data-table-id="order_history_vi" \\/><span class="tablepress-preview-badge">\\[table id=order_history_vi \\/\\]<\\/span><\\/div>/g;
+    const without = rawBefore.replace(wrapperPattern, '').trim();
+    if (without !== shortcode) throw Error('Page contains additional authored content; refuse automatic cleanup');
     await page.goto(WP + '/wp-admin/post.php?post=' + pageId + '&action=edit',
       { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.locator('#content-html').click();
