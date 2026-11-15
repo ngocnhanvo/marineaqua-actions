@@ -1,5 +1,5 @@
 name: Marine Aqua product category active menu live QA
-# Verify deployed original shop Page redirect and complete public sitemap inventory.
+# Verify the fixed desktop/mobile account online dot on production.
 on:
   push:
     branches: [main]
