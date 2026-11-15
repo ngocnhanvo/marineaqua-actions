@@ -1,5 +1,5 @@
 name: Marine Aqua product category active menu live QA
-# Verify account dropdown profile, orders, dismissals and logout on production.
+# Confirm production account panel and missing order-history Page graceful state.
 on:
   push:
     branches: [main]
