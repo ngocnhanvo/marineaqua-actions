@@ -1,5 +1,5 @@
 name: Marine Aqua Astro source checks Product Builder (NO DEPLOY)
-# Validate account dropdown, shared profile/logout and responsive Astro header.
+# Verify account dropdown respects WordPress-published order page availability.
 # Regression checks now include redirect-alias and nested brand route Vitest cases.
 on:
   push:
