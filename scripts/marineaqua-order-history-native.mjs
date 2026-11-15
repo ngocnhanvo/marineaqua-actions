@@ -6,6 +6,7 @@ const WP = 'https://admin.marine-aqua.io.vn';
 const SLUG = 'don-hang-cua-toi';
 const KEY = 'orderhistory';
 const ACTION = 'OrderHistoryPage';
+const isOwnedSlug = slug => typeof slug === 'string' && (slug === SLUG || (slug.startsWith(SLUG + '-') && /^\d+$/.test(slug.slice(SLUG.length + 1))));
 const TABLE = 'order_history_vi';
 const TITLE = 'Lịch sử đơn hàng';
 const LABELS = [
@@ -183,13 +184,13 @@ try {
   const inventory = await req('GET', '/wp-json/wp/v2/pages?context=edit&per_page=100&_fields=id,slug,status,acf,title,content');
   const trashed = await req('GET', '/wp-json/wp/v2/pages?context=edit&status=trash&per_page=100&_fields=id,slug,status,acf,title');
   if (!Array.isArray(inventory) || !Array.isArray(trashed)) throw Error('Page inventory invalid');
-  const matches = inventory.filter(p => p.slug === SLUG || p.acf?.key === KEY);
+  const matches = inventory.filter(p => isOwnedSlug(p.slug) || p.acf?.key === KEY);
   const prior = trashed.filter(p => p.acf?.key === KEY && p.acf?.action === ACTION &&
-    (p.slug === SLUG || p.slug.startsWith(SLUG + '-')));
+    isOwnedSlug(p.slug));
   record('PAGE_TRASH_INVENTORY', { items: prior.map(p => ({ id:p.id, slug:p.slug, key:p.acf?.key })) });
   if (matches.length > 1) throw Error('Conflicting active order history Pages; no mutation');
   let target = matches[0];
-  if (target && (target.slug !== SLUG || target.acf?.key !== KEY || target.acf?.action !== ACTION)) {
+  if (target && (!isOwnedSlug(target.slug) || target.acf?.key !== KEY || target.acf?.action !== ACTION)) {
     throw Error('Existing order Page identity conflicts; refuse mutation');
   }
   if (!target && prior.length) {
@@ -218,7 +219,7 @@ try {
     action: readback?.acf?.action ?? null,
     lang: readback?.acf?.product_lang ?? null,
   });
-  if (readback.slug !== SLUG || readback.acf?.key !== KEY || readback.acf?.action !== ACTION) {
+  if (!isOwnedSlug(readback.slug) || readback.acf?.key !== KEY || readback.acf?.action !== ACTION) {
     throw Error('Page key/action REST readback failed');
   }
   const shortcodeRegex = /\[table\s+id=["']?order_history_vi["']?\s*\/\]/gi;
@@ -298,7 +299,7 @@ try {
     record('EXISTING_PAGE_PUBLISHED');
   }
   readback = await req('GET', '/wp-json/wp/v2/pages/' + pageId + '?context=edit');
-  if (readback.status !== 'publish' || readback.slug !== SLUG || readback.acf?.key !== KEY || readback.acf?.action !== ACTION) {
+  if (readback.status !== 'publish' || !isOwnedSlug(readback.slug) || readback.acf?.key !== KEY || readback.acf?.action !== ACTION) {
     throw Error('Published Page identity verification failed');
   }
   if ((String(readback.content?.raw || '').match(shortcodeRegex) || []).length !== 1) {
