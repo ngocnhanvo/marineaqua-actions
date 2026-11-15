@@ -277,7 +277,21 @@ try {
       acfExcerpt: probe.acf.slice(0, 260),
     });
     if (counts.raw !== 1 && counts.visual !== 1 && counts.acf !== 1) {
-      throw Error('Native Insert Code failed to produce one shortcode in any registered editor');
+      // The plugin picker has been clicked on the exact verified table.
+      // Use WordPress's native QuickTags insertion API if its delegated
+      // Thickbox click handler didn't update the current Text editor.
+      const nativeInserted = await page.evaluate(code => {
+        const el = document.getElementById('content');
+        if (!(el instanceof HTMLTextAreaElement) ||
+            typeof window.QTags?.insertContent !== 'function') return false;
+        window.wpActiveEditor = 'content';
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+        window.QTags.insertContent(code);
+        return el.value.includes(code);
+      }, '[table id=order_history_vi /]');
+      record('NATIVE_QUICKTAGS_FALLBACK', { inserted: nativeInserted });
+      if (!nativeInserted) throw Error('WordPress native Insert Code/QuickTags both unavailable');
     }
     if (counts.raw !== 1) {
       await page.evaluate(() => window.tinymce?.triggerSave());
