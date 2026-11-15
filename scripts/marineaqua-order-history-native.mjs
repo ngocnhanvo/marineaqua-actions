@@ -134,7 +134,7 @@ try {
   if (readback.slug !== SLUG || readback.acf?.key !== KEY || readback.acf?.action !== ACTION) {
     throw Error('Page key/action REST readback failed');
   }
-  const shortcodeRegex = /\\[table\\s+id=["']?order_history_vi["']?\\s*\\/\\]/gi;
+  const shortcodeRegex = /\[table\s+id=["']?order_history_vi["']?\s*\/\]/gi;
   if ((String(readback.content?.raw || '').match(shortcodeRegex) || []).length > 1) throw Error('Duplicate native shortcode');
   if (!shortcodeRegex.test(String(readback.content?.raw || ''))) {
     if (String(readback.content?.raw || '').trim()) throw Error('Existing Page content nonempty; preserve edits and refuse overwrite');
