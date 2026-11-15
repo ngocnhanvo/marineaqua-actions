@@ -250,8 +250,9 @@ try {
     }
     if (counts.raw !== 1) {
       await page.evaluate(() => window.tinymce?.triggerSave());
-      await page.waitForFunction(() => /\\[table\\s+id=[\"']?order_history_vi/i.test(
-        String(document.querySelector('#content')?.value || '')), null, { timeout: 12000 });
+      await page.waitForFunction(() => String(
+        document.querySelector('#content')?.value || '').includes('order_history_vi'),
+        null, { timeout: 12000 });
     }
     const raw = await page.locator('#content').inputValue();
     if ((raw.match(shortcodeRegex) || []).length !== 1) {
