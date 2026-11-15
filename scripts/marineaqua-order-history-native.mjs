@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 const WP = 'https://admin.marine-aqua.io.vn';
-const SLUG = 'lich-su-don-hang';
+const SLUG = 'don-hang-cua-toi';
 const KEY = 'orderhistory';
 const ACTION = 'OrderHistoryPage';
 const TABLE = 'order_history_vi';
