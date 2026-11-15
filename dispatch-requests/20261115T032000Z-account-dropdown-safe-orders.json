@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "5b10a6eeb6c168d8ef2d752e2b6dbc3d4517ebad",
+  "reason": "Publish account panel including unavailable order-history state",
+  "request_id": "20261115T032000Z-account-dropdown-safe-orders",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
