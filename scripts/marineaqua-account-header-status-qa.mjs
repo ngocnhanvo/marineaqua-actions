@@ -67,6 +67,8 @@ try {
 
     // Never log a real customer in or out: only the synthetic intercepted API
     // responds to the Account Page's existing logout action.
+    // Close the mobile navigation so it cannot cover the logout button.
+    if (viewport.name === 'mobile') await page.locator('#hamburger-btn').click();
     await page.locator('[data-account-logout]').click();
     await page.locator('[data-account-guest]').waitFor({ state: 'visible', timeout: 12000 });
     await accountLink.waitFor({ state: 'attached', timeout: 12000 });
