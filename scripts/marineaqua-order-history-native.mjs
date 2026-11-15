@@ -204,8 +204,9 @@ try {
     record('EMPTY_UNUSED_ORDER_DRAFT_TRASHED', { id:draft.id, slug:draft.slug });
   }
   const activeMatches = matches.filter(p => !safeAbandonedDrafts.includes(p));
-  const owned = activeMatches.filter(p => isOwnedSlug(p.slug) &&
-    p.acf?.key === KEY && p.acf?.action === ACTION);
+  const owned = activeMatches.filter(p =>
+    p.acf?.key === KEY && p.acf?.action === ACTION &&
+    (isOwnedSlug(p.slug) || /^lich-su-don-hang(?:-\\d+)?$/.test(String(p.slug || ''))));
   const foreign = activeMatches.filter(p => !owned.includes(p));
   if (foreign.length) throw Error('Order slug occupied by another Page identity; refuse mutation');
   const publishedOwned = owned.filter(p => p.status === 'publish');
@@ -213,8 +214,9 @@ try {
   let target = publishedOwned[0] || owned.find(p => p.slug === SLUG) ||
     [...owned].sort((a,b) => b.id - a.id)[0];
   for (const duplicate of owned.filter(p => p.id !== target?.id)) {
-    if (!['draft', 'pending', 'private', 'future'].includes(duplicate.status))
-      throw Error('Unexpected order Page duplicate status: ' + duplicate.status);
+    if (duplicate.status !== 'draft' || String(duplicate.content?.raw || '').trim()) {
+      throw Error('Duplicate order Page has content or is not a draft; refuse cleanup: ' + duplicate.id);
+    }
     await req('DELETE', '/wp-json/wp/v2/pages/' + duplicate.id);
     record('UNUSED_OWNED_PAGE_TRASHED', { id: duplicate.id, slug: duplicate.slug });
   }
