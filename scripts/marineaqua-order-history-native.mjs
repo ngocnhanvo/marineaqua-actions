@@ -198,6 +198,14 @@ try {
   pageId = target.id;
   if (!Number.isSafeInteger(pageId) || pageId <= 0) throw Error('Invalid Page ID');
   let readback = await req('GET', '/wp-json/wp/v2/pages/' + pageId + '?context=edit');
+  record('PAGE_IDENTITY_READBACK', {
+    id: readback?.id,
+    slug: readback?.slug,
+    status: readback?.status,
+    key: readback?.acf?.key ?? null,
+    action: readback?.acf?.action ?? null,
+    lang: readback?.acf?.product_lang ?? null,
+  });
   if (readback.slug !== SLUG || readback.acf?.key !== KEY || readback.acf?.action !== ACTION) {
     throw Error('Page key/action REST readback failed');
   }
