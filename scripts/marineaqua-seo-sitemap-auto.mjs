@@ -50,51 +50,39 @@ try {
   const before = await readSourceConfig();
   assert.equal(before.version, 1, 'Unexpected SEO Files schema');
   assert.equal(before.site, FRONT, 'SEO Files site identity mismatch');
-  assert.equal(before.mode, 'manual', 'Expected the diagnosed manual sitemap mode');
-  const manualLocCount = (before.manualXml.match(/<loc>\s*[^<]+?\s*<\/loc>/gi) || []).length;
-  assert.equal(manualLocCount, 1, 'Manual XML changed since the read-only diagnosis; refusing write');
-  assert.equal(before.extra.length, 0, 'Unexpected manual-to-auto extra URL configuration');
-  assert.equal(before.exclude.length, 0, 'Unexpected manual-to-auto exclude URL configuration');
+  assert.equal(before.mode, 'auto', 'Automatic sitemap must remain enabled');
+  const requested = ['/thanh-toan', '/gio-hang', '/tai-khoan', '/don-hang-cua-toi'];
+  const existing = before.exclude.map(String);
+  const next = [...new Set([...existing, ...requested])];
+  // Only change this one WordPress SEO Files field. Existing editor exclusions
+  // and manually added URLs must be preserved.
   report.before = {
-    mode: before.mode, manualXmlBytes: before.manualXml.length,
-    manualXmlLocCount: manualLocCount, extraUrlCount: before.extra.length,
-    excludeUrlCount: before.exclude.length
+    mode:before.mode, extra:before.extra, exclude:existing,
+    manualXmlBytes:before.manualXml.length
   };
-
-  const autoRadio = page.locator('input[name="sitemap_mode"][value="auto"]');
-  await autoRadio.check();
-  const form = page.locator('input[name="action"][value="esc_seo_files_save"]').locator('xpath=..');
-  const submit = page.getByRole('button', { name: /Lưu sitemap\.xml/i });
-  if (await submit.count()) {
-    await submit.first().click();
-  } else {
-    const input = page.locator('input[type="submit"][value*="sitemap.xml"]');
-    assert.equal(await input.count(), 1, 'Could not identify the native Save sitemap action');
-    await input.click();
+  const textarea = page.locator('#esc-seo-exclude');
+  await textarea.waitFor({state:'visible',timeout:15000});
+  const current = (await textarea.inputValue()).split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);
+  assert.deepEqual(current, existing, 'Sitemap admin form disagrees with REST exclusion readback');
+  if (next.length !== existing.length) {
+    await textarea.fill(next.join('\\n'));
+    const submit = page.getByRole('button', {name:/Lưu sitemap\\.xml/i});
+    assert.equal(await submit.count(),1,'Native sitemap Save button unavailable');
+    await Promise.all([
+      page.waitForURL(url => url.pathname.endsWith('/options-general.php'),{timeout:30000}),
+      submit.click()
+    ]);
+    report.writes = 1;
   }
-  await page.waitForLoadState('domcontentloaded', { timeout: 30000 }).catch(() => {});
-  await page.waitForTimeout(600);
-  report.writes = 1;
-
   const after = await readSourceConfig();
-  assert.equal(after.mode, 'auto', 'WordPress did not persist automatic sitemap mode');
-  assert.deepEqual(after.extra, before.extra, 'Auto sitemap extra URL list changed unexpectedly');
-  assert.deepEqual(after.exclude, before.exclude, 'Auto sitemap exclusion list changed unexpectedly');
-  report.after = {
-    mode: after.mode, manualXmlBytes: after.manualXml.length,
-    extraUrlCount: after.extra.length, excludeUrlCount: after.exclude.length
-  };
-  // The plugin saves the previous manual XML into its own restore backup before
-  // changing the option. Verify that the native restore action is now present.
-  report.backupRestoreActionVisible =
-    await page.locator('form input[name="action"][value="esc_seo_files_restore"]').count() === 1;
-  assert.ok(report.backupRestoreActionVisible,
-    'WordPress did not expose the saved sitemap restore action after switching modes');
-
+  assert.equal(after.mode,'auto','Sitemap mode changed unexpectedly');
+  assert.deepEqual(after.extra,before.extra,'Existing extra URL config changed');
+  assert.equal(after.manualXml,before.manualXml,'Manual restore data changed');
+  assert.deepEqual(after.exclude,next,'WordPress exclusion readback mismatch');
+  report.after = {mode:after.mode,extra:after.extra,exclude:after.exclude};
   report.status = 'PASS';
-  console.log('MARINEAQUA_SITEMAP_MODE_UPDATE=PASS ' + JSON.stringify({
-    previousMode: before.mode, currentMode: after.mode,
-    backupRestoreActionVisible: report.backupRestoreActionVisible
+  console.log('MARINEAQUA_SITEMAP_EXCLUSIONS=PASS '+JSON.stringify({
+    excluded:next, writes:report.writes, preservedExtra:true, mode:after.mode
   }));
   await context.close();
 } catch (error) {
