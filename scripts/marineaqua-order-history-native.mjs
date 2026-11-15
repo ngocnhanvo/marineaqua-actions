@@ -223,7 +223,40 @@ try {
     throw Error('Page key/action REST readback failed');
   }
   const shortcodeRegex = /\[table\s+id=["']?order_history_vi["']?\s*\/\]/gi;
-  if ((String(readback.content?.raw || '').match(shortcodeRegex) || []).length > 1) throw Error('Duplicate native shortcode');
+  const rawBefore = String(readback.content?.raw || '');
+  const duplicateCount = (rawBefore.match(shortcodeRegex) || []).length;
+  record('PAGE_EXISTING_SHORTCODES', { count: duplicateCount, rawLength: rawBefore.length,
+    rawExcerpt: rawBefore.slice(0, 450) });
+  if (duplicateCount > 1) {
+    const shortcode = '[table id=order_history_vi /]';
+    const without = rawBefore.replace(shortcodeRegex, '').trim();
+    if (without) throw Error('Page has additional authored content; refuse automatic duplicate cleanup');
+    await page.goto(WP + '/wp-admin/post.php?post=' + pageId + '&action=edit',
+      { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.locator('#content-html').click();
+    await page.evaluate(() => { window.switchEditors?.go?.('content','html'); });
+    const editor = page.locator('#content');
+    await editor.waitFor({ state:'visible',timeout:20000 });
+    if ((await editor.inputValue()) !== rawBefore) {
+      throw Error('Page content changed after REST duplicate snapshot; abort cleanup');
+    }
+    await editor.fill(shortcode);
+    await page.evaluate(() => {
+      window.wpActiveEditor = 'content';
+      const active = window.tinymce?.get('content');
+      if (active && !active.isHidden()) active.hide();
+    });
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 45000 }),
+      page.locator('#publish').click()
+    ]);
+    const verified = await req('GET', '/wp-json/wp/v2/pages/' + pageId + '?context=edit');
+    if ((String(verified.content?.raw || '').match(shortcodeRegex) || []).length !== 1) {
+      throw Error('Duplicate cleanup failed WordPress REST readback');
+    }
+    record('NATIVE_DUPLICATE_CLEANUP_PASS', { pageId });
+    readback = verified;
+  }
   if (!shortcodeRegex.test(String(readback.content?.raw || ''))) {
     if (String(readback.content?.raw || '').trim()) throw Error('Existing Page content nonempty; preserve edits and refuse overwrite');
     await page.goto(WP + '/wp-admin/post.php?post=' + pageId + '&action=edit', { waitUntil: 'domcontentloaded', timeout: 45000 });
