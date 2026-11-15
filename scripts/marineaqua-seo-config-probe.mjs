@@ -47,11 +47,23 @@ try {
 
 try {
   const result = await get(FRONT + '/sitemap.xml', 'application/xml,text/xml,*/*');
+  const urls = locs(result.text);
+  const paths = urls.map(raw => {
+    const value = new URL(raw);
+    if (value.origin !== FRONT) throw new Error('Sitemap has wrong origin: ' + value.origin);
+    return value.pathname.replace(/\/$/, '') || '/';
+  });
+  const sensitive = paths.filter(p => /^(?:\/don-hang-cua-toi(?:-4)?|\/gio-hang|\/thanh-toan|\/tai-khoan|\/dang-nhap|\/quen-mat-khau)(?:\/|$)/.test(p));
+  const duplicateCount = paths.length - new Set(paths).size;
   report.publicSitemap = {
     status: result.status, finalUrl: result.finalUrl, bytes: result.bytes,
-    contentType: result.headers.contentType, locCount: locs(result.text).length,
+    contentType: result.headers.contentType, locCount: paths.length,
     root: (result.text.match(/<(urlset|sitemapindex)\b/i) || [])[1] || null,
+    duplicateCount, sensitive, hasHome: paths.includes('/'),
+    hasOrdersOldSlug: paths.includes('/don-hang-cua-toi-4')
   };
+  if (result.status !== 200 || duplicateCount || !paths.includes('/'))
+    throw new Error('Sitemap HTTP/duplicate/home verification failed');
 } catch (error) {
   report.errors.push({ scope: 'public-sitemap', message: String(error?.message || error) });
 }
