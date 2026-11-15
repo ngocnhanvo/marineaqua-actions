@@ -72,6 +72,18 @@ try {
     assert.equal(await panel.locator('[data-account-panel-name]').innerText(), 'Synthetic Customer');
     assert.equal(await panel.locator('[data-account-panel-email]').innerText(), 'fixture@example.invalid');
     const orderLink = panel.locator('[data-account-orders]');
+    if (await orderLink.count() !== 1) {
+      const response = await page.request.get('https://admin.marine-aqua.io.vn/wp-json/wp/v2/pages?per_page=100&_fields=id,slug,title,acf,status', { timeout: 25000 });
+      const pages = response.ok() ? await response.json() : [];
+      console.log('MARINEAQUA_ACCOUNT_ORDER_PAGE_INVENTORY=' + JSON.stringify({
+        httpStatus: response.status(),
+        pages: Array.isArray(pages) ? pages.map(item => ({
+          id: item.id, slug: item.slug,
+          title: String(item.title?.rendered || '').slice(0, 100),
+          key: item.acf?.key || null, action: item.acf?.action || null
+        })) : [],
+      }));
+    }
     assert.equal(await orderLink.count(), 1, 'Published order history link missing');
     assert.match(await orderLink.getAttribute('href') || '', /^\//, 'Order history must use a local WordPress Page URL');
     assert.match(await panel.locator('[data-account-panel-logout]').innerText(), /Đăng xuất|Log out/);
