@@ -303,11 +303,26 @@ try {
     if ((raw.match(shortcodeRegex) || []).length !== 1) {
       throw Error('Native Editor did not synchronize its shortcode into the WordPress Page source');
     }
+    const editorBeforeSave = await page.evaluate(() => {
+      const active = window.tinymce?.get?.('content');
+      if (active && !active.isHidden()) active.hide();
+      return {
+        hidden: !active || active.isHidden(),
+        raw: String(document.querySelector('#content')?.value || '').slice(0, 180),
+        active: window.wpActiveEditor,
+        editorMode: String(document.querySelector('#wp-content-wrap')?.className || ''),
+      };
+    });
+    record('PAGE_EDITOR_BEFORE_SAVE', editorBeforeSave);
+    if (!editorBeforeSave.hidden) throw Error('TinyMCE must not override native QuickTags content');
     await Promise.all([
       page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 45000 }),
       page.locator('#publish').click(),
     ]);
-    record('PAGE_NATIVE_INSERT_AND_SAVE');
+    record('PAGE_NATIVE_INSERT_AND_SAVE', {
+      url: page.url().slice(0, 180),
+      adminMessage: (await page.locator('#message').innerText().catch(() => '')).slice(0, 180),
+    });
   } else if (readback.status !== 'publish') {
     await req('POST', '/wp-json/wp/v2/pages/' + pageId, { status: 'publish' });
     record('EXISTING_PAGE_PUBLISHED');
@@ -316,6 +331,12 @@ try {
   if (readback.status !== 'publish' || !isOwnedSlug(readback.slug) || readback.acf?.key !== KEY || readback.acf?.action !== ACTION) {
     throw Error('Published Page identity verification failed');
   }
+  record('PAGE_SHORTCODE_READBACK', {
+    rawLength: String(readback.content?.raw || '').length,
+    rawExcerpt: String(readback.content?.raw || '').slice(0, 380),
+    renderedExcerpt: String(readback.content?.rendered || '').slice(0, 230),
+    status: readback.status,
+  });
   if ((String(readback.content?.raw || '').match(shortcodeRegex) || []).length !== 1) {
     throw Error('Published Page native shortcode not persisted');
   }
