@@ -84,12 +84,60 @@ try {
     record('TABLE_NATIVE_CREATED');
   }
   if (!table) throw Error('ESC Table missing after native Save');
-  assert.equal(String(table.id), TABLE);
-  if (String(table.meta?.api || '').trim()) throw Error('Order history labels must not bind a product API source');
+  const tableKeys = value => new Map((Array.isArray(value?.items) ? value.items : []).map(item => [String(item.key), String(item.label)]));
+  const expectedKeysPresent = value => {
+    const rows = tableKeys(value);
+    return LABELS.every(([key]) => rows.has(key));
+  };
+  // TablePress native Save may return a cached table snapshot before its row data settles.
+  for (let attempt = 0; attempt < 8 && !expectedKeysPresent(table); attempt++) {
+    await page.waitForTimeout(650);
+    table = await fetchTable();
+  }
+  if (!expectedKeysPresent(table)) {
+    record('NATIVE_READBACK_DIAGNOSTIC', {
+      fields: (table.fields || []).map(field => field.key),
+      itemCount: Array.isArray(table.items) ? table.items.length : -1,
+      itemKeys: (table.items || []).slice(0, 5).map(item => String(item.key)),
+    });
+    // Only hydrate blank cells belonging to our exact known schema and dimensions.
+    if (String(table.id) !== TABLE ||
+        table.fields?.[0]?.key !== 'key' || table.fields?.[1]?.key !== 'label') {
+      throw Error('Unexpected native ESC Table schema; refuse mutation');
+    }
+    await page.goto(WP + '/wp-admin/admin.php?page=tablepress&action=edit&table_id=' + TABLE,
+      { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.waitForFunction(() => Boolean(window.tp?.editor?.setValueFromCoords && window.tp?.table?.data),
+      null, { timeout: 25000 });
+    const before = await page.evaluate(() => window.tp.table.data);
+    const rows = [['key', 'label'], ...LABELS];
+    if (before.length !== rows.length || before.some((row, i) =>
+        row.length !== 2 || row.some((cell, ci) => String(cell || '').trim() !== '' &&
+          String(cell).trim() !== rows[i][ci]))) {
+      throw Error('Native ESC Table rows conflict with required labels; refuse overwrite');
+    }
+    await page.evaluate(rows => {
+      rows.forEach((row, ri) => row.forEach((value, ci) => {
+        if (!String(window.tp.table.data?.[ri]?.[ci] || '').trim()) {
+          window.tp.editor.setValueFromCoords(ci, ri, value);
+        }
+      }));
+    }, rows);
+    await page.getByRole('button', { name: /Save Changes/i }).first().click();
+    for (let attempt = 0; attempt < 10; attempt++) {
+      await page.waitForTimeout(800);
+      table = await fetchTable();
+      if (expectedKeysPresent(table)) break;
+    }
+    record('NATIVE_ROWS_SAVED', { itemCount: table.items?.length || 0 });
+  }
+  if (String(table.id) !== TABLE || String(table.meta?.api || '').trim()) {
+    throw Error('Order history table ID/source mismatch');
+  }
   assert.equal(table.fields?.[0]?.key, 'key');
   assert.equal(table.fields?.[1]?.key, 'label');
   if (!Array.isArray(table.items)) throw Error('ESC Table items response invalid');
-  const present = new Map(table.items.map(item => [String(item.key), String(item.label)]));
+  const present = tableKeys(table);
   if (present.size !== table.items.length) throw Error('Duplicate ESC semantic key');
   for (const [key] of LABELS) if (!present.has(key)) throw Error('ESC Table missing semantic key: ' + key);
   record('TABLE_REST_PASS', { items: present.size });
