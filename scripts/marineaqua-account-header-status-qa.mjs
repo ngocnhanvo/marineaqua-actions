@@ -34,7 +34,9 @@ try {
         body: JSON.stringify({ success: true }),
       });
     });
-    const accountLink = page.locator('a[data-header-action="account"]');
+    const accountLink = page.locator(viewport.name === 'mobile'
+      ? '#mobile-menu-container a[data-header-action="account"]'
+      : '#header-contacts a[data-header-action="account"]');
     const dot = accountLink.locator('[data-account-online-dot]');
     async function visit() {
       const response = await page.goto(FRONT + '/tai-khoan', {
@@ -69,7 +71,9 @@ try {
     await page.locator('[data-account-guest]').waitFor({ state: 'visible', timeout: 12000 });
     await accountLink.waitFor({ state: 'attached', timeout: 12000 });
     await page.waitForFunction(() => {
-      const node = document.querySelector('a[data-header-action="account"] [data-account-online-dot]');
+      const node = document.querySelector(window.innerWidth < 1024
+        ? '#mobile-menu-container a[data-header-action="account"] [data-account-online-dot]'
+        : '#header-contacts a[data-header-action="account"] [data-account-online-dot]');
       return node instanceof HTMLElement && node.hidden;
     }, null, { timeout: 12000 });
     assert.equal(await dot.evaluate(element => element.hidden), true,
