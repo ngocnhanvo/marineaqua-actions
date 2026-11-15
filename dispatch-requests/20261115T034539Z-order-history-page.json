@@ -1,0 +1,10 @@
+{
+  "action": "repository_dispatch",
+  "source_sha": "1dc1a2e4631db3bd9a5ce8fa72148315683ebe18",
+  "reason": "Publish WordPress-backed account order history page",
+  "request_id": "20261115T034539Z-order-history-page",
+  "event_type": "wp_trigger_build",
+  "client_payload": {
+    "site_domain": "marine-aqua.io.vn"
+  }
+}
